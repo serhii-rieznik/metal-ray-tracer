@@ -1,0 +1,361 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 50;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		6EC4F6C5214D90C5003A48EA /* AppDelegate.mm in Sources */ = {isa = PBXBuildFile; fileRef = 6EC4F6C4214D90C5003A48EA /* AppDelegate.mm */; };
+		6EC4F6C8214D90C5003A48EA /* Renderer.mm in Sources */ = {isa = PBXBuildFile; fileRef = 6EC4F6C7214D90C5003A48EA /* Renderer.mm */; };
+		6EC4F6CB214D90C5003A48EA /* GameViewController.mm in Sources */ = {isa = PBXBuildFile; fileRef = 6EC4F6CA214D90C5003A48EA /* GameViewController.mm */; };
+		6EC4F6D0214D90C6003A48EA /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 6EC4F6CF214D90C6003A48EA /* Assets.xcassets */; };
+		6EC4F6D3214D90C6003A48EA /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 6EC4F6D1214D90C6003A48EA /* Main.storyboard */; };
+		6EC4F6D6214D90C6003A48EA /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 6EC4F6D5214D90C6003A48EA /* main.m */; };
+		6EC853DF214DA332005418DF /* compute-shader-test.metal in Sources */ = {isa = PBXBuildFile; fileRef = 6EC853DE214DA332005418DF /* compute-shader-test.metal */; };
+		6EC853E1214DA33F005418DF /* blit.metal in Sources */ = {isa = PBXBuildFile; fileRef = 6EC853E0214DA33F005418DF /* blit.metal */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXFileReference section */
+		6EC4F6C0214D90C5003A48EA /* Metal ray-tracer.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Metal ray-tracer.app"; sourceTree = BUILT_PRODUCTS_DIR; };
+		6EC4F6C3214D90C5003A48EA /* AppDelegate.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = AppDelegate.h; sourceTree = "<group>"; };
+		6EC4F6C4214D90C5003A48EA /* AppDelegate.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = AppDelegate.mm; sourceTree = "<group>"; };
+		6EC4F6C6214D90C5003A48EA /* Renderer.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = Renderer.h; sourceTree = "<group>"; };
+		6EC4F6C7214D90C5003A48EA /* Renderer.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = Renderer.mm; sourceTree = "<group>"; };
+		6EC4F6C9214D90C5003A48EA /* GameViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = GameViewController.h; sourceTree = "<group>"; };
+		6EC4F6CA214D90C5003A48EA /* GameViewController.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = GameViewController.mm; sourceTree = "<group>"; };
+		6EC4F6CF214D90C6003A48EA /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		6EC4F6D2214D90C6003A48EA /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/Main.storyboard; sourceTree = "<group>"; };
+		6EC4F6D4214D90C6003A48EA /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		6EC4F6D5214D90C6003A48EA /* main.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = main.m; sourceTree = "<group>"; };
+		6EC4F6D7214D90C6003A48EA /* Metal_ray_tracer.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Metal_ray_tracer.entitlements; sourceTree = "<group>"; };
+		6EC853DE214DA332005418DF /* compute-shader-test.metal */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.metal; path = "compute-shader-test.metal"; sourceTree = "<group>"; };
+		6EC853E0214DA33F005418DF /* blit.metal */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.metal; path = blit.metal; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		6EC4F6BD214D90C5003A48EA /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		6EC4F6B7214D90C5003A48EA = {
+			isa = PBXGroup;
+			children = (
+				6EC4F6C2214D90C5003A48EA /* source */,
+				6EC4F6C1214D90C5003A48EA /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		6EC4F6C1214D90C5003A48EA /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				6EC4F6C0214D90C5003A48EA /* Metal ray-tracer.app */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		6EC4F6C2214D90C5003A48EA /* source */ = {
+			isa = PBXGroup;
+			children = (
+				6EC853E2214DA5A3005418DF /* macOS */,
+				6EC853DD214DA332005418DF /* Shaders */,
+				6EC4F6C6214D90C5003A48EA /* Renderer.h */,
+				6EC4F6C7214D90C5003A48EA /* Renderer.mm */,
+			);
+			path = source;
+			sourceTree = "<group>";
+		};
+		6EC853DD214DA332005418DF /* Shaders */ = {
+			isa = PBXGroup;
+			children = (
+				6EC853E0214DA33F005418DF /* blit.metal */,
+				6EC853DE214DA332005418DF /* compute-shader-test.metal */,
+			);
+			path = Shaders;
+			sourceTree = "<group>";
+		};
+		6EC853E2214DA5A3005418DF /* macOS */ = {
+			isa = PBXGroup;
+			children = (
+				6EC4F6D7214D90C6003A48EA /* Metal_ray_tracer.entitlements */,
+				6EC4F6CF214D90C6003A48EA /* Assets.xcassets */,
+				6EC4F6D1214D90C6003A48EA /* Main.storyboard */,
+				6EC4F6D4214D90C6003A48EA /* Info.plist */,
+				6EC4F6D5214D90C6003A48EA /* main.m */,
+				6EC4F6C3214D90C5003A48EA /* AppDelegate.h */,
+				6EC4F6C4214D90C5003A48EA /* AppDelegate.mm */,
+				6EC4F6C9214D90C5003A48EA /* GameViewController.h */,
+				6EC4F6CA214D90C5003A48EA /* GameViewController.mm */,
+			);
+			path = macOS;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		6EC4F6BF214D90C5003A48EA /* Metal ray-tracer */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 6EC4F6DA214D90C6003A48EA /* Build configuration list for PBXNativeTarget "Metal ray-tracer" */;
+			buildPhases = (
+				6EC4F6BC214D90C5003A48EA /* Sources */,
+				6EC4F6BD214D90C5003A48EA /* Frameworks */,
+				6EC4F6BE214D90C5003A48EA /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = "Metal ray-tracer";
+			productName = "Metal ray-tracer";
+			productReference = 6EC4F6C0214D90C5003A48EA /* Metal ray-tracer.app */;
+			productType = "com.apple.product-type.application";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		6EC4F6B8214D90C5003A48EA /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				LastUpgradeCheck = 1000;
+				ORGANIZATIONNAME = "Serhii Rieznik";
+				TargetAttributes = {
+					6EC4F6BF214D90C5003A48EA = {
+						CreatedOnToolsVersion = 10.0;
+					};
+				};
+			};
+			buildConfigurationList = 6EC4F6BB214D90C5003A48EA /* Build configuration list for PBXProject "Metal ray-tracer" */;
+			compatibilityVersion = "Xcode 9.3";
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+				Base,
+			);
+			mainGroup = 6EC4F6B7214D90C5003A48EA;
+			productRefGroup = 6EC4F6C1214D90C5003A48EA /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				6EC4F6BF214D90C5003A48EA /* Metal ray-tracer */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		6EC4F6BE214D90C5003A48EA /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				6EC4F6D0214D90C6003A48EA /* Assets.xcassets in Resources */,
+				6EC4F6D3214D90C6003A48EA /* Main.storyboard in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		6EC4F6BC214D90C5003A48EA /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				6EC853E1214DA33F005418DF /* blit.metal in Sources */,
+				6EC4F6D6214D90C6003A48EA /* main.m in Sources */,
+				6EC4F6C8214D90C5003A48EA /* Renderer.mm in Sources */,
+				6EC4F6CB214D90C5003A48EA /* GameViewController.mm in Sources */,
+				6EC853DF214DA332005418DF /* compute-shader-test.metal in Sources */,
+				6EC4F6C5214D90C5003A48EA /* AppDelegate.mm in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXVariantGroup section */
+		6EC4F6D1214D90C6003A48EA /* Main.storyboard */ = {
+			isa = PBXVariantGroup;
+			children = (
+				6EC4F6D2214D90C6003A48EA /* Base */,
+			);
+			name = Main.storyboard;
+			sourceTree = "<group>";
+		};
+/* End PBXVariantGroup section */
+
+/* Begin XCBuildConfiguration section */
+		6EC4F6D8214D90C6003A48EA /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				CODE_SIGN_IDENTITY = "-";
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 10.14;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				SDKROOT = macosx;
+			};
+			name = Debug;
+		};
+		6EC4F6D9214D90C6003A48EA /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				CODE_SIGN_IDENTITY = "-";
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 10.14;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				SDKROOT = macosx;
+			};
+			name = Release;
+		};
+		6EC4F6DB214D90C6003A48EA /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_ENTITLEMENTS = source/macOS/Metal_ray_tracer.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				COMBINE_HIDPI_IMAGES = YES;
+				INFOPLIST_FILE = "$(SRCROOT)/source/macOS/Info.plist";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = "serhii.rieznik.Metal-ray-tracer";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+			};
+			name = Debug;
+		};
+		6EC4F6DC214D90C6003A48EA /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_ENTITLEMENTS = source/macOS/Metal_ray_tracer.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				COMBINE_HIDPI_IMAGES = YES;
+				INFOPLIST_FILE = "$(SRCROOT)/source/macOS/Info.plist";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = "serhii.rieznik.Metal-ray-tracer";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		6EC4F6BB214D90C5003A48EA /* Build configuration list for PBXProject "Metal ray-tracer" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				6EC4F6D8214D90C6003A48EA /* Debug */,
+				6EC4F6D9214D90C6003A48EA /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		6EC4F6DA214D90C6003A48EA /* Build configuration list for PBXNativeTarget "Metal ray-tracer" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				6EC4F6DB214D90C6003A48EA /* Debug */,
+				6EC4F6DC214D90C6003A48EA /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = 6EC4F6B8214D90C5003A48EA /* Project object */;
+}

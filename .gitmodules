@@ -1,0 +1,6 @@
+[submodule "external/tinyobjloader"]
+	path = external/tinyobjloader
+	url = https://github.com/syoyo/tinyobjloader.git
+[submodule "external/imgui"]
+	path = external/imgui
+	url = https://github.com/ocornut/imgui.git
