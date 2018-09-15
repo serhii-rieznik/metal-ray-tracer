@@ -1,5 +1,5 @@
 //
-//  Shaders.metal
+//  compute-shader-test.metal
 //  Metal ray-tracer
 //
 //  Created by Sergey Reznik on 9/15/18.

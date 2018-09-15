@@ -1,5 +1,5 @@
 //
-//  Shaders.metal
+//  blit.metal
 //  Metal ray-tracer
 //
 //  Created by Sergey Reznik on 9/15/18.

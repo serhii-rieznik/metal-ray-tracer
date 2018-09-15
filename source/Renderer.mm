@@ -8,6 +8,7 @@
 
 #import <MetalPerformanceShaders/MetalPerformanceShaders.h>
 #import "Renderer.h"
+#import "Shaders/structures.h"
 
 static const NSUInteger MaxFrames = 3;
 
@@ -31,11 +32,17 @@ static const NSUInteger MaxFrames = 3;
     id<MTLTexture> _outputImage;
     id<MTLRenderPipelineState> _blitPipelineState;
     id<MTLComputePipelineState> _testComputeShader;
+    id<MTLBuffer> _rayBuffer;
+    id<MTLBuffer> _intersectionBuffer;
+
+    id<MTLComputePipelineState> _rayGenerator;
+    id<MTLComputePipelineState> _intersectionHandler;
 
     MPSTriangleAccelerationStructure* _accelerationStructure;
     MPSRayIntersector* _rayIntersector;
 
     MTLSize _outputImageSize;
+    uint32_t _rayCount;
 }
 
 -(nonnull instancetype)initWithMetalKitView:(nonnull MTKView*)view
@@ -63,6 +70,8 @@ static const NSUInteger MaxFrames = 3;
         }
 
         _testComputeShader = [self newComputePipelineWithFunctionName:@"imageFillTest"];
+        _rayGenerator = [self newComputePipelineWithFunctionName:@"generateRays"];
+        _intersectionHandler = [self newComputePipelineWithFunctionName:@"handleIntersections"];
 
         [self initializeRayTracing];
     }
@@ -86,6 +95,30 @@ static const NSUInteger MaxFrames = 3;
      */
     [self dispatchComputeShader:_testComputeShader withinCommandBuffer:commandBuffer setupBlock:^(id<MTLComputeCommandEncoder> commandEncoder) {
         [commandEncoder setTexture:self->_outputImage atIndex:0];
+    }];
+
+    /*
+     * Generate rays
+     */
+    [self dispatchComputeShader:_rayGenerator withinCommandBuffer:commandBuffer setupBlock:^(id<MTLComputeCommandEncoder> commandEncoder) {
+        [commandEncoder setBuffer:self->_rayBuffer offset:0 atIndex:0];
+    }];
+
+    /*
+     * Intersect rays with triangles inside acceleration structure
+     */
+    [_rayIntersector encodeIntersectionToCommandBuffer:commandBuffer
+                                      intersectionType:MPSIntersectionTypeNearest
+                                             rayBuffer:_rayBuffer rayBufferOffset:0
+                                    intersectionBuffer:_intersectionBuffer intersectionBufferOffset:0
+                                              rayCount:_rayCount accelerationStructure:_accelerationStructure];
+
+    /*
+     * Handle intersections
+     */
+    [self dispatchComputeShader:_intersectionHandler withinCommandBuffer:commandBuffer setupBlock:^(id<MTLComputeCommandEncoder> commandEncoder) {
+        [commandEncoder setTexture:self->_outputImage atIndex:0];
+        [commandEncoder setBuffer:self->_intersectionBuffer offset:0 atIndex:0];
     }];
 
     /*
@@ -116,6 +149,10 @@ static const NSUInteger MaxFrames = 3;
     outputImageDescriptor.usage |= MTLTextureUsageShaderWrite;
     outputImageDescriptor.storageMode = MTLStorageModePrivate;
     _outputImage = [_device newTextureWithDescriptor:outputImageDescriptor];
+
+    _rayCount = uint32_t(size.width) * uint32_t(size.height);
+    _rayBuffer = [_device newBufferWithLength:sizeof(Ray) * _rayCount options:MTLResourceStorageModePrivate];
+    _intersectionBuffer = [_device newBufferWithLength:sizeof(Intersection) * _rayCount options:MTLResourceStorageModePrivate];
 }
 
 /*
@@ -126,7 +163,7 @@ static const NSUInteger MaxFrames = 3;
 - (id<MTLComputePipelineState>)newComputePipelineWithFunctionName:(NSString*)functionName
 {
     NSError* error = nil;
-    id<MTLFunction> function = [_defaultLibrary newFunctionWithName:@"imageFillTest"];
+    id<MTLFunction> function = [_defaultLibrary newFunctionWithName:functionName];
     id<MTLComputePipelineState> result = [_device newComputePipelineStateWithFunction:function error:&error];
     if (error != nil)
     {
@@ -141,15 +178,36 @@ static const NSUInteger MaxFrames = 3;
 {
     id<MTLComputeCommandEncoder> commandEncoder = [commandBuffer computeCommandEncoder];
     setupBlock(commandEncoder);
-    [commandEncoder setComputePipelineState:_testComputeShader];
+    [commandEncoder setComputePipelineState:pipelineState];
     [commandEncoder dispatchThreads:_outputImageSize threadsPerThreadgroup:MTLSizeMake(8, 8, 1)];
     [commandEncoder endEncoding];
 }
 
 -(void)initializeRayTracing
 {
+    struct Vertex { float x, y, z, w; } vertices[3] = {
+        { 0.25f, 0.25f, 0.0f },
+        { 0.75f, 0.25f, 0.0f },
+        { 0.50f, 0.75f, 0.0f }
+    };
+    id<MTLBuffer> vertexBuffer = [_device newBufferWithBytes:vertices length:sizeof(vertices) options:MTLResourceStorageModeManaged];
+
+    uint32_t indices[3] = { 0, 1, 2 };
+    id<MTLBuffer> indexBuffer = [_device newBufferWithBytes:indices length:sizeof(indices) options:MTLResourceStorageModeManaged];
+
     _accelerationStructure = [[MPSTriangleAccelerationStructure alloc] initWithDevice:_device];
+    [_accelerationStructure setVertexBuffer:vertexBuffer];
+    [_accelerationStructure setVertexStride:sizeof(Vertex)];
+    [_accelerationStructure setIndexBuffer:indexBuffer];
+    [_accelerationStructure setIndexType:MPSDataTypeUInt32];
+    [_accelerationStructure setTriangleCount:1];
+    [_accelerationStructure rebuild];
+
     _rayIntersector = [[MPSRayIntersector alloc] initWithDevice:_device];
+    [_rayIntersector setRayDataType:MPSRayDataTypeOriginMinDistanceDirectionMaxDistance];
+    [_rayIntersector setRayStride:sizeof(Ray)];
+    [_rayIntersector setIntersectionDataType:MPSIntersectionDataTypeDistancePrimitiveIndexCoordinates];
+    [_rayIntersector setIntersectionStride:sizeof(Intersection)];
 }
 
 @end
