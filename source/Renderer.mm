@@ -6,6 +6,7 @@
 //  Copyright © 2018 Serhii Rieznik. All rights reserved.
 //
 
+#import <MetalPerformanceShaders/MetalPerformanceShaders.h>
 #import "Renderer.h"
 
 static const NSUInteger MaxFrames = 3;
@@ -16,6 +17,8 @@ static const NSUInteger MaxFrames = 3;
 
 -(void)dispatchComputeShader:(id<MTLComputePipelineState>)pipelineState withinCommandBuffer:(id<MTLCommandBuffer>)commandBuffer
                   setupBlock:(void(^)(id<MTLComputeCommandEncoder>))setupBlock;
+
+-(void)initializeRayTracing;
 
 @end
 
@@ -28,6 +31,9 @@ static const NSUInteger MaxFrames = 3;
     id<MTLTexture> _outputImage;
     id<MTLRenderPipelineState> _blitPipelineState;
     id<MTLComputePipelineState> _testComputeShader;
+
+    MPSTriangleAccelerationStructure* _accelerationStructure;
+    MPSRayIntersector* _rayIntersector;
 
     MTLSize _outputImageSize;
 }
@@ -57,6 +63,8 @@ static const NSUInteger MaxFrames = 3;
         }
 
         _testComputeShader = [self newComputePipelineWithFunctionName:@"imageFillTest"];
+
+        [self initializeRayTracing];
     }
 
     return self;
@@ -136,6 +144,12 @@ static const NSUInteger MaxFrames = 3;
     [commandEncoder setComputePipelineState:_testComputeShader];
     [commandEncoder dispatchThreads:_outputImageSize threadsPerThreadgroup:MTLSizeMake(8, 8, 1)];
     [commandEncoder endEncoding];
+}
+
+-(void)initializeRayTracing
+{
+    _accelerationStructure = [[MPSTriangleAccelerationStructure alloc] initWithDevice:_device];
+    _rayIntersector = [[MPSRayIntersector alloc] initWithDevice:_device];
 }
 
 @end
