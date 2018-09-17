@@ -8,6 +8,7 @@
 
 #import <MetalPerformanceShaders/MetalPerformanceShaders.h>
 #import "Renderer.h"
+#import "GeometryProvider.h"
 #import "Shaders/structures.h"
 
 static const NSUInteger MaxFrames = 3;
@@ -34,13 +35,13 @@ static const NSUInteger MaxFrames = 3;
     id<MTLComputePipelineState> _testComputeShader;
     id<MTLBuffer> _rayBuffer;
     id<MTLBuffer> _intersectionBuffer;
-
     id<MTLComputePipelineState> _rayGenerator;
     id<MTLComputePipelineState> _intersectionHandler;
 
     MPSTriangleAccelerationStructure* _accelerationStructure;
     MPSRayIntersector* _rayIntersector;
 
+    GeometryProvider _geometryProvider;
     MTLSize _outputImageSize;
     uint32_t _rayCount;
 }
@@ -185,20 +186,12 @@ static const NSUInteger MaxFrames = 3;
 
 -(void)initializeRayTracing
 {
-    struct Vertex { float x, y, z, w; } vertices[3] = {
-        { 0.25f, 0.25f, 0.0f },
-        { 0.75f, 0.25f, 0.0f },
-        { 0.50f, 0.75f, 0.0f }
-    };
-    id<MTLBuffer> vertexBuffer = [_device newBufferWithBytes:vertices length:sizeof(vertices) options:MTLResourceStorageModeManaged];
-
-    uint32_t indices[3] = { 0, 1, 2 };
-    id<MTLBuffer> indexBuffer = [_device newBufferWithBytes:indices length:sizeof(indices) options:MTLResourceStorageModeManaged];
-
+    _geometryProvider.loadFile("onotole.obj", _device);
+    
     _accelerationStructure = [[MPSTriangleAccelerationStructure alloc] initWithDevice:_device];
-    [_accelerationStructure setVertexBuffer:vertexBuffer];
+    [_accelerationStructure setVertexBuffer:_geometryProvider.getVertexBuffer()];
     [_accelerationStructure setVertexStride:sizeof(Vertex)];
-    [_accelerationStructure setIndexBuffer:indexBuffer];
+    [_accelerationStructure setIndexBuffer:_geometryProvider.getIndexBuffer()];
     [_accelerationStructure setIndexType:MPSDataTypeUInt32];
     [_accelerationStructure setTriangleCount:1];
     [_accelerationStructure rebuild];
