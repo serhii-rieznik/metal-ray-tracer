@@ -15,5 +15,5 @@ kernel void imageFillTest(texture2d<float, access::write> image [[texture(0)]],
                      uint2 size [[threads_per_grid]])
 {
     float2 uv = float2(coordinates) / float2(size - 1);
-    image.write(float4(uv, 0.0, 1.0), coordinates);
+    image.write(float4(uv, 1.0, 1.0), coordinates);
 }

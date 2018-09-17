@@ -16,10 +16,13 @@ class GeometryProvider
 public:
     void loadFile(const std::string&, id<MTLDevice>);
 
-    id<MTLBuffer> getIndexBuffer() const { return _indexBuffer; }
-    id<MTLBuffer> getVertexBuffer() const { return _vertexBuffer; }
+    id<MTLBuffer> indexBuffer() const { return _indexBuffer; }
+    id<MTLBuffer> vertexBuffer() const { return _vertexBuffer; }
+
+    uint32_t triangleCount() const { return _triangleCount; }
 
 private:
     id<MTLBuffer> _indexBuffer = nil;
     id<MTLBuffer> _vertexBuffer = nil;
+    uint32_t _triangleCount = 0;
 };

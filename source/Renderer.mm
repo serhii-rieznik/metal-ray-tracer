@@ -186,14 +186,16 @@ static const NSUInteger MaxFrames = 3;
 
 -(void)initializeRayTracing
 {
-    _geometryProvider.loadFile("onotole.obj", _device);
+    NSURL* assetUrl = [[NSBundle mainBundle] URLForResource:@"media/cornellbox" withExtension:@"obj"];
+    const char* fileName = [assetUrl fileSystemRepresentation];
+    _geometryProvider.loadFile(fileName, _device);
     
     _accelerationStructure = [[MPSTriangleAccelerationStructure alloc] initWithDevice:_device];
-    [_accelerationStructure setVertexBuffer:_geometryProvider.getVertexBuffer()];
+    [_accelerationStructure setVertexBuffer:_geometryProvider.vertexBuffer()];
     [_accelerationStructure setVertexStride:sizeof(Vertex)];
-    [_accelerationStructure setIndexBuffer:_geometryProvider.getIndexBuffer()];
+    [_accelerationStructure setIndexBuffer:_geometryProvider.indexBuffer()];
     [_accelerationStructure setIndexType:MPSDataTypeUInt32];
-    [_accelerationStructure setTriangleCount:1];
+    [_accelerationStructure setTriangleCount:_geometryProvider.triangleCount()];
     [_accelerationStructure rebuild];
 
     _rayIntersector = [[MPSRayIntersector alloc] initWithDevice:_device];
