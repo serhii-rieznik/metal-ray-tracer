@@ -14,12 +14,12 @@
 using packed_float3 = MPSPackedFloat3;
 #endif
 
-using Ray = MPSRayOriginMinDistanceDirectionMaxDistance;
-using Intersection = MPSIntersectionDistancePrimitiveIndexCoordinates;
-
 struct Vertex
 {
     packed_float3 v;
     packed_float3 n;
     packed_float2 t;
 };
+
+using Ray = MPSRayOriginMinDistanceDirectionMaxDistance;
+using Intersection = MPSIntersectionDistancePrimitiveIndexCoordinates;

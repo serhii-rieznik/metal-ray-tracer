@@ -39,9 +39,6 @@ void GeometryProvider::loadFile(const std::string& fileName, id<MTLDevice> devic
         return;
     }
 
-    NSLog(@".obj file loaded: %zu vertices, %zu normals, %zu tex coords, %zu materials", attrib.vertices.size(),
-          attrib.normals.size(), attrib.texcoords.size(), materials.size());
-
     uint32_t index = 0;
     std::vector<Vertex> vertices;
     std::vector<uint32_t> indices;
@@ -74,5 +71,8 @@ void GeometryProvider::loadFile(const std::string& fileName, id<MTLDevice> devic
     [_indexBuffer setLabel:@"Geometry index buffer"];
 
     _triangleCount = static_cast<uint32_t>(indices.size() / 3);
+
+    NSLog(@".obj file loaded: %zu vertices, %zu normals, %zu tex coords, %u triangles, %zu materials", attrib.vertices.size(),
+          attrib.normals.size(), attrib.texcoords.size(), _triangleCount, materials.size());
 }
 
