@@ -23,20 +23,21 @@ kernel void generateRays(device Ray* rays [[buffer(0)]],
 
     float aspect = float(size.x) / float(size.y);
     float2 uv = float2(coordinates) / float2(size - 1) * 2.0f - 1.0f;
-    float2 rnd = 3.0f * (noiseSample.xy * 2.0 - 1.0) / float2(size - 1);
+    float2 rnd = (noiseSample.xy * 2.0 - 1.0) / float2(size - 1);
     float3 direction = normalize(float3(aspect * (uv.x + rnd.x), uv.y + rnd.y, -1.0f));
 
     uint rayIndex = coordinates.x + coordinates.y * size.x;
-    rays[rayIndex].origin = origin;
-    rays[rayIndex].direction = direction;
-    rays[rayIndex].minDistance = DISTANCE_EPSILON;
-    rays[rayIndex].maxDistance = INFINITY;
+    rays[rayIndex].base.origin = origin;
+    rays[rayIndex].base.direction = direction;
+    rays[rayIndex].base.minDistance = DISTANCE_EPSILON;
+    rays[rayIndex].base.maxDistance = INFINITY;
+    rays[rayIndex].radiance = 0.0f;
 }
 
-kernel void handleIntersections(texture2d<float, access::write> image [[texture(0)]],
-                                device const Intersection* intersections [[buffer(0)]],
+kernel void handleIntersections(device const Intersection* intersections [[buffer(0)]],
                                 device const Material* materials [[buffer(1)]],
                                 device const Triangle* triangles [[buffer(2)]],
+                                device Ray* rays [[buffer(3)]],
                                 uint2 coordinates [[thread_position_in_grid]],
                                 uint2 size [[threads_per_grid]])
 {
@@ -47,5 +48,5 @@ kernel void handleIntersections(texture2d<float, access::write> image [[texture(
 
     device const Triangle& triangle = triangles[i.primitiveIndex];
     device const Material& material = materials[triangle.materialIndex];
-    image.write(float4(material.diffuse, 1.0), coordinates);
+    rays[rayIndex].radiance += material.diffuse;
 }

@@ -14,13 +14,13 @@
 		6E6DF3B421503E3700089863 /* imgui_demo.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6E6DF2C321503E3700089863 /* imgui_demo.cpp */; };
 		6E6DF3B521503E3700089863 /* imgui_draw.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6E6DF2C421503E3700089863 /* imgui_draw.cpp */; };
 		6E6DF3BC2150415900089863 /* media in Resources */ = {isa = PBXBuildFile; fileRef = 6E6DF3BB2150415900089863 /* media */; };
+		6E6DF3BF2158287500089863 /* image-processing.metal in Sources */ = {isa = PBXBuildFile; fileRef = 6E6DF3BE2158287400089863 /* image-processing.metal */; };
 		6EC4F6C5214D90C5003A48EA /* AppDelegate.mm in Sources */ = {isa = PBXBuildFile; fileRef = 6EC4F6C4214D90C5003A48EA /* AppDelegate.mm */; };
 		6EC4F6C8214D90C5003A48EA /* Renderer.mm in Sources */ = {isa = PBXBuildFile; fileRef = 6EC4F6C7214D90C5003A48EA /* Renderer.mm */; };
 		6EC4F6CB214D90C5003A48EA /* GameViewController.mm in Sources */ = {isa = PBXBuildFile; fileRef = 6EC4F6CA214D90C5003A48EA /* GameViewController.mm */; };
 		6EC4F6D0214D90C6003A48EA /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 6EC4F6CF214D90C6003A48EA /* Assets.xcassets */; };
 		6EC4F6D3214D90C6003A48EA /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 6EC4F6D1214D90C6003A48EA /* Main.storyboard */; };
 		6EC4F6D6214D90C6003A48EA /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 6EC4F6D5214D90C6003A48EA /* main.m */; };
-		6EC853DF214DA332005418DF /* compute-shader-test.metal in Sources */ = {isa = PBXBuildFile; fileRef = 6EC853DE214DA332005418DF /* compute-shader-test.metal */; };
 		6EC853E1214DA33F005418DF /* blit.metal in Sources */ = {isa = PBXBuildFile; fileRef = 6EC853E0214DA33F005418DF /* blit.metal */; };
 		6EC853E5214DB343005418DF /* MetalPerformanceShaders.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 6EC853E4214DB343005418DF /* MetalPerformanceShaders.framework */; };
 		6EC853E7214DB803005418DF /* base-ray-tracing.metal in Sources */ = {isa = PBXBuildFile; fileRef = 6EC853E6214DB803005418DF /* base-ray-tracing.metal */; };
@@ -43,6 +43,7 @@
 		6E6DF2C421503E3700089863 /* imgui_draw.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = imgui_draw.cpp; sourceTree = "<group>"; };
 		6E6DF3BB2150415900089863 /* media */ = {isa = PBXFileReference; lastKnownFileType = folder; path = media; sourceTree = "<group>"; };
 		6E6DF3BD21581E6B00089863 /* constants.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = constants.h; sourceTree = "<group>"; };
+		6E6DF3BE2158287400089863 /* image-processing.metal */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.metal; path = "image-processing.metal"; sourceTree = "<group>"; };
 		6EC4F6C0214D90C5003A48EA /* Metal ray-tracer.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Metal ray-tracer.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		6EC4F6C3214D90C5003A48EA /* AppDelegate.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = AppDelegate.h; sourceTree = "<group>"; };
 		6EC4F6C4214D90C5003A48EA /* AppDelegate.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = AppDelegate.mm; sourceTree = "<group>"; };
@@ -55,7 +56,6 @@
 		6EC4F6D4214D90C6003A48EA /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		6EC4F6D5214D90C6003A48EA /* main.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = main.m; sourceTree = "<group>"; };
 		6EC4F6D7214D90C6003A48EA /* Metal_ray_tracer.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Metal_ray_tracer.entitlements; sourceTree = "<group>"; };
-		6EC853DE214DA332005418DF /* compute-shader-test.metal */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.metal; path = "compute-shader-test.metal"; sourceTree = "<group>"; };
 		6EC853E0214DA33F005418DF /* blit.metal */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.metal; path = blit.metal; sourceTree = "<group>"; };
 		6EC853E4214DB343005418DF /* MetalPerformanceShaders.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = MetalPerformanceShaders.framework; path = System/Library/Frameworks/MetalPerformanceShaders.framework; sourceTree = SDKROOT; };
 		6EC853E6214DB803005418DF /* base-ray-tracing.metal */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.metal; path = "base-ray-tracing.metal"; sourceTree = "<group>"; };
@@ -146,9 +146,9 @@
 			children = (
 				6E6DF3BD21581E6B00089863 /* constants.h */,
 				6EC853E8214DB810005418DF /* structures.h */,
+				6E6DF3BE2158287400089863 /* image-processing.metal */,
 				6EC853E6214DB803005418DF /* base-ray-tracing.metal */,
 				6EC853E0214DA33F005418DF /* blit.metal */,
-				6EC853DE214DA332005418DF /* compute-shader-test.metal */,
 			);
 			path = Shaders;
 			sourceTree = "<group>";
@@ -253,8 +253,8 @@
 				6E6DF32221503E3700089863 /* tiny_obj_loader.cc in Sources */,
 				6EC4F6C8214D90C5003A48EA /* Renderer.mm in Sources */,
 				6EC4F6CB214D90C5003A48EA /* GameViewController.mm in Sources */,
+				6E6DF3BF2158287500089863 /* image-processing.metal in Sources */,
 				6E6DF16E21503D6700089863 /* GeometryProvider.mm in Sources */,
-				6EC853DF214DA332005418DF /* compute-shader-test.metal in Sources */,
 				6E6DF3B521503E3700089863 /* imgui_draw.cpp in Sources */,
 				6EC4F6C5214D90C5003A48EA /* AppDelegate.mm in Sources */,
 				6EC853E7214DB803005418DF /* base-ray-tracing.metal in Sources */,

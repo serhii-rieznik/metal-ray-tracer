@@ -34,12 +34,13 @@ static const NSUInteger MaxFrames = 3;
     id<MTLLibrary> _defaultLibrary;
     id<MTLTexture> _outputImage;
     id<MTLRenderPipelineState> _blitPipelineState;
-    id<MTLComputePipelineState> _testComputeShader;
     id<MTLBuffer> _rayBuffer;
     id<MTLBuffer> _intersectionBuffer;
     id<MTLComputePipelineState> _rayGenerator;
     id<MTLComputePipelineState> _intersectionHandler;
+    id<MTLComputePipelineState> _accumulation;
     id<MTLBuffer> _noise[MaxFrames];
+    id<MTLBuffer> _appData[MaxFrames];
 
     MPSTriangleAccelerationStructure* _accelerationStructure;
     MPSRayIntersector* _rayIntersector;
@@ -48,6 +49,7 @@ static const NSUInteger MaxFrames = 3;
     MTLSize _outputImageSize;
     uint32_t _rayCount;
     uint32_t _frameIndex;
+    uint32_t _frameContinuousIndex;
 }
 
 static std::mt19937 randomGenerator;
@@ -79,14 +81,16 @@ static std::uniform_real_distribution<float> uniformFloatDistribution(0.0f, 1.0f
             _blitPipelineState = [_device newRenderPipelineStateWithDescriptor:blitPipelineDescriptor error:&error];
         }
 
-        _testComputeShader = [self newComputePipelineWithFunctionName:@"imageFillTest"];
         _rayGenerator = [self newComputePipelineWithFunctionName:@"generateRays"];
         _intersectionHandler = [self newComputePipelineWithFunctionName:@"handleIntersections"];
+        _accumulation = [self newComputePipelineWithFunctionName:@"accumulateImage"];
 
         NSUInteger noiseBufferLength = NOISE_BLOCK_SIZE * NOISE_BLOCK_SIZE * sizeof(vector_float4);
         for (uint32_t i = 0; i < MaxFrames; ++i)
+        {
             _noise[i] = [_device newBufferWithLength:noiseBufferLength options:MTLResourceStorageModeManaged];
-
+            _appData[i] = [_device newBufferWithLength:sizeof(ApplicationData) options:MTLResourceStorageModeShared];
+        }
         [self initializeRayTracing];
     }
 
@@ -105,13 +109,6 @@ static std::uniform_real_distribution<float> uniformFloatDistribution(0.0f, 1.0f
     }];
 
     [self updateBuffers];
-
-    /*
-     * Dispatch test encoder
-     */
-    [self dispatchComputeShader:_testComputeShader withinCommandBuffer:commandBuffer setupBlock:^(id<MTLComputeCommandEncoder> commandEncoder) {
-        [commandEncoder setTexture:self->_outputImage atIndex:0];
-    }];
 
     /*
      * Generate rays
@@ -137,6 +134,15 @@ static std::uniform_real_distribution<float> uniformFloatDistribution(0.0f, 1.0f
         [commandEncoder setBuffer:self->_intersectionBuffer offset:0 atIndex:0];
         [commandEncoder setBuffer:self->_geometryProvider.materialBuffer() offset:0 atIndex:1];
         [commandEncoder setBuffer:self->_geometryProvider.triangleBuffer() offset:0 atIndex:2];
+        [commandEncoder setBuffer:self->_rayBuffer offset:0 atIndex:3];
+    }];
+
+    /*
+     * Accumulate image
+     */
+    [self dispatchComputeShader:_accumulation withinCommandBuffer:commandBuffer setupBlock:^(id<MTLComputeCommandEncoder> commandEncoder) {
+        [commandEncoder setBuffer:self->_rayBuffer offset:0 atIndex:0];
+        [commandEncoder setBuffer:self->_appData[self->_frameIndex] offset:0 atIndex:1];
         [commandEncoder setTexture:self->_outputImage atIndex:0];
     }];
 
@@ -154,7 +160,8 @@ static std::uniform_real_distribution<float> uniformFloatDistribution(0.0f, 1.0f
     [commandBuffer presentDrawable:view.currentDrawable];
     [commandBuffer commit];
 
-    _frameIndex = (_frameIndex + 1) % MaxFrames;
+    ++_frameContinuousIndex;
+    _frameIndex = _frameContinuousIndex % MaxFrames;
 }
 
 - (void)mtkView:(nonnull MTKView *)view drawableSizeWillChange:(CGSize)size
@@ -237,6 +244,9 @@ static std::uniform_real_distribution<float> uniformFloatDistribution(0.0f, 1.0f
         ++ptr;
     }
     [_noise[_frameIndex] didModifyRange:NSMakeRange(0, [_noise[_frameIndex] length])];
+
+    ApplicationData* appData = reinterpret_cast<ApplicationData*>([_appData[_frameIndex] contents]);
+    appData->frameIndex = _frameContinuousIndex;
 }
 
 @end
