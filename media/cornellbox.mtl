@@ -1,48 +1,26 @@
 newmtl white
-Kd 1 1 1
-Ks 1.0 0.0 0.0
+Kd 1.0 1.0 1.0
 
 newmtl leftWall
-Kd 1 0 0
-Ks 1.0 0.0 0.0
-Kx 0 0 0
+Kd 1.0 0.0 0.0
 
 newmtl rightWall
-Kd 0 1 0
-Ks 1.0 0.0 0.0
-Kx 0 0 0
+Kd 0.0 1.0 0.0
 
 newmtl floor
-Kd 1 1 1
-Ks 1.0 0.0 0.0
-Kx 1 1 1
+Kd 1.0 1.0 1.0
 
 newmtl ceiling
-Kd 1 1 1
-Ks 1.0 0.0 0.0
-Kx 1 1 1
+Kd 1.0 1.0 1.0
 
 newmtl frontWall
-Kd 1 1 1
-Ks 1.0 0.0 0.0
-Kx 11 0 0
+Kd 1.0 1.0 1.0
 
 newmtl shortBox
-Kd 1 1 1
-Ks 1.0 0.0 0.0
-Kx 0.6 0.8 1.0
+Kd 1.0 1.0 1.0
 
 newmtl tallBox
-Kd 1 1 1
-Ks 1.0 0.0 0.0
-Kx 1 0.8 0.6
+Kd 1.0 1.0 1.0
 
 newmtl light
-Kd 1 1 1
-Ks 1.0 0.0 0.0
-Ka 5 4 3
-
-newmtl pi_light
-Kd 1 1 1
-Ks 1.0 0.0 0.0
-Ka 3.1415926536 3.1415926536 3.1415926536
+Ke 5 4 3

@@ -17,7 +17,12 @@ void GeometryProvider::loadFile(const std::string& fileName, id<MTLDevice> devic
     std::vector<tinyobj::shape_t> shapes;
     std::vector<tinyobj::material_t> materials;
     std::string error;
-    if (tinyobj::LoadObj(&attrib, &shapes, &materials, &error, fileName.c_str()) == false)
+    std::string baseDir = fileName;
+    size_t slash = baseDir.find_last_of('/');
+    if (slash != std::string::npos)
+        baseDir.erase(slash);
+
+    if (tinyobj::LoadObj(&attrib, &shapes, &materials, &error, fileName.c_str(), baseDir.c_str()) == false)
     {
         NSLog(@"Failed to load .obj file `%s`", fileName.c_str());
         NSLog(@"Error: %s", error.c_str());
@@ -34,8 +39,8 @@ void GeometryProvider::loadFile(const std::string& fileName, id<MTLDevice> devic
         return;
     }
 
-    NSLog(@".obj file loaded: %zu vertices, %zu normals, %zu tex coords", attrib.vertices.size(),
-          attrib.normals.size(), attrib.texcoords.size());
+    NSLog(@".obj file loaded: %zu vertices, %zu normals, %zu tex coords, %zu materials", attrib.vertices.size(),
+          attrib.normals.size(), attrib.texcoords.size(), materials.size());
 
     uint32_t index = 0;
     std::vector<Vertex> vertices;
