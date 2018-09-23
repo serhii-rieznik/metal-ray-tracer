@@ -12,14 +12,19 @@
 using namespace metal;
 
 kernel void generateRays(device Ray* rays [[buffer(0)]],
+                         device vector_float4* noise [[buffer(1)]],
                          uint2 coordinates [[thread_position_in_grid]],
                          uint2 size [[threads_per_grid]])
 {
     const float3 origin = float3(0.0f, 1.0f, 2.1f);
 
+    uint noiseSampleIndex = (coordinates.x % NOISE_BLOCK_SIZE) + NOISE_BLOCK_SIZE * (coordinates.y % NOISE_BLOCK_SIZE);
+    device const float4& noiseSample = noise[noiseSampleIndex];
+
     float aspect = float(size.x) / float(size.y);
     float2 uv = float2(coordinates) / float2(size - 1) * 2.0f - 1.0f;
-    float3 direction = normalize(float3(aspect * uv.x, uv.y, -1.0f));
+    float2 rnd = 3.0f * (noiseSample.xy * 2.0 - 1.0) / float2(size - 1);
+    float3 direction = normalize(float3(aspect * (uv.x + rnd.x), uv.y + rnd.y, -1.0f));
 
     uint rayIndex = coordinates.x + coordinates.y * size.x;
     rays[rayIndex].origin = origin;
