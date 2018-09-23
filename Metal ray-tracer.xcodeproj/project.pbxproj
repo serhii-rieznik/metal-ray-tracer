@@ -42,6 +42,7 @@
 		6E6DF2C321503E3700089863 /* imgui_demo.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = imgui_demo.cpp; sourceTree = "<group>"; };
 		6E6DF2C421503E3700089863 /* imgui_draw.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = imgui_draw.cpp; sourceTree = "<group>"; };
 		6E6DF3BB2150415900089863 /* media */ = {isa = PBXFileReference; lastKnownFileType = folder; path = media; sourceTree = "<group>"; };
+		6E6DF3BD21581E6B00089863 /* constants.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = constants.h; sourceTree = "<group>"; };
 		6EC4F6C0214D90C5003A48EA /* Metal ray-tracer.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Metal ray-tracer.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		6EC4F6C3214D90C5003A48EA /* AppDelegate.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = AppDelegate.h; sourceTree = "<group>"; };
 		6EC4F6C4214D90C5003A48EA /* AppDelegate.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = AppDelegate.mm; sourceTree = "<group>"; };
@@ -143,6 +144,7 @@
 		6EC853DD214DA332005418DF /* Shaders */ = {
 			isa = PBXGroup;
 			children = (
+				6E6DF3BD21581E6B00089863 /* constants.h */,
 				6EC853E8214DB810005418DF /* structures.h */,
 				6EC853E6214DB803005418DF /* base-ray-tracing.metal */,
 				6EC853E0214DA33F005418DF /* blit.metal */,

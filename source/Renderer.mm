@@ -118,8 +118,10 @@ static const NSUInteger MaxFrames = 3;
      * Handle intersections
      */
     [self dispatchComputeShader:_intersectionHandler withinCommandBuffer:commandBuffer setupBlock:^(id<MTLComputeCommandEncoder> commandEncoder) {
-        [commandEncoder setTexture:self->_outputImage atIndex:0];
         [commandEncoder setBuffer:self->_intersectionBuffer offset:0 atIndex:0];
+        [commandEncoder setBuffer:self->_geometryProvider.materialBuffer() offset:0 atIndex:1];
+        [commandEncoder setBuffer:self->_geometryProvider.triangleBuffer() offset:0 atIndex:2];
+        [commandEncoder setTexture:self->_outputImage atIndex:0];
     }];
 
     /*

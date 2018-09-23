@@ -9,9 +9,11 @@
 #pragma once
 
 #include <MetalPerformanceShaders/MetalPerformanceShaders.h>
+#include "constants.h"
 
 #if !defined(__METAL_VERSION__)
 using packed_float3 = MPSPackedFloat3;
+using uint = uint32_t;
 #endif
 
 struct Vertex
@@ -19,6 +21,18 @@ struct Vertex
     packed_float3 v;
     packed_float3 n;
     packed_float2 t;
+};
+
+struct Material
+{
+    packed_float3 diffuse;
+    uint type = MATERIAL_DIFFUSE;
+    packed_float3 emissive;
+};
+
+struct Triangle
+{
+    uint materialIndex;
 };
 
 using Ray = MPSRayOriginMinDistanceDirectionMaxDistance;

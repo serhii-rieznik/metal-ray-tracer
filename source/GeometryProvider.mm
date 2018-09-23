@@ -11,6 +11,23 @@
 #include "Shaders/structures.h"
 #include "../external/tinyobjloader/tiny_obj_loader.h"
 
+class BufferConstructor
+{
+public:
+    BufferConstructor(id<MTLDevice> device) :
+        _device(device) { }
+
+    template <class T>
+    id<MTLBuffer> operator()(const std::vector<T>& data, NSString* tag) {
+        id<MTLBuffer> buffer = [_device newBufferWithBytes:data.data() length:sizeof(T) * data.size()
+                                                  options:MTLResourceStorageModeManaged];
+        [buffer setLabel:tag];
+        return buffer;
+    };
+private:
+    id<MTLDevice> _device;
+};
+
 void GeometryProvider::loadFile(const std::string& fileName, id<MTLDevice> device)
 {
     tinyobj::attrib_t attrib;
@@ -39,38 +56,74 @@ void GeometryProvider::loadFile(const std::string& fileName, id<MTLDevice> devic
         return;
     }
 
-    uint32_t index = 0;
-    std::vector<Vertex> vertices;
-    std::vector<uint32_t> indices;
+    std::vector<Vertex> vertexBuffer;
+    std::vector<uint32_t> indexBuffer;
+    std::vector<Material> materialBuffer;
+    std::vector<Triangle> triangleBuffer;
+
     for (const tinyobj::shape_t& shape : shapes)
     {
-        indices.reserve(indices.size() + shape.mesh.indices.size());
+        size_t triangleCount = shape.mesh.num_face_vertices.size();
+        _triangleCount += static_cast<uint32_t>(triangleCount);
 
-        for (tinyobj::index_t i : shape.mesh.indices)
+        size_t triangleBufferOffset = triangleBuffer.size();
+
+        indexBuffer.resize(indexBuffer.size() + triangleCount * 3);
+        triangleBuffer.resize(triangleBuffer.size() + triangleCount);
+
+        size_t index = 0;
+        for (size_t f = 0; f < triangleCount; ++f)
         {
-            vertices.emplace_back();
-            Vertex& vertex = vertices.back();
-            vertex.v.x = attrib.vertices[3 * i.vertex_index + 0];
-            vertex.v.y = attrib.vertices[3 * i.vertex_index + 1];
-            vertex.v.z = attrib.vertices[3 * i.vertex_index + 2];
-            vertex.n.x = attrib.normals[3 * i.normal_index + 0];
-            vertex.n.y = attrib.normals[3 * i.normal_index + 1];
-            vertex.n.z = attrib.normals[3 * i.normal_index + 2];
-            vertex.t.x = attrib.texcoords[2 * i.texcoord_index + 0];
-            vertex.t.y = attrib.texcoords[2 * i.texcoord_index + 1];
-            indices.emplace_back(index++);
+            assert(shape.mesh.num_face_vertices[f] == 3);
+            for (size_t j = 0; j < 3; ++j)
+            {
+                vertexBuffer.emplace_back();
+                Vertex& vertex = vertexBuffer.back();
+                const tinyobj::index_t& i = shape.mesh.indices[index];
+                vertex.v.x = attrib.vertices[3 * i.vertex_index + 0];
+                vertex.v.y = attrib.vertices[3 * i.vertex_index + 1];
+                vertex.v.z = attrib.vertices[3 * i.vertex_index + 2];
+                vertex.n.x = attrib.normals[3 * i.normal_index + 0];
+                vertex.n.y = attrib.normals[3 * i.normal_index + 1];
+                vertex.n.z = attrib.normals[3 * i.normal_index + 2];
+                vertex.t.x = attrib.texcoords[2 * i.texcoord_index + 0];
+                vertex.t.y = attrib.texcoords[2 * i.texcoord_index + 1];
+                ++index;
+            }
+
+            /*
+             * TODO : process triangle
+             *
+            const Vertex& v0 = vertexBuffer[vertexBuffer.size() - 3];
+            const Vertex& v1 = vertexBuffer[vertexBuffer.size() - 2];
+            const Vertex& v2 = vertexBuffer[vertexBuffer.size() - 1];
+             */
+
+            triangleBuffer[triangleBufferOffset].materialIndex = shape.mesh.material_ids[f];
+            ++triangleBufferOffset;
         }
     }
 
-    _vertexBuffer = [device newBufferWithBytes:vertices.data() length:sizeof(Vertex) * vertices.size()
-        options:MTLResourceStorageModeManaged];
-    [_vertexBuffer setLabel:@"Geometry vertex buffer"];
+    for (uint32_t i = 0; i < indexBuffer.size(); ++i)
+        indexBuffer[i] = i;
 
-    _indexBuffer = [device newBufferWithBytes:indices.data() length:sizeof(uint32_t) * indices.size()
-        options:MTLResourceStorageModeManaged];
-    [_indexBuffer setLabel:@"Geometry index buffer"];
+    for (const tinyobj::material_t& mtl : materials)
+    {
+        materialBuffer.emplace_back();
+        Material& material = materialBuffer.back();
+        material.diffuse.x = mtl.diffuse[0];
+        material.diffuse.y = mtl.diffuse[1];
+        material.diffuse.z = mtl.diffuse[2];
+        material.emissive.x = mtl.emission[0];
+        material.emissive.y = mtl.emission[1];
+        material.emissive.z = mtl.emission[2];
+    }
 
-    _triangleCount = static_cast<uint32_t>(indices.size() / 3);
+    BufferConstructor makeBuffer(device);
+    _vertexBuffer = makeBuffer(vertexBuffer, @"Geometry vertex buffer");
+    _indexBuffer = makeBuffer(indexBuffer, @"Geometry index buffer");
+    _materialBuffer = makeBuffer(materialBuffer, @"Geometry material buffer");
+    _triangleBuffer = makeBuffer(triangleBuffer, @"Geometry triangle buffer");
 
     NSLog(@".obj file loaded: %zu vertices, %zu normals, %zu tex coords, %u triangles, %zu materials", attrib.vertices.size(),
           attrib.normals.size(), attrib.texcoords.size(), _triangleCount, materials.size());

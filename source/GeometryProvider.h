@@ -18,11 +18,15 @@ public:
 
     id<MTLBuffer> indexBuffer() const { return _indexBuffer; }
     id<MTLBuffer> vertexBuffer() const { return _vertexBuffer; }
+    id<MTLBuffer> materialBuffer() const { return _materialBuffer; }
+    id<MTLBuffer> triangleBuffer() const { return _triangleBuffer; }
 
     uint32_t triangleCount() const { return _triangleCount; }
 
 private:
     id<MTLBuffer> _indexBuffer = nil;
     id<MTLBuffer> _vertexBuffer = nil;
+    id<MTLBuffer> _materialBuffer = nil;
+    id<MTLBuffer> _triangleBuffer = nil;
     uint32_t _triangleCount = 0;
 };
