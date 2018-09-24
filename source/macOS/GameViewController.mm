@@ -24,7 +24,7 @@
     _view.layer.contentsScale = [[NSScreen mainScreen] backingScaleFactor];
     _view.device = MTLCreateSystemDefaultDevice();
     _view.depthStencilPixelFormat = MTLPixelFormatInvalid;
-    _view.colorPixelFormat = MTLPixelFormatBGRA8Unorm;
+    _view.colorPixelFormat = MTLPixelFormatBGRA8Unorm_sRGB;
 
     if (_view.device == nil)
     {

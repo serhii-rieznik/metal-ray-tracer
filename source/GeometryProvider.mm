@@ -122,6 +122,7 @@ void GeometryProvider::loadFile(const std::string& fileName, id<MTLDevice> devic
                 emitterTriangleBuffer.back().v0 = v0;
                 emitterTriangleBuffer.back().v1 = v1;
                 emitterTriangleBuffer.back().v2 = v2;
+                emitterTriangleBuffer.back().emissive = material.emissive;
                 totalLightArea += area;
 
             }

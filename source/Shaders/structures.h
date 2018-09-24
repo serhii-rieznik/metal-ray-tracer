@@ -44,18 +44,21 @@ struct EmitterTriangle
     Vertex v0;
     Vertex v1;
     Vertex v2;
+    packed_float3 emissive;
 };
 
 struct Ray
 {
     MPSRayOriginMinDistanceDirectionMaxDistance base;
     packed_float3 radiance;
+    packed_float3 throughput;
 };
 
 struct LightSamplingRay
 {
     MPSRayOriginMinDistanceDirectionMaxDistance base;
     uint targetPrimitiveIndex;
+    packed_float3 throughput;
 };
 
 struct ApplicationData

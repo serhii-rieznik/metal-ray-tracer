@@ -17,15 +17,15 @@ kernel void generateRays(device Ray* rays [[buffer(0)]],
                          uint2 coordinates [[thread_position_in_grid]],
                          uint2 size [[threads_per_grid]])
 {
-    const float3 origin = float3(0.0f, 1.0f, 2.1f);
+    const float3 origin = float3(0.0f, 1.0f, 2.35f);
 
     uint noiseSampleIndex = (coordinates.x % NOISE_BLOCK_SIZE) + NOISE_BLOCK_SIZE * (coordinates.y % NOISE_BLOCK_SIZE);
     device const float4& noiseSample = noise[noiseSampleIndex];
 
-    float aspect = float(size.x) / float(size.y);
+    float aspect = float(size.y) / float(size.x);
     float2 uv = float2(coordinates) / float2(size - 1) * 2.0f - 1.0f;
     float2 rnd = (noiseSample.xy * 2.0 - 1.0) / float2(size - 1);
-    float3 direction = normalize(float3(aspect * (uv.x + rnd.x), uv.y + rnd.y, -1.0f));
+    float3 direction = normalize(float3((uv.x + rnd.x), aspect * (uv.y + rnd.y), -1.0f));
 
     uint rayIndex = coordinates.x + coordinates.y * size.x;
     rays[rayIndex].base.origin = origin;
@@ -33,6 +33,7 @@ kernel void generateRays(device Ray* rays [[buffer(0)]],
     rays[rayIndex].base.minDistance = DISTANCE_EPSILON;
     rays[rayIndex].base.maxDistance = INFINITY;
     rays[rayIndex].radiance = 0.0f;
+    rays[rayIndex].throughput = 1.0f;
 }
 
 kernel void handleIntersections(device const Intersection* intersections [[buffer(0)]],
@@ -77,13 +78,22 @@ kernel void handleIntersections(device const Intersection* intersections [[buffe
 
         float3 lightTriangleBarycentric = barycentric(noiseSample.yz);
         Vertex lightVertex = interpolate(emitterTriangle.v0, emitterTriangle.v1, emitterTriangle.v2, lightTriangleBarycentric);
-        packed_float3 directionToLight = normalize(lightVertex.v - currentVertex.v);
+
+        packed_float3 directionToLight = lightVertex.v - currentVertex.v;
+        float distanceToLight = length(directionToLight);
+        directionToLight /= distanceToLight;
+
+        float cosTheta = -dot(directionToLight, lightVertex.n);
+        float materialBsdf = (1.0 / PI) * dot(directionToLight, currentVertex.n);
+        float lightSamplgPdf = emitterTriangle.pdf * (distanceToLight * distanceToLight) / (emitterTriangle.area * cosTheta);
 
         lightSamplingRays[rayIndex].base.origin = currentVertex.v + currentVertex.n * DISTANCE_EPSILON;
         lightSamplingRays[rayIndex].base.direction = directionToLight;
         lightSamplingRays[rayIndex].base.minDistance = 0.0f;
         lightSamplingRays[rayIndex].base.maxDistance = INFINITY;
         lightSamplingRays[rayIndex].targetPrimitiveIndex = emitterTriangle.globalIndex;
+        lightSamplingRays[rayIndex].throughput =
+            rays[rayIndex].throughput * emitterTriangle.emissive * material.diffuse * (materialBsdf / lightSamplgPdf);
     }
 }
 
@@ -96,6 +106,6 @@ kernel void lightSamplingHandler(device const LightSamplingIntersection* interse
     uint rayIndex = coordinates.x + coordinates.y * size.x;
     if (intersections[rayIndex].primitiveIndex == lightSamplingRays[rayIndex].targetPrimitiveIndex)
     {
-        rays[rayIndex].radiance += 1.0f;
+        rays[rayIndex].radiance += lightSamplingRays[rayIndex].throughput;
     }
 }
