@@ -35,15 +35,19 @@ static const NSUInteger MaxFrames = 3;
     id<MTLTexture> _outputImage;
     id<MTLRenderPipelineState> _blitPipelineState;
     id<MTLBuffer> _rayBuffer;
+    id<MTLBuffer> _lightSamplingRayBuffer;
     id<MTLBuffer> _intersectionBuffer;
+    id<MTLBuffer> _lightSamplingIntersectionBuffer;
     id<MTLComputePipelineState> _rayGenerator;
     id<MTLComputePipelineState> _intersectionHandler;
+    id<MTLComputePipelineState> _lightSamplingHandler;
     id<MTLComputePipelineState> _accumulation;
     id<MTLBuffer> _noise[MaxFrames];
     id<MTLBuffer> _appData[MaxFrames];
 
     MPSTriangleAccelerationStructure* _accelerationStructure;
     MPSRayIntersector* _rayIntersector;
+    MPSRayIntersector* _lightIntersector;
 
     GeometryProvider _geometryProvider;
     MTLSize _outputImageSize;
@@ -83,6 +87,7 @@ static std::uniform_real_distribution<float> uniformFloatDistribution(0.0f, 1.0f
 
         _rayGenerator = [self newComputePipelineWithFunctionName:@"generateRays"];
         _intersectionHandler = [self newComputePipelineWithFunctionName:@"handleIntersections"];
+        _lightSamplingHandler = [self newComputePipelineWithFunctionName:@"lightSamplingHandler"];
         _accumulation = [self newComputePipelineWithFunctionName:@"accumulateImage"];
 
         NSUInteger noiseBufferLength = NOISE_BLOCK_SIZE * NOISE_BLOCK_SIZE * sizeof(vector_float4);
@@ -128,13 +133,40 @@ static std::uniform_real_distribution<float> uniformFloatDistribution(0.0f, 1.0f
                                               rayCount:_rayCount accelerationStructure:_accelerationStructure];
 
     /*
-     * Handle intersections
+     * Handle intersections and generate light sampling rays
      */
     [self dispatchComputeShader:_intersectionHandler withinCommandBuffer:commandBuffer setupBlock:^(id<MTLComputeCommandEncoder> commandEncoder) {
         [commandEncoder setBuffer:self->_intersectionBuffer offset:0 atIndex:0];
         [commandEncoder setBuffer:self->_geometryProvider.materialBuffer() offset:0 atIndex:1];
         [commandEncoder setBuffer:self->_geometryProvider.triangleBuffer() offset:0 atIndex:2];
-        [commandEncoder setBuffer:self->_rayBuffer offset:0 atIndex:3];
+        [commandEncoder setBuffer:self->_geometryProvider.emitterTriangleBuffer() offset:0 atIndex:3];
+        [commandEncoder setBuffer:self->_geometryProvider.vertexBuffer() offset:0 atIndex:4];
+        [commandEncoder setBuffer:self->_geometryProvider.indexBuffer() offset:0 atIndex:5];
+        [commandEncoder setBuffer:self->_noise[self->_frameIndex] offset:0 atIndex:6];
+        [commandEncoder setBuffer:self->_rayBuffer offset:0 atIndex:7];
+        [commandEncoder setBuffer:self->_lightSamplingRayBuffer offset:0 atIndex:8];
+        [commandEncoder setBuffer:self->_appData[self->_frameIndex] offset:0 atIndex:9];
+    }];
+
+    /*
+     * Intersect light sampling rays with geometry
+     */
+    [_lightIntersector encodeIntersectionToCommandBuffer:commandBuffer
+                                        intersectionType:MPSIntersectionTypeNearest
+                                               rayBuffer:_lightSamplingRayBuffer
+                                         rayBufferOffset:0
+                                      intersectionBuffer:_lightSamplingIntersectionBuffer
+                                intersectionBufferOffset:0
+                                                rayCount:_rayCount
+                                   accelerationStructure:_accelerationStructure];
+
+    /*
+     * Handle light sampling intersections
+     */
+    [self dispatchComputeShader:_lightSamplingHandler withinCommandBuffer:commandBuffer setupBlock:^(id<MTLComputeCommandEncoder> commandEncoder) {
+        [commandEncoder setBuffer:self->_lightSamplingIntersectionBuffer offset:0 atIndex:0];
+        [commandEncoder setBuffer:self->_lightSamplingRayBuffer offset:0 atIndex:1];
+        [commandEncoder setBuffer:self->_rayBuffer offset:0 atIndex:2];
     }];
 
     /*
@@ -179,8 +211,13 @@ static std::uniform_real_distribution<float> uniformFloatDistribution(0.0f, 1.0f
     _outputImage = [_device newTextureWithDescriptor:outputImageDescriptor];
 
     _rayCount = uint32_t(size.width) * uint32_t(size.height);
+
     _rayBuffer = [_device newBufferWithLength:sizeof(Ray) * _rayCount options:MTLResourceStorageModePrivate];
+    _lightSamplingRayBuffer = [_device newBufferWithLength:sizeof(LightSamplingRay) * _rayCount options:MTLResourceStorageModePrivate];
+
     _intersectionBuffer = [_device newBufferWithLength:sizeof(Intersection) * _rayCount options:MTLResourceStorageModePrivate];
+    _lightSamplingIntersectionBuffer = [_device newBufferWithLength:sizeof(LightSamplingIntersection) * _rayCount
+                                                           options:MTLResourceStorageModePrivate];
 }
 
 /*
@@ -230,6 +267,12 @@ static std::uniform_real_distribution<float> uniformFloatDistribution(0.0f, 1.0f
     [_rayIntersector setRayStride:sizeof(Ray)];
     [_rayIntersector setIntersectionDataType:MPSIntersectionDataTypeDistancePrimitiveIndexCoordinates];
     [_rayIntersector setIntersectionStride:sizeof(Intersection)];
+
+    _lightIntersector = [[MPSRayIntersector alloc] initWithDevice:_device];
+    [_lightIntersector setRayDataType:MPSRayDataTypeOriginMinDistanceDirectionMaxDistance];
+    [_lightIntersector setRayStride:sizeof(LightSamplingRay)];
+    [_lightIntersector setIntersectionDataType:MPSIntersectionDataTypeDistancePrimitiveIndex];
+    [_lightIntersector setIntersectionStride:sizeof(LightSamplingIntersection)];
 }
 
 - (void)updateBuffers
@@ -247,6 +290,7 @@ static std::uniform_real_distribution<float> uniformFloatDistribution(0.0f, 1.0f
 
     ApplicationData* appData = reinterpret_cast<ApplicationData*>([_appData[_frameIndex] contents]);
     appData->frameIndex = _frameContinuousIndex;
+    appData->emitterTrianglesCount = _geometryProvider.emitterTriangleCount();
 }
 
 @end

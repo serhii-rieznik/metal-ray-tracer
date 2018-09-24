@@ -35,15 +35,34 @@ struct Triangle
     uint materialIndex;
 };
 
+struct EmitterTriangle
+{
+    float area;
+    float cdf;
+    float pdf;
+    uint globalIndex;
+    Vertex v0;
+    Vertex v1;
+    Vertex v2;
+};
+
 struct Ray
 {
     MPSRayOriginMinDistanceDirectionMaxDistance base;
     packed_float3 radiance;
 };
 
+struct LightSamplingRay
+{
+    MPSRayOriginMinDistanceDirectionMaxDistance base;
+    uint targetPrimitiveIndex;
+};
+
 struct ApplicationData
 {
     uint frameIndex;
+    uint emitterTrianglesCount;
 };
 
 using Intersection = MPSIntersectionDistancePrimitiveIndexCoordinates;
+using LightSamplingIntersection = MPSIntersectionDistancePrimitiveIndex;

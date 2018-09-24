@@ -56,11 +56,26 @@ void GeometryProvider::loadFile(const std::string& fileName, id<MTLDevice> devic
         return;
     }
 
-    std::vector<Vertex> vertexBuffer;
-    std::vector<uint32_t> indexBuffer;
     std::vector<Material> materialBuffer;
-    std::vector<Triangle> triangleBuffer;
+    for (const tinyobj::material_t& mtl : materials)
+    {
+        materialBuffer.emplace_back();
+        Material& material = materialBuffer.back();
+        material.diffuse.x = mtl.diffuse[0];
+        material.diffuse.y = mtl.diffuse[1];
+        material.diffuse.z = mtl.diffuse[2];
+        material.emissive.x = mtl.emission[0];
+        material.emissive.y = mtl.emission[1];
+        material.emissive.z = mtl.emission[2];
+    }
 
+    std::vector<uint32_t> indexBuffer;
+    std::vector<Vertex> vertexBuffer;
+    std::vector<Triangle> triangleBuffer;
+    std::vector<EmitterTriangle> emitterTriangleBuffer;
+
+    uint32_t globalTriangleIndex = 0;
+    float totalLightArea = 0.0f;
     for (const tinyobj::shape_t& shape : shapes)
     {
         size_t triangleCount = shape.mesh.num_face_vertices.size();
@@ -91,39 +106,55 @@ void GeometryProvider::loadFile(const std::string& fileName, id<MTLDevice> devic
                 ++index;
             }
 
-            /*
-             * TODO : process triangle
-             *
             const Vertex& v0 = vertexBuffer[vertexBuffer.size() - 3];
             const Vertex& v1 = vertexBuffer[vertexBuffer.size() - 2];
             const Vertex& v2 = vertexBuffer[vertexBuffer.size() - 1];
-             */
+            float area = 0.5f * simd_length(simd_cross(v2.v - v0.v, v1.v - v0.v));
 
             triangleBuffer[triangleBufferOffset].materialIndex = shape.mesh.material_ids[f];
+
+            const Material& material = materialBuffer[triangleBuffer[triangleBufferOffset].materialIndex];
+            if (simd_length(material.emissive) > 0.0f)
+            {
+                emitterTriangleBuffer.emplace_back();
+                emitterTriangleBuffer.back().area = area;
+                emitterTriangleBuffer.back().globalIndex = globalTriangleIndex;
+                emitterTriangleBuffer.back().v0 = v0;
+                emitterTriangleBuffer.back().v1 = v1;
+                emitterTriangleBuffer.back().v2 = v2;
+                totalLightArea += area;
+
+            }
             ++triangleBufferOffset;
+            ++globalTriangleIndex;
         }
     }
 
+    std::stable_sort(std::begin(emitterTriangleBuffer), std::end(emitterTriangleBuffer), [](const EmitterTriangle& l, const EmitterTriangle& r){
+        return l.area < r.area;
+    });
+
+    _emitterTriangleCount = static_cast<uint32_t>(emitterTriangleBuffer.size());
+
+    float cdf = 0.0f;
+    for (EmitterTriangle& t : emitterTriangleBuffer)
+    {
+        t.cdf = cdf;
+        t.pdf = t.area / totalLightArea;
+        cdf += t.pdf;
+    }
+    emitterTriangleBuffer.emplace_back();
+    emitterTriangleBuffer.back().cdf = 1.0f;
+
     for (uint32_t i = 0; i < indexBuffer.size(); ++i)
         indexBuffer[i] = i;
-
-    for (const tinyobj::material_t& mtl : materials)
-    {
-        materialBuffer.emplace_back();
-        Material& material = materialBuffer.back();
-        material.diffuse.x = mtl.diffuse[0];
-        material.diffuse.y = mtl.diffuse[1];
-        material.diffuse.z = mtl.diffuse[2];
-        material.emissive.x = mtl.emission[0];
-        material.emissive.y = mtl.emission[1];
-        material.emissive.z = mtl.emission[2];
-    }
 
     BufferConstructor makeBuffer(device);
     _vertexBuffer = makeBuffer(vertexBuffer, @"Geometry vertex buffer");
     _indexBuffer = makeBuffer(indexBuffer, @"Geometry index buffer");
     _materialBuffer = makeBuffer(materialBuffer, @"Geometry material buffer");
     _triangleBuffer = makeBuffer(triangleBuffer, @"Geometry triangle buffer");
+    _emitterTriangleBuffer = makeBuffer(emitterTriangleBuffer, @"Emitter triangle buffer");
 
     NSLog(@".obj file loaded: %zu vertices, %zu normals, %zu tex coords, %u triangles, %zu materials", attrib.vertices.size(),
           attrib.normals.size(), attrib.texcoords.size(), _triangleCount, materials.size());

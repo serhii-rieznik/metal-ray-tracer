@@ -44,6 +44,7 @@
 		6E6DF3BB2150415900089863 /* media */ = {isa = PBXFileReference; lastKnownFileType = folder; path = media; sourceTree = "<group>"; };
 		6E6DF3BD21581E6B00089863 /* constants.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = constants.h; sourceTree = "<group>"; };
 		6E6DF3BE2158287400089863 /* image-processing.metal */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.metal; path = "image-processing.metal"; sourceTree = "<group>"; };
+		6E825D462159679F00B4419B /* raytracing.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = raytracing.h; sourceTree = "<group>"; };
 		6EC4F6C0214D90C5003A48EA /* Metal ray-tracer.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Metal ray-tracer.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		6EC4F6C3214D90C5003A48EA /* AppDelegate.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = AppDelegate.h; sourceTree = "<group>"; };
 		6EC4F6C4214D90C5003A48EA /* AppDelegate.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = AppDelegate.mm; sourceTree = "<group>"; };
@@ -146,8 +147,9 @@
 			children = (
 				6E6DF3BD21581E6B00089863 /* constants.h */,
 				6EC853E8214DB810005418DF /* structures.h */,
-				6E6DF3BE2158287400089863 /* image-processing.metal */,
+				6E825D462159679F00B4419B /* raytracing.h */,
 				6EC853E6214DB803005418DF /* base-ray-tracing.metal */,
+				6E6DF3BE2158287400089863 /* image-processing.metal */,
 				6EC853E0214DA33F005418DF /* blit.metal */,
 			);
 			path = Shaders;

@@ -11,6 +11,8 @@
 
 using namespace metal;
 
+#define ENABLE_ACCUMULATION 1
+
 kernel void accumulateImage(texture2d<float, access::read_write> image [[texture(0)]],
                             device Ray* rays [[buffer(0)]],
                             constant ApplicationData& appData [[buffer(1)]],
@@ -19,13 +21,13 @@ kernel void accumulateImage(texture2d<float, access::read_write> image [[texture
 {
     uint rayIndex = coordinates.x + coordinates.y * size.x;
     float4 outputColor = float4(rays[rayIndex].radiance, 1.0);
-
+#if (ENABLE_ACCUMULATION)
     if (appData.frameIndex > 0)
     {
         float4 storedColor = image.read(coordinates);
         outputColor = mix(outputColor, storedColor, float(appData.frameIndex) / float(appData.frameIndex + 1));
     }
-
+#endif
     image.write(outputColor, coordinates);
 }
 
