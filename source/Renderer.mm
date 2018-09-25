@@ -198,6 +198,9 @@ static std::uniform_real_distribution<float> uniformFloatDistribution(0.0f, 1.0f
 
 - (void)mtkView:(nonnull MTKView *)view drawableSizeWillChange:(CGSize)size
 {
+    _frameIndex = 0;
+    _frameContinuousIndex = 0;
+
     _outputImageSize.width = size.width;
     _outputImageSize.height = size.height;
     _outputImageSize.depth = 1.0f;
