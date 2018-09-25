@@ -33,7 +33,6 @@ kernel void generateRays(device Ray* rays [[buffer(0)]],
     rays[rayIndex].base.minDistance = DISTANCE_EPSILON;
     rays[rayIndex].base.maxDistance = INFINITY;
     rays[rayIndex].radiance = 0.0f;
-    rays[rayIndex].throughput = 1.0f;
 }
 
 kernel void handleIntersections(device const Intersection* intersections [[buffer(0)]],
@@ -93,7 +92,7 @@ kernel void handleIntersections(device const Intersection* intersections [[buffe
         lightSamplingRays[rayIndex].base.maxDistance = INFINITY;
         lightSamplingRays[rayIndex].targetPrimitiveIndex = emitterTriangle.globalIndex;
         lightSamplingRays[rayIndex].throughput =
-            rays[rayIndex].throughput * emitterTriangle.emissive * material.diffuse * (materialBsdf / lightSamplgPdf);
+            emitterTriangle.emissive * material.diffuse * (materialBsdf / lightSamplgPdf);
     }
 }
 
