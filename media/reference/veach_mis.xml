@@ -1,0 +1,150 @@
+<?xml version='1.0' encoding='utf-8'?>
+<!-- MI test scene from Eric Veach's thesis - modeled
+     after a file by Steve Marschner (CS667)
+-->
+
+<scene version="0.5.0">
+	<integrator type="direct">
+		<integer name="bsdfSamples" value="4"/>
+		<integer name="emitterSamples" value="4"/>
+	</integrator>
+
+	<shape type="sphere">
+		<point name="center" x="10" y="10" z="4"/>
+		<float name="radius" value=".5"/>
+
+		<emitter type="area">
+			<rgb name="radiance" value="800, 800, 800"/>
+		</emitter>
+
+		<bsdf type="diffuse">
+			<rgb name="reflectance" value="0,0,0"/>
+		</bsdf>
+	</shape>
+
+	<shape type="sphere">
+		<point name="center" x="-1.25" y="0" z="0"/>
+		<float name="radius" value=".1"/>
+
+		<emitter type="area">
+			<rgb name="radiance" value="100, 100, 100"/>
+		</emitter>
+
+		<bsdf type="diffuse">
+			<rgb name="reflectance" value="0,0,0"/>
+		</bsdf>
+	</shape>
+
+	<shape type="sphere">
+		<point name="center" x="-3.75" y="0" z="0"/>
+		<float name="radius" value=".03333"/>
+
+		<emitter type="area">
+			<rgb name="radiance" value="901.803 901.803 901.803"/>
+		</emitter>
+
+		<bsdf type="diffuse">
+			<rgb name="reflectance" value="0,0,0"/>
+		</bsdf>
+	</shape>
+
+	<shape type="sphere">
+		<point name="center" x="1.25" y="0" z="0"/>
+		<float name="radius" value=".3"/>
+
+		<emitter type="area">
+			<rgb name="radiance" value="11.1111 11.1111 11.1111"/>
+		</emitter>
+
+		<bsdf type="diffuse">
+			<rgb name="reflectance" value="0,0,0"/>
+		</bsdf>
+	</shape>
+
+	<shape type="sphere">
+		<point name="center" x="3.75" y="0" z="0"/>
+		<float name="radius" value=".9"/>
+
+		<emitter type="area">
+			<rgb name="radiance" value="1.23457 1.23457 1.23457"/>
+		</emitter>
+
+		<bsdf type="diffuse">
+			<rgb name="reflectance" value="0,0,0"/>
+		</bsdf>
+	</shape>
+
+	<shape type="obj">
+		<string name="filename" value="plate1.obj"/>
+
+		<bsdf type="roughplastic">
+			<rgb name="diffuseReflectance" value="0.07 0.09 0.13"/>
+			<spectrum name="specularReflectance" value="1"/>
+			<float name="intIOR" value="2"/>
+			<float name="alpha" value="0.005"/>
+		</bsdf>
+	</shape>
+
+	<shape type="obj">
+		<string name="filename" value="plate2.obj"/>
+
+		<bsdf type="roughplastic">
+			<rgb name="diffuseReflectance" value="0.07 0.09 0.13"/>
+			<spectrum name="specularReflectance" value="1"/>
+			<float name="intIOR" value="2"/>
+			<float name="alpha" value="0.02"/>
+		</bsdf>
+	</shape>
+
+	<shape type="obj">
+		<string name="filename" value="plate3.obj"/>
+
+		<bsdf type="roughplastic">
+			<rgb name="diffuseReflectance" value="0.07 0.09 0.13"/>
+			<spectrum name="specularReflectance" value="1"/>
+			<float name="intIOR" value="2"/>
+			<float name="alpha" value="0.05"/>
+		</bsdf>
+	</shape>
+
+	<shape type="obj">
+		<string name="filename" value="plate4.obj"/>
+
+		<bsdf type="roughplastic">
+			<rgb name="diffuseReflectance" value="0.07 0.09 0.13"/>
+			<spectrum name="specularReflectance" value="1"/>
+			<float name="intIOR" value="2"/>
+			<float name="alpha" value="0.1"/>
+		</bsdf>
+	</shape>
+
+	<shape type="obj">
+		<string name="filename" value="floor.obj"/>
+
+		<bsdf type="diffuse">
+			<rgb name="reflectance" value="0.4 0.4 0.4"/>
+		</bsdf>
+	</shape>
+
+	<sensor type="perspective">
+		<float name="fov" value="41.0108"/>
+		<string name="fovAxis" value="x"/>
+		<transform name="toWorld">
+
+			<lookat target="0, 1.69522, 14.0476" origin="0, 2, 15" up="0, 0.952424, -0.304776"/>
+		</transform>
+
+		<sampler type="ldsampler">
+			<integer name="dimension" value="1"/>
+			<integer name="sampleCount" value="16"/>
+		</sampler>
+
+		<film type="hdrfilm">
+			<boolean name="banner" value="true"/>
+			<integer name="height" value="512"/>
+			<integer name="width" value="768"/>
+
+			<rfilter type="gaussian"/>
+		</film>
+	</sensor>
+</scene>

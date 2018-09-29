@@ -1,0 +1,32 @@
+# 3ds Max Wavefront OBJ Exporter v0.97b - (c)2007 guruware
+# File Created: 30.09.2018 00:36:22
+
+newmtl floor
+	Kd 1.0 1.0 1.0
+
+newmtl p1
+	Kd 1.0 1.0 1.0
+
+newmtl p2
+	Kd 1.0 1.0 1.0
+
+newmtl p3
+	Kd 1.0 1.0 1.0
+
+newmtl p4
+	Kd 1.0 1.0 1.0
+
+newmtl l800
+	Ke 800.00000 800.00000 800.00000
+
+newmtl l100
+	Ke 100.00000 100.00000 100.00000
+
+newmtl l901_803
+	Ke 901.803 901.803 901.803
+
+newmtl l11_111
+	Ke 11.11111 11.11111 11.11111
+
+newmtl l1_23456
+	Ke 1.23456 1.23456 1.23456
