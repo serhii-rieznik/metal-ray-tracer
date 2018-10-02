@@ -87,3 +87,10 @@ float3 sampleCosineWeightedHemisphere(float3 n, float2 smp)
 {
     return alignToDirection(n, sqrt(smp.x), smp.y * DOUBLE_PI);
 }
+
+float powerHeuristic(float fPdf, float gPdf)
+{
+    float f2 = fPdf * fPdf;
+    float g2 = gPdf * gPdf;
+    return f2 / (f2 + g2);
+}

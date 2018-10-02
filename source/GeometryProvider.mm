@@ -67,6 +67,7 @@ void GeometryProvider::loadFile(const std::string& fileName, id<MTLDevice> devic
         material.emissive.x = mtl.emission[0];
         material.emissive.y = mtl.emission[1];
         material.emissive.z = mtl.emission[2];
+        material.type = mtl.illum;
     }
 
     std::vector<uint32_t> indexBuffer;
@@ -112,6 +113,7 @@ void GeometryProvider::loadFile(const std::string& fileName, id<MTLDevice> devic
             float area = 0.5f * simd_length(simd_cross(v2.v - v0.v, v1.v - v0.v));
 
             triangleBuffer[triangleBufferOffset].materialIndex = shape.mesh.material_ids[f];
+            triangleBuffer[triangleBufferOffset].area = area;
 
             const Material& material = materialBuffer[triangleBuffer[triangleBufferOffset].materialIndex];
             if (simd_length(material.emissive) > 0.0f)
@@ -143,6 +145,9 @@ void GeometryProvider::loadFile(const std::string& fileName, id<MTLDevice> devic
         t.cdf = cdf;
         t.pdf = t.area / totalLightArea;
         cdf += t.pdf;
+
+        triangleBuffer[t.globalIndex].emitterPdf = t.pdf;
+        triangleBuffer[t.globalIndex].area = t.area;
     }
     emitterTriangleBuffer.emplace_back();
     emitterTriangleBuffer.back().cdf = 1.0f;

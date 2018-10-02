@@ -18,62 +18,66 @@ using uint = uint32_t;
 
 struct Vertex
 {
-    packed_float3 v;
-    packed_float3 n;
-    packed_float2 t;
+    packed_float3 v = {};
+    packed_float3 n = {};
+    packed_float2 t = {};
 };
 
 struct Material
 {
-    packed_float3 diffuse;
+    packed_float3 diffuse = {};
     uint type = MATERIAL_DIFFUSE;
-    packed_float3 emissive;
+    packed_float3 emissive = {};
 };
 
 struct Triangle
 {
-    uint materialIndex;
+    float emitterPdf = 0.0f;
+    float area = 0.0f;
+    uint materialIndex = 0;
 };
 
 struct EmitterTriangle
 {
-    float area;
-    float cdf;
-    float pdf;
-    uint globalIndex;
+    float area = 0.0f;
+    float cdf = 0.0f;
+    float pdf = 0.0f;
+    uint globalIndex = 0;
     Vertex v0;
     Vertex v1;
     Vertex v2;
-    packed_float3 emissive;
+    packed_float3 emissive = {};
 };
 
 struct Ray
 {
-    MPSRayOriginMinDistanceDirectionMaxDistance base;
-    packed_float3 radiance;
-    uint bounces;
-    packed_float3 throughput;
+    MPSRayOriginMinDistanceDirectionMaxDistance base = {};
+    packed_float3 radiance = {};
+    uint bounces = 0;
+    packed_float3 throughput = {};
+    float lightSamplePdf = 0.0f;
+    float materialSamplePdf = 0.0f;
 };
 
 struct LightSamplingRay
 {
-    MPSRayOriginMinDistanceDirectionMaxDistance base;
-    uint targetPrimitiveIndex;
-    packed_float3 throughput;
+    MPSRayOriginMinDistanceDirectionMaxDistance base = {};
+    uint targetPrimitiveIndex = 0;
+    packed_float3 throughput = {};
 };
 
 struct ApplicationData
 {
-    uint frameIndex;
-    uint emitterTrianglesCount;
+    uint frameIndex = 0;
+    uint emitterTrianglesCount = 0;
 };
 
 struct SampledMaterial
 {
-    packed_float3 direction;
-    float bsdf;
-    packed_float3 throughputScale;
-    float pdf;
+    packed_float3 direction = {};
+    float bsdf = 0.0f;
+    packed_float3 throughputScale = {};
+    float pdf = 0.0f;
 };
 
 using Intersection = MPSIntersectionDistancePrimitiveIndexCoordinates;

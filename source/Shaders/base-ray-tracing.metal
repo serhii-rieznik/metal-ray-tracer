@@ -68,17 +68,27 @@ kernel void handleIntersections(device const Intersection* intersections [[buffe
         currentRay.bounces * NOISE_BLOCK_SIZE * NOISE_BLOCK_SIZE;
 
     device const float4& noiseSample = noise[noiseSampleIndex];
-
     device const Triangle& triangle = triangles[i.primitiveIndex];
     device const Material& material = materials[triangle.materialIndex];
-
-    currentRay.radiance += material.emissive * float(currentRay.bounces == 0);
-
     device const packed_uint3& triangleIndices = indices[i.primitiveIndex];
     device const Vertex& a = vertices[triangleIndices.x];
     device const Vertex& b = vertices[triangleIndices.y];
     device const Vertex& c = vertices[triangleIndices.z];
+    
     Vertex currentVertex = interpolate(a, b, c, i.coordinates);
+
+    {
+        packed_float3 directionToLight = currentVertex.v - currentRay.base.origin;
+        float distanceToLight = length(directionToLight);
+        directionToLight /= distanceToLight;
+        float cosTheta = -dot(directionToLight, currentVertex.n);
+
+        float lightSamplePdf = currentRay.lightSamplePdf * triangle.emitterPdf * (distanceToLight * distanceToLight) / (triangle.area * cosTheta);
+        float weight = powerHeuristic(currentRay.materialSamplePdf, lightSamplePdf);
+
+        float3 emissiveScale = currentRay.throughput * currentRay.materialSamplePdf * weight;
+        currentRay.radiance += material.emissive * ((currentRay.bounces == 0) ? 1.0f : emissiveScale);
+    }
 
     // sample light
     {
@@ -93,9 +103,10 @@ kernel void handleIntersections(device const Intersection* intersections [[buffe
         directionToLight /= distanceToLight;
 
         float cosTheta = -dot(directionToLight, lightVertex.n);
-        float lightSamplgPdf = emitterTriangle.pdf * (distanceToLight * distanceToLight) / (emitterTriangle.area * cosTheta);
+        float lightSamplePdf = emitterTriangle.pdf * (distanceToLight * distanceToLight) / (emitterTriangle.area * cosTheta);
 
         SampledMaterial materialSample = sampleMaterial(material, currentVertex.n, currentRay.base.direction, directionToLight);
+        float weight = powerHeuristic(lightSamplePdf, materialSample.pdf);
 
         bool validRay = (cosTheta > 0.0f) && (materialSample.bsdf > 0.0);
 
@@ -105,7 +116,7 @@ kernel void handleIntersections(device const Intersection* intersections [[buffe
         lightSamplingRay.base.maxDistance = validRay ? INFINITY : -1.0;
         lightSamplingRay.targetPrimitiveIndex = emitterTriangle.globalIndex;
         lightSamplingRay.throughput = emitterTriangle.emissive *
-             currentRay.throughput * materialSample.throughputScale / lightSamplgPdf;
+             currentRay.throughput * materialSample.throughputScale * weight / lightSamplePdf;
     }
 
     // generate next bounce
@@ -114,6 +125,8 @@ kernel void handleIntersections(device const Intersection* intersections [[buffe
 
         currentRay.base.origin = currentVertex.v + currentVertex.n * DISTANCE_EPSILON;
         currentRay.base.direction = materialSample.direction;
+        currentRay.materialSamplePdf = materialSample.pdf;
+        currentRay.lightSamplePdf = material.type == MATERIAL_DIFFUSE;
         currentRay.throughput *= materialSample.throughputScale;
         currentRay.bounces += 1;
     }

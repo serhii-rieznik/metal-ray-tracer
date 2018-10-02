@@ -13,8 +13,27 @@
 SampledMaterial sampleMaterial(device const Material& material, float3 n, float3 wI, device const float4& noiseSample)
 {
     SampledMaterial result = {};
-    result.direction = sampleCosineWeightedHemisphere(n, noiseSample.wx);
-    result.throughputScale = material.diffuse;
+    switch (material.type)
+    {
+        case MATERIAL_MIRROR:
+        {
+            result.direction = reflect(wI, n);
+            result.bsdf = 1.0f;
+            result.pdf = 1.0f;
+            result.throughputScale = 1.0f;
+            break;
+        }
+
+        default:
+        {
+            float3 wO = sampleCosineWeightedHemisphere(n, noiseSample.wx);
+            float cosTheta = dot(n, wO);
+            result.direction = wO;
+            result.bsdf = INVERSE_PI * cosTheta;
+            result.pdf = INVERSE_PI * cosTheta;
+            result.throughputScale = material.diffuse;
+        }
+    }
     return result;
 }
 
@@ -24,8 +43,25 @@ SampledMaterial sampleMaterial(device const Material& material, float3 n, float3
 
     SampledMaterial result = {};
     result.direction = wO;
-    result.bsdf = INVERSE_PI * cosTheta;
-    result.pdf = INVERSE_PI * cosTheta;
-    result.throughputScale = result.bsdf * material.diffuse;
+
+    switch (material.type)
+    {
+        case MATERIAL_MIRROR:
+        {
+            float3 r = reflect(wI, n);
+            bool mirrorDirection = abs(1.0 - dot(r, wO)) < ANGLE_EPSILON;
+            result.bsdf = mirrorDirection ? cosTheta : 0.0f;
+            result.pdf = mirrorDirection ? 1.0f : 0.0f;
+            result.throughputScale = mirrorDirection ? 1.0f : 0.0f;
+            break;
+        }
+
+        default:
+        {
+            result.bsdf = INVERSE_PI * cosTheta;
+            result.pdf = INVERSE_PI * cosTheta;
+            result.throughputScale = result.bsdf * material.diffuse;
+        }
+    }
     return result;
 }
