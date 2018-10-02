@@ -199,24 +199,24 @@ static std::uniform_real_distribution<float> uniformFloatDistribution(0.0f, 1.0f
     _frameIndex = _frameContinuousIndex % MaxFrames;
 }
 
-- (void)mtkView:(nonnull MTKView *)view drawableSizeWillChange:(CGSize)size
+- (void)mtkView:(nonnull MTKView *)view drawableSizeWillChange:(CGSize)inSize
 {
     _frameIndex = 0;
     _frameContinuousIndex = 0;
 
-    _outputImageSize.width = size.width;
-    _outputImageSize.height = size.height;
+    _outputImageSize.width = inSize.width / CONTENT_SCALE;
+    _outputImageSize.height = inSize.height / CONTENT_SCALE;
     _outputImageSize.depth = 1.0f;
 
     MTLTextureDescriptor* outputImageDescriptor = [MTLTextureDescriptor new];
     outputImageDescriptor.pixelFormat = MTLPixelFormatRGBA32Float;
-    outputImageDescriptor.width = NSUInteger(size.width);
-    outputImageDescriptor.height = NSUInteger(size.height);
+    outputImageDescriptor.width = NSUInteger(_outputImageSize.width);
+    outputImageDescriptor.height = NSUInteger(_outputImageSize.height);
     outputImageDescriptor.usage |= MTLTextureUsageShaderWrite;
     outputImageDescriptor.storageMode = MTLStorageModePrivate;
     _outputImage = [_device newTextureWithDescriptor:outputImageDescriptor];
 
-    _rayCount = uint32_t(size.width) * uint32_t(size.height);
+    _rayCount = uint32_t(_outputImageSize.width) * uint32_t(_outputImageSize.height);
 
     _rayBuffer = [_device newBufferWithLength:sizeof(Ray) * _rayCount options:MTLResourceStorageModePrivate];
     _lightSamplingRayBuffer = [_device newBufferWithLength:sizeof(LightSamplingRay) * _rayCount options:MTLResourceStorageModePrivate];

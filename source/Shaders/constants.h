@@ -18,3 +18,5 @@
 #define NOISE_BLOCK_SIZE    16
 
 #define MAX_PATH_LENGTH     8
+
+#define CONTENT_SCALE       8
