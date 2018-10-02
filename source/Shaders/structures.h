@@ -51,6 +51,8 @@ struct Ray
 {
     MPSRayOriginMinDistanceDirectionMaxDistance base;
     packed_float3 radiance;
+    uint bounces;
+    packed_float3 throughput;
 };
 
 struct LightSamplingRay

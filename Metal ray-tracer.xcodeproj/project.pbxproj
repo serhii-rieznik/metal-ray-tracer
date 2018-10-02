@@ -14,7 +14,7 @@
 		6E6DF3B421503E3700089863 /* imgui_demo.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6E6DF2C321503E3700089863 /* imgui_demo.cpp */; };
 		6E6DF3B521503E3700089863 /* imgui_draw.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6E6DF2C421503E3700089863 /* imgui_draw.cpp */; };
 		6E6DF3BC2150415900089863 /* media in Resources */ = {isa = PBXBuildFile; fileRef = 6E6DF3BB2150415900089863 /* media */; };
-		6E6DF3BF2158287500089863 /* image-processing.metal in Sources */ = {isa = PBXBuildFile; fileRef = 6E6DF3BE2158287400089863 /* image-processing.metal */; };
+		6E6DF3BF2158287500089863 /* image-processing.metal in Sources */ = {isa = PBXBuildFile; fileRef = 6E6DF3BE2158287400089863 /* image-processing.metal */; settings = {COMPILER_FLAGS = "-gline-tables-only -MO"; }; };
 		6EC4F6C5214D90C5003A48EA /* AppDelegate.mm in Sources */ = {isa = PBXBuildFile; fileRef = 6EC4F6C4214D90C5003A48EA /* AppDelegate.mm */; };
 		6EC4F6C8214D90C5003A48EA /* Renderer.mm in Sources */ = {isa = PBXBuildFile; fileRef = 6EC4F6C7214D90C5003A48EA /* Renderer.mm */; };
 		6EC4F6CB214D90C5003A48EA /* GameViewController.mm in Sources */ = {isa = PBXBuildFile; fileRef = 6EC4F6CA214D90C5003A48EA /* GameViewController.mm */; };
@@ -23,7 +23,7 @@
 		6EC4F6D6214D90C6003A48EA /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 6EC4F6D5214D90C6003A48EA /* main.m */; };
 		6EC853E1214DA33F005418DF /* blit.metal in Sources */ = {isa = PBXBuildFile; fileRef = 6EC853E0214DA33F005418DF /* blit.metal */; };
 		6EC853E5214DB343005418DF /* MetalPerformanceShaders.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 6EC853E4214DB343005418DF /* MetalPerformanceShaders.framework */; };
-		6EC853E7214DB803005418DF /* base-ray-tracing.metal in Sources */ = {isa = PBXBuildFile; fileRef = 6EC853E6214DB803005418DF /* base-ray-tracing.metal */; };
+		6EC853E7214DB803005418DF /* base-ray-tracing.metal in Sources */ = {isa = PBXBuildFile; fileRef = 6EC853E6214DB803005418DF /* base-ray-tracing.metal */; settings = {COMPILER_FLAGS = "-gline-tables-only -MO"; }; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */

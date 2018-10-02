@@ -11,7 +11,10 @@
 #include <MetalPerformanceShaders/MetalPerformanceShaders.h>
 
 #define PI                  3.1415926536
+#define DOUBLE_PI           6.2831853072
 #define DISTANCE_EPSILON    0.001
 #define MATERIAL_DIFFUSE    1
 #define MATERIAL_LIGHT      100
 #define NOISE_BLOCK_SIZE    16
+
+#define MAX_PATH_LENGTH     8

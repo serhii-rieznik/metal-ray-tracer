@@ -33,6 +33,8 @@ kernel void generateRays(device Ray* rays [[buffer(0)]],
     rays[rayIndex].base.minDistance = DISTANCE_EPSILON;
     rays[rayIndex].base.maxDistance = INFINITY;
     rays[rayIndex].radiance = 0.0f;
+    rays[rayIndex].throughput = 1.0f;
+    rays[rayIndex].bounces = 0;
 }
 
 kernel void handleIntersections(device const Intersection* intersections [[buffer(0)]],
@@ -50,25 +52,40 @@ kernel void handleIntersections(device const Intersection* intersections [[buffe
 {
     uint rayIndex = coordinates.x + coordinates.y * size.x;
     device const Intersection& i = intersections[rayIndex];
+    device Ray& currentRay = rays[rayIndex];
+    device LightSamplingRay& lightSamplingRay = lightSamplingRays[rayIndex];
+
     if (i.distance < DISTANCE_EPSILON)
     {
-        lightSamplingRays[rayIndex].base.maxDistance = -1.0;
-        lightSamplingRays[rayIndex].targetPrimitiveIndex = uint(-1);
+        currentRay.base.maxDistance = -1.0;
+        lightSamplingRay.base.maxDistance = -1.0;
+        lightSamplingRay.targetPrimitiveIndex = uint(-1);
         return;
     }
 
-    uint noiseSampleIndex = (coordinates.x % NOISE_BLOCK_SIZE) + NOISE_BLOCK_SIZE * (coordinates.y % NOISE_BLOCK_SIZE);
+    uint noiseSampleIndex = (coordinates.x % NOISE_BLOCK_SIZE) + (coordinates.y % NOISE_BLOCK_SIZE) * NOISE_BLOCK_SIZE +
+        currentRay.bounces * NOISE_BLOCK_SIZE * NOISE_BLOCK_SIZE;
+
     device const float4& noiseSample = noise[noiseSampleIndex];
 
     device const Triangle& triangle = triangles[i.primitiveIndex];
     device const Material& material = materials[triangle.materialIndex];
-    rays[rayIndex].radiance += material.emissive;
+
+    currentRay.radiance += material.emissive * float(currentRay.bounces == 0);
 
     device const packed_uint3& triangleIndices = indices[i.primitiveIndex];
     device const Vertex& a = vertices[triangleIndices.x];
     device const Vertex& b = vertices[triangleIndices.y];
     device const Vertex& c = vertices[triangleIndices.z];
     Vertex currentVertex = interpolate(a, b, c, i.coordinates);
+
+    // generate next bounce
+    {
+        currentRay.base.origin = currentVertex.v + currentVertex.n * DISTANCE_EPSILON;
+        currentRay.base.direction = sampleCosineWeightedHemisphere(currentVertex.n, noiseSample.wx);
+        currentRay.bounces += 1;
+        currentRay.throughput *= material.diffuse;
+    }
 
     // sample light
     {
@@ -86,13 +103,13 @@ kernel void handleIntersections(device const Intersection* intersections [[buffe
         float materialBsdf = (1.0 / PI) * dot(directionToLight, currentVertex.n);
         float lightSamplgPdf = emitterTriangle.pdf * (distanceToLight * distanceToLight) / (emitterTriangle.area * cosTheta);
 
-        lightSamplingRays[rayIndex].base.origin = currentVertex.v + currentVertex.n * DISTANCE_EPSILON;
-        lightSamplingRays[rayIndex].base.direction = directionToLight;
-        lightSamplingRays[rayIndex].base.minDistance = 0.0f;
-        lightSamplingRays[rayIndex].base.maxDistance = INFINITY;
-        lightSamplingRays[rayIndex].targetPrimitiveIndex = emitterTriangle.globalIndex;
-        lightSamplingRays[rayIndex].throughput =
-            emitterTriangle.emissive * material.diffuse * (materialBsdf / lightSamplgPdf);
+        lightSamplingRay.base.origin = currentVertex.v + currentVertex.n * DISTANCE_EPSILON;
+        lightSamplingRay.base.direction = directionToLight;
+        lightSamplingRay.base.minDistance = 0.0f;
+        lightSamplingRay.base.maxDistance = INFINITY;
+        lightSamplingRay.targetPrimitiveIndex = emitterTriangle.globalIndex;
+        lightSamplingRay.throughput =
+            emitterTriangle.emissive * currentRay.throughput * (materialBsdf / lightSamplgPdf);
     }
 }
 

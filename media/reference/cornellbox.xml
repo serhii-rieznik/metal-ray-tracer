@@ -6,8 +6,9 @@
 -->
 
 <scene version="0.5.0">
-	<integrator type="direct">
-		<integer name="bsdfSamples" value="0"/>
+	<integrator type="path">
+		<integer name="maxDepth" value="2"/>
+		<integer name="rrDepth" value="100"/>
 	</integrator>
 
 	<bsdf type="diffuse" id="white_material">
