@@ -100,13 +100,15 @@ kernel void handleIntersections(device const Intersection* intersections [[buffe
         directionToLight /= distanceToLight;
 
         float cosTheta = -dot(directionToLight, lightVertex.n);
-        float materialBsdf = (1.0 / PI) * dot(directionToLight, currentVertex.n);
+        float materialBsdf = INVERSE_PI * dot(directionToLight, currentVertex.n);
         float lightSamplgPdf = emitterTriangle.pdf * (distanceToLight * distanceToLight) / (emitterTriangle.area * cosTheta);
+
+        bool validRay = (cosTheta > 0.0f) && (materialBsdf > 0.0);
 
         lightSamplingRay.base.origin = currentVertex.v + currentVertex.n * DISTANCE_EPSILON;
         lightSamplingRay.base.direction = directionToLight;
         lightSamplingRay.base.minDistance = 0.0f;
-        lightSamplingRay.base.maxDistance = INFINITY;
+        lightSamplingRay.base.maxDistance = validRay ? INFINITY : -1.0;
         lightSamplingRay.targetPrimitiveIndex = emitterTriangle.globalIndex;
         lightSamplingRay.throughput =
             emitterTriangle.emissive * currentRay.throughput * (materialBsdf / lightSamplgPdf);

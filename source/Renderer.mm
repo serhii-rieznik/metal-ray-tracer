@@ -256,7 +256,7 @@ static std::uniform_real_distribution<float> uniformFloatDistribution(0.0f, 1.0f
 
 -(void)initializeRayTracing
 {
-    NSURL* assetUrl = [[NSBundle mainBundle] URLForResource:@"media/cornellbox" withExtension:@"obj"];
+    NSURL* assetUrl = [[NSBundle mainBundle] URLForResource:@"media/cornellbox-water-spheres" withExtension:@"obj"];
     const char* fileName = [assetUrl fileSystemRepresentation];
     _geometryProvider.loadFile(fileName, _device);
     
