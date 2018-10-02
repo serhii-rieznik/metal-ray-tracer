@@ -9,6 +9,7 @@
 #include <metal_stdlib>
 #include "structures.h"
 #include "raytracing.h"
+#include "materials.h"
 
 using namespace metal;
 
@@ -79,14 +80,6 @@ kernel void handleIntersections(device const Intersection* intersections [[buffe
     device const Vertex& c = vertices[triangleIndices.z];
     Vertex currentVertex = interpolate(a, b, c, i.coordinates);
 
-    // generate next bounce
-    {
-        currentRay.base.origin = currentVertex.v + currentVertex.n * DISTANCE_EPSILON;
-        currentRay.base.direction = sampleCosineWeightedHemisphere(currentVertex.n, noiseSample.wx);
-        currentRay.bounces += 1;
-        currentRay.throughput *= material.diffuse;
-    }
-
     // sample light
     {
         device const EmitterTriangle& emitterTriangle =
@@ -100,18 +93,29 @@ kernel void handleIntersections(device const Intersection* intersections [[buffe
         directionToLight /= distanceToLight;
 
         float cosTheta = -dot(directionToLight, lightVertex.n);
-        float materialBsdf = INVERSE_PI * dot(directionToLight, currentVertex.n);
         float lightSamplgPdf = emitterTriangle.pdf * (distanceToLight * distanceToLight) / (emitterTriangle.area * cosTheta);
 
-        bool validRay = (cosTheta > 0.0f) && (materialBsdf > 0.0);
+        SampledMaterial materialSample = sampleMaterial(material, currentVertex.n, currentRay.base.direction, directionToLight);
+
+        bool validRay = (cosTheta > 0.0f) && (materialSample.bsdf > 0.0);
 
         lightSamplingRay.base.origin = currentVertex.v + currentVertex.n * DISTANCE_EPSILON;
         lightSamplingRay.base.direction = directionToLight;
         lightSamplingRay.base.minDistance = 0.0f;
         lightSamplingRay.base.maxDistance = validRay ? INFINITY : -1.0;
         lightSamplingRay.targetPrimitiveIndex = emitterTriangle.globalIndex;
-        lightSamplingRay.throughput =
-            emitterTriangle.emissive * currentRay.throughput * (materialBsdf / lightSamplgPdf);
+        lightSamplingRay.throughput = emitterTriangle.emissive *
+             currentRay.throughput * materialSample.throughputScale / lightSamplgPdf;
+    }
+
+    // generate next bounce
+    {
+        SampledMaterial materialSample = sampleMaterial(material, currentVertex.n, currentRay.base.direction, noiseSample);
+
+        currentRay.base.origin = currentVertex.v + currentVertex.n * DISTANCE_EPSILON;
+        currentRay.base.direction = materialSample.direction;
+        currentRay.throughput *= materialSample.throughputScale;
+        currentRay.bounces += 1;
     }
 }
 

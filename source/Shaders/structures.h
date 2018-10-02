@@ -68,5 +68,13 @@ struct ApplicationData
     uint emitterTrianglesCount;
 };
 
+struct SampledMaterial
+{
+    packed_float3 direction;
+    float bsdf;
+    packed_float3 throughputScale;
+    float pdf;
+};
+
 using Intersection = MPSIntersectionDistancePrimitiveIndexCoordinates;
 using LightSamplingIntersection = MPSIntersectionDistancePrimitiveIndex;
