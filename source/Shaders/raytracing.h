@@ -18,7 +18,7 @@ Vertex interpolate(device const Vertex& a, device const Vertex& b, device const 
 
     Vertex result;
     result.v = a.v * u + b.v * v + c.v * w;
-    result.n = a.n * u + b.n * v + c.n * w;
+    result.n = normalize(a.n * u + b.n * v + c.n * w);
     result.t = a.t * u + b.t * v + c.t * w;
     return result;
 }
@@ -27,11 +27,11 @@ Vertex interpolate(device const Vertex& a, device const Vertex& b, device const 
 {
     float u = barycentric.x;
     float v = barycentric.y;
-    float w = 1.0f - u - v;
+    float w = saturate(1.0f - barycentric.x - barycentric.y);
 
     Vertex result;
     result.v = a.v * u + b.v * v + c.v * w;
-    result.n = a.n * u + b.n * v + c.n * w;
+    result.n = normalize(a.n * u + b.n * v + c.n * w);
     result.t = a.t * u + b.t * v + c.t * w;
     return result;
 }
@@ -83,14 +83,61 @@ float3 alignToDirection(float3 n, float cosTheta, float phi)
     return (u * cos(phi) + v * sin(phi)) * sinTheta + n * cosTheta;
 }
 
-float3 sampleCosineWeightedHemisphere(float3 n, float2 smp)
+float3 sampleCosineWeightedHemisphere(float3 n, float2 xi)
 {
-    return alignToDirection(n, sqrt(smp.x), smp.y * DOUBLE_PI);
+    float cosTheta = sqrt(xi.x);
+    return alignToDirection(n, cosTheta, xi.y * DOUBLE_PI);
+}
+
+float3 sampleGGXDistribution(float3 n, float2 xi, float alpha)
+{
+    float cosTheta = sqrt((1.0f - xi.x) / (xi.x * (alpha * alpha - 1.0f) + 1.0f));
+    return alignToDirection(n, cosTheta, xi.y * DOUBLE_PI);
 }
 
 float powerHeuristic(float fPdf, float gPdf)
 {
     float f2 = fPdf * fPdf;
     float g2 = gPdf * gPdf;
-    return f2 / (f2 + g2);
+    return saturate(f2 / (f2 + g2));
+}
+
+float ggxNormalDistribution(float alphaSquared, float cosTheta)
+{
+    float denom = (alphaSquared - 1.0f) * cosTheta * cosTheta + 1.0f;
+    return (denom > 0.0f) ? (alphaSquared / (PI * denom * denom)) : 0.0f;
+}
+
+float ggxVisibility(float alphaSquared, float cosTheta)
+{
+    float tanThetaSquared = (1.0f - cosTheta * cosTheta) / (cosTheta * cosTheta);
+    return 2.0f / (1.0f + sqrt(1.0f + alphaSquared * tanThetaSquared));
+}
+
+float ggxVisibilityTerm(float alphaSquared, float NdotI, float NdotO)
+{
+    /*
+    float g1 = ggxVisibility(alphaSquared, NdotI);
+    float g2 = ggxVisibility(alphaSquared, NdotO);
+    return g1 * g2;
+    // */
+
+    //*
+    float g1 = NdotI * sqrt(saturate(alphaSquared + (1.0f - alphaSquared) * NdotO * NdotO));
+    float g2 = NdotO * sqrt(saturate(alphaSquared + (1.0f - alphaSquared) * NdotI * NdotI));
+    return ((g1 + g2) > 0.0f) ? (2.0f * NdotO * NdotI / (g1 + g2)) : 0.0f;
+    // */
+}
+
+float fresnelDielectric(float cosTheta)
+{
+    float ior = 1.5;
+    float r0 = (ior - 1.0) / (ior + 1.0);
+    r0 *= r0;
+    return r0 + (1.0f - r0) * pow(1.0f - cosTheta, 5.0f);
+}
+
+float fresnelConductor(float cosTheta)
+{
+    return 1.0f; // TODO
 }

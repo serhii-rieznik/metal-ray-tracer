@@ -77,7 +77,7 @@
 	<shape type="obj">
 		<string name="filename" value="plate1.obj"/>
 
-		<bsdf type="roughplastic">
+		<bsdf type="roughconductor">
 			<rgb name="diffuseReflectance" value="0.07 0.09 0.13"/>
 			<spectrum name="specularReflectance" value="1"/>
 			<float name="intIOR" value="2"/>
@@ -88,7 +88,7 @@
 	<shape type="obj">
 		<string name="filename" value="plate2.obj"/>
 
-		<bsdf type="roughplastic">
+		<bsdf type="roughconductor">
 			<rgb name="diffuseReflectance" value="0.07 0.09 0.13"/>
 			<spectrum name="specularReflectance" value="1"/>
 			<float name="intIOR" value="2"/>
@@ -99,7 +99,7 @@
 	<shape type="obj">
 		<string name="filename" value="plate3.obj"/>
 
-		<bsdf type="roughplastic">
+		<bsdf type="roughconductor">
 			<rgb name="diffuseReflectance" value="0.07 0.09 0.13"/>
 			<spectrum name="specularReflectance" value="1"/>
 			<float name="intIOR" value="2"/>
@@ -110,7 +110,7 @@
 	<shape type="obj">
 		<string name="filename" value="plate4.obj"/>
 
-		<bsdf type="roughplastic">
+		<bsdf type="roughconductor">
 			<rgb name="diffuseReflectance" value="0.07 0.09 0.13"/>
 			<spectrum name="specularReflectance" value="1"/>
 			<float name="intIOR" value="2"/>

@@ -11,8 +11,9 @@
 		<integer name="rrDepth" value="1000"/>
 	</integrator>
 
-	<bsdf type="diffuse" id="leftSphere_material">
-		<rgb name="reflectance" value="1 1 1"/>
+	<bsdf type="roughconductor" id="leftSphere_material">
+		<string name="material" value="none"/>
+        <float name="alpha" value="0.05"/>
 	</bsdf>
 
 	<bsdf type="diffuse" id="rightSphere_material">
@@ -100,10 +101,7 @@
 	<shape type="serialized" id="water_mesh">
 		<string name="filename" value="cornellbox-water-spheres.serialized"/>
 		<integer name="shapeIndex" value="8"/>
-
-		<bsdf type="conductor">
-			<string name="material" value="none"/>
-		</bsdf>
+		<bsdf type="diffuse"/>
 	</shape>
 
 	<sensor type="perspective">

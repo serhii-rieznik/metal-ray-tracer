@@ -21,6 +21,13 @@ kernel void accumulateImage(texture2d<float, access::read_write> image [[texture
 {
     uint rayIndex = coordinates.x + coordinates.y * size.x;
     float4 outputColor = float4(rays[rayIndex].radiance, 1.0);
+
+    if (any(isnan(outputColor)))
+        outputColor = float4(1000.0, 0.0, 1000.0, 1.0);
+
+    if (any(isinf(outputColor)))
+        outputColor = float4(0.0, 1000.0, 1000.0, 1.0);
+
 #if (ENABLE_ACCUMULATION)
     if (appData.frameIndex > 0)
     {

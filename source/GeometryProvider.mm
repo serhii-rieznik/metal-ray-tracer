@@ -61,13 +61,14 @@ void GeometryProvider::loadFile(const std::string& fileName, id<MTLDevice> devic
     {
         materialBuffer.emplace_back();
         Material& material = materialBuffer.back();
-        material.diffuse.x = mtl.diffuse[0];
-        material.diffuse.y = mtl.diffuse[1];
-        material.diffuse.z = mtl.diffuse[2];
+        material.color.x = mtl.diffuse[0];
+        material.color.y = mtl.diffuse[1];
+        material.color.z = mtl.diffuse[2];
         material.emissive.x = mtl.emission[0];
         material.emissive.y = mtl.emission[1];
         material.emissive.z = mtl.emission[2];
         material.type = mtl.illum;
+        material.roughness = mtl.roughness * mtl.roughness;
     }
 
     std::vector<uint32_t> indexBuffer;
@@ -133,10 +134,12 @@ void GeometryProvider::loadFile(const std::string& fileName, id<MTLDevice> devic
         }
     }
 
-    std::stable_sort(std::begin(emitterTriangleBuffer), std::end(emitterTriangleBuffer), [](const EmitterTriangle& l, const EmitterTriangle& r){
+    std::random_shuffle(std::begin(emitterTriangleBuffer), std::end(emitterTriangleBuffer));
+    /*
+    std::sort(std::begin(emitterTriangleBuffer), std::end(emitterTriangleBuffer), [](const EmitterTriangle& l, const EmitterTriangle& r){
         return l.area < r.area;
     });
-
+    */
     _emitterTriangleCount = static_cast<uint32_t>(emitterTriangleBuffer.size());
 
     float cdf = 0.0f;

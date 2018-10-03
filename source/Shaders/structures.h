@@ -25,9 +25,10 @@ struct Vertex
 
 struct Material
 {
-    packed_float3 diffuse = {};
+    packed_float3 color = {};
     uint type = MATERIAL_DIFFUSE;
     packed_float3 emissive = {};
+    float roughness = 0.0f;
 };
 
 struct Triangle
@@ -76,8 +77,8 @@ struct SampledMaterial
 {
     packed_float3 direction = {};
     float bsdf = 0.0f;
-    packed_float3 throughputScale = {};
     float pdf = 0.0f;
+    float bsdf_over_pdf = 0.0f;
 };
 
 using Intersection = MPSIntersectionDistancePrimitiveIndexCoordinates;

@@ -18,7 +18,7 @@ kernel void generateRays(device Ray* rays [[buffer(0)]],
                          uint2 coordinates [[thread_position_in_grid]],
                          uint2 size [[threads_per_grid]])
 {
-    const float3 origin = float3(0.0f, 1.0f, 2.35f);
+    const float3 origin = float3(0.0f, 2.0f, 15.0f);
 
     uint noiseSampleIndex = (coordinates.x % NOISE_BLOCK_SIZE) + NOISE_BLOCK_SIZE * (coordinates.y % NOISE_BLOCK_SIZE);
     device const float4& noiseSample = noise[noiseSampleIndex];
@@ -26,7 +26,7 @@ kernel void generateRays(device Ray* rays [[buffer(0)]],
     float aspect = float(size.y) / float(size.x);
     float2 uv = float2(coordinates) / float2(size - 1) * 2.0f - 1.0f;
     float2 rnd = (noiseSample.xy * 2.0 - 1.0) / float2(size - 1);
-    float3 direction = normalize(float3((uv.x + rnd.x), aspect * (uv.y + rnd.y), -1.0f));
+    float3 direction = normalize(float3((uv.x + rnd.x) * 0.4, aspect * (uv.y + rnd.y) * 0.4 - 0.3, -1.0f));
 
     uint rayIndex = coordinates.x + coordinates.y * size.x;
     rays[rayIndex].base.origin = origin;
@@ -78,15 +78,27 @@ kernel void handleIntersections(device const Intersection* intersections [[buffe
     Vertex currentVertex = interpolate(a, b, c, i.coordinates);
 
     {
+    #if (IS_MODE == IS_MODE_MIS)
+
         packed_float3 directionToLight = currentVertex.v - currentRay.base.origin;
         float distanceToLight = length(directionToLight);
         directionToLight /= distanceToLight;
         float cosTheta = -dot(directionToLight, currentVertex.n);
-
-        float lightSamplePdf = currentRay.lightSamplePdf * triangle.emitterPdf * (distanceToLight * distanceToLight) / (triangle.area * cosTheta);
+        float lightSamplePdf = currentRay.lightSamplePdf * triangle.emitterPdf *
+            (distanceToLight * distanceToLight) / (triangle.area * cosTheta);
         float weight = powerHeuristic(currentRay.materialSamplePdf, lightSamplePdf);
 
-        float3 emissiveScale = currentRay.throughput * currentRay.materialSamplePdf * weight;
+    #elif (IS_MODE == IS_MODE_BSDF)
+
+        float weight = 1.0f;
+
+    #else
+
+        float weight = float(currentRay.bounces == 0);
+
+    #endif
+
+        float3 emissiveScale = currentRay.throughput * weight;
         currentRay.radiance += material.emissive * ((currentRay.bounces == 0) ? 1.0f : emissiveScale);
     }
 
@@ -106,7 +118,14 @@ kernel void handleIntersections(device const Intersection* intersections [[buffe
         float lightSamplePdf = emitterTriangle.pdf * (distanceToLight * distanceToLight) / (emitterTriangle.area * cosTheta);
 
         SampledMaterial materialSample = sampleMaterial(material, currentVertex.n, currentRay.base.direction, directionToLight);
+
+    #if (IS_MODE == IS_MODE_MIS)
         float weight = powerHeuristic(lightSamplePdf, materialSample.pdf);
+    #elif (IS_MODE == IS_MODE_LIGHT)
+        float weight = 1.0f;
+    #else
+        float weight = 0.0f;
+    #endif
 
         bool validRay = (cosTheta > 0.0f) && (materialSample.bsdf > 0.0);
 
@@ -115,19 +134,18 @@ kernel void handleIntersections(device const Intersection* intersections [[buffe
         lightSamplingRay.base.minDistance = 0.0f;
         lightSamplingRay.base.maxDistance = validRay ? INFINITY : -1.0;
         lightSamplingRay.targetPrimitiveIndex = emitterTriangle.globalIndex;
-        lightSamplingRay.throughput = emitterTriangle.emissive *
-             currentRay.throughput * materialSample.throughputScale * weight / lightSamplePdf;
+        lightSamplingRay.throughput = emitterTriangle.emissive * currentRay.throughput * material.color *
+            (materialSample.bsdf / lightSamplePdf * weight);
     }
 
     // generate next bounce
     {
         SampledMaterial materialSample = sampleMaterial(material, currentVertex.n, currentRay.base.direction, noiseSample);
-
         currentRay.base.origin = currentVertex.v + currentVertex.n * DISTANCE_EPSILON;
         currentRay.base.direction = materialSample.direction;
         currentRay.materialSamplePdf = materialSample.pdf;
-        currentRay.lightSamplePdf = material.type == MATERIAL_DIFFUSE;
-        currentRay.throughput *= materialSample.throughputScale;
+        currentRay.lightSamplePdf = float(material.type != MATERIAL_MIRROR);
+        currentRay.throughput *= material.color * materialSample.bsdf_over_pdf;
         currentRay.bounces += 1;
     }
 }
