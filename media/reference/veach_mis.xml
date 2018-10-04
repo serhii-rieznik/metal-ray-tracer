@@ -15,24 +15,28 @@
 	</bsdf>
 
 	<bsdf type="roughconductor" id="plate_01_material">
+		<string name="distribution" value="ggx"/>
 		<string name="material" value="none"/>
 		<float name="alpha" value="0.005"/>
 		<rgb name="reflectance" value="0.07059 0.0902 0.12941"/>
 	</bsdf>
 
 	<bsdf type="roughconductor" id="plate_02_material">
+		<string name="distribution" value="ggx"/>
 		<string name="material" value="none"/>
 		<float name="alpha" value="0.02"/>
 		<rgb name="reflectance" value="0.07059 0.0902 0.12941"/>
 	</bsdf>
 
 	<bsdf type="roughconductor" id="plate_03_material">
+		<string name="distribution" value="ggx"/>
 		<string name="material" value="none"/>
 		<float name="alpha" value="0.05"/>
 		<rgb name="reflectance" value="0.07059 0.0902 0.12941"/>
 	</bsdf>
 
 	<bsdf type="roughconductor" id="plate_04_material">
+		<string name="distribution" value="ggx"/>
 		<string name="material" value="none"/>
 		<float name="alpha" value="0.1"/>
 		<rgb name="reflectance" value="0.07059 0.0902 0.12941"/>
