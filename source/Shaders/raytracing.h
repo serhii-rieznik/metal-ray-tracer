@@ -117,15 +117,19 @@ float ggxVisibility(float alphaSquared, float cosTheta)
 float ggxVisibilityTerm(float alphaSquared, float NdotI, float NdotO)
 {
     /*
-    float g1 = ggxVisibility(alphaSquared, NdotI);
-    float g2 = ggxVisibility(alphaSquared, NdotO);
-    return g1 * g2;
+    {
+        float g1 = ggxVisibility(alphaSquared, NdotI);
+        float g2 = ggxVisibility(alphaSquared, NdotO);
+        return g1 * g2;
+    }
     // */
 
     //*
-    float g1 = NdotI * sqrt(saturate(alphaSquared + (1.0f - alphaSquared) * NdotO * NdotO));
-    float g2 = NdotO * sqrt(saturate(alphaSquared + (1.0f - alphaSquared) * NdotI * NdotI));
-    return ((g1 + g2) > 0.0f) ? (2.0f * NdotO * NdotI / (g1 + g2)) : 0.0f;
+    {
+        float g1 = NdotI * sqrt(saturate(alphaSquared + (1.0f - alphaSquared) * NdotO * NdotO));
+        float g2 = NdotO * sqrt(saturate(alphaSquared + (1.0f - alphaSquared) * NdotI * NdotI));
+        return ((g1 + g2) > 0.0f) ? (2.0f * NdotO * NdotI / (g1 + g2)) : 0.0f;
+    }
     // */
 }
 

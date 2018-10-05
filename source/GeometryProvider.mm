@@ -68,7 +68,7 @@ void GeometryProvider::loadFile(const std::string& fileName, id<MTLDevice> devic
         material.emissive.y = mtl.emission[1];
         material.emissive.z = mtl.emission[2];
         material.type = mtl.illum;
-        material.roughness = mtl.roughness * mtl.roughness;
+        material.roughness = mtl.roughness;
     }
 
     std::vector<uint32_t> indexBuffer;
