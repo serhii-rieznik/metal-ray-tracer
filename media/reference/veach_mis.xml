@@ -1,150 +1,136 @@
 <?xml version='1.0' encoding='utf-8'?>
-<!-- MI test scene from Eric Veach's thesis - modeled
-     after a file by Steve Marschner (CS667)
+<!--
+
+	Automatically converted from Wavefront OBJ
+
 -->
 
 <scene version="0.5.0">
-	<integrator type="direct">
-		<integer name="bsdfSamples" value="4"/>
-		<integer name="emitterSamples" value="4"/>
+	<integrator type="path">
+		<integer name="maxDepth" value="2"/>
 	</integrator>
 
-	<shape type="sphere">
-		<point name="center" x="10" y="10" z="4"/>
-		<float name="radius" value=".5"/>
+	<bsdf type="diffuse" id="floor_material">
+		<rgb name="reflectance" value="0.4 0.4 0.4"/>
+	</bsdf>
+
+	<bsdf type="roughconductor" id="plate_01_material">
+		<string name="distribution" value="ggx"/>
+		<string name="material" value="none"/>
+		<float name="alpha" value="0.005"/>
+		<rgb name="reflectance" value="0.07059 0.0902 0.12941"/>
+	</bsdf>
+
+	<bsdf type="roughconductor" id="plate_02_material">
+		<string name="distribution" value="ggx"/>
+		<string name="material" value="none"/>
+		<float name="alpha" value="0.02"/>
+		<rgb name="reflectance" value="0.07059 0.0902 0.12941"/>
+	</bsdf>
+
+	<bsdf type="roughconductor" id="plate_03_material">
+		<string name="distribution" value="ggx"/>
+		<string name="material" value="none"/>
+		<float name="alpha" value="0.05"/>
+		<rgb name="reflectance" value="0.07059 0.0902 0.12941"/>
+	</bsdf>
+
+	<bsdf type="roughconductor" id="plate_04_material">
+		<string name="distribution" value="ggx"/>
+		<string name="material" value="none"/>
+		<float name="alpha" value="0.1"/>
+		<rgb name="reflectance" value="0.07059 0.0902 0.12941"/>
+	</bsdf>
+
+	<shape type="serialized" id="default_mesh">
+		<string name="filename" value="veach_mis.serialized"/>
+		<integer name="shapeIndex" value="0"/>
+
+		<ref name="bsdf" id="floor_material"/>
+	</shape>
+
+	<shape type="serialized" id="plate_01_mesh">
+		<string name="filename" value="veach_mis.serialized"/>
+		<integer name="shapeIndex" value="1"/>
+
+		<ref name="bsdf" id="plate_01_material"/>
+	</shape>
+
+	<shape type="serialized" id="plate_02_mesh">
+		<string name="filename" value="veach_mis.serialized"/>
+		<integer name="shapeIndex" value="2"/>
+
+		<ref name="bsdf" id="plate_02_material"/>
+	</shape>
+
+	<shape type="serialized" id="plate_03_mesh">
+		<string name="filename" value="veach_mis.serialized"/>
+		<integer name="shapeIndex" value="3"/>
+
+		<ref name="bsdf" id="plate_03_material"/>
+	</shape>
+
+	<shape type="serialized" id="plate_04_mesh">
+		<string name="filename" value="veach_mis.serialized"/>
+		<integer name="shapeIndex" value="4"/>
+
+		<ref name="bsdf" id="plate_04_material"/>
+	</shape>
+
+	<shape type="serialized" id="l_1_23456_mesh">
+		<string name="filename" value="veach_mis.serialized"/>
+		<integer name="shapeIndex" value="5"/>
 
 		<emitter type="area">
-			<rgb name="radiance" value="800, 800, 800"/>
+			<rgb name="radiance" value="1.23456"/>
 		</emitter>
-
-		<bsdf type="diffuse">
-			<rgb name="reflectance" value="0,0,0"/>
-		</bsdf>
 	</shape>
 
-	<shape type="sphere">
-		<point name="center" x="-1.25" y="0" z="0"/>
-		<float name="radius" value=".1"/>
+	<shape type="serialized" id="l_11_111111_mesh">
+		<string name="filename" value="veach_mis.serialized"/>
+		<integer name="shapeIndex" value="6"/>
 
 		<emitter type="area">
-			<rgb name="radiance" value="100, 100, 100"/>
+			<rgb name="radiance" value="11.111111"/>
 		</emitter>
-
-		<bsdf type="diffuse">
-			<rgb name="reflectance" value="0,0,0"/>
-		</bsdf>
 	</shape>
 
-	<shape type="sphere">
-		<point name="center" x="-3.75" y="0" z="0"/>
-		<float name="radius" value=".03333"/>
+	<shape type="serialized" id="l_901_803_mesh">
+		<string name="filename" value="veach_mis.serialized"/>
+		<integer name="shapeIndex" value="7"/>
 
 		<emitter type="area">
-			<rgb name="radiance" value="901.803 901.803 901.803"/>
+			<rgb name="radiance" value="901.803"/>
 		</emitter>
-
-		<bsdf type="diffuse">
-			<rgb name="reflectance" value="0,0,0"/>
-		</bsdf>
 	</shape>
 
-	<shape type="sphere">
-		<point name="center" x="1.25" y="0" z="0"/>
-		<float name="radius" value=".3"/>
+	<shape type="serialized" id="l_100_mesh">
+		<string name="filename" value="veach_mis.serialized"/>
+		<integer name="shapeIndex" value="8"/>
 
 		<emitter type="area">
-			<rgb name="radiance" value="11.1111 11.1111 11.1111"/>
+			<rgb name="radiance" value="100.0"/>
 		</emitter>
-
-		<bsdf type="diffuse">
-			<rgb name="reflectance" value="0,0,0"/>
-		</bsdf>
-	</shape>
-
-	<shape type="sphere">
-		<point name="center" x="3.75" y="0" z="0"/>
-		<float name="radius" value=".9"/>
-
-		<emitter type="area">
-			<rgb name="radiance" value="1.23457 1.23457 1.23457"/>
-		</emitter>
-
-		<bsdf type="diffuse">
-			<rgb name="reflectance" value="0,0,0"/>
-		</bsdf>
-	</shape>
-
-	<shape type="obj">
-		<string name="filename" value="plate1.obj"/>
-
-		<bsdf type="roughconductor">
-			<rgb name="diffuseReflectance" value="0.07 0.09 0.13"/>
-			<spectrum name="specularReflectance" value="1"/>
-			<float name="intIOR" value="2"/>
-			<float name="alpha" value="0.005"/>
-		</bsdf>
-	</shape>
-
-	<shape type="obj">
-		<string name="filename" value="plate2.obj"/>
-
-		<bsdf type="roughconductor">
-			<rgb name="diffuseReflectance" value="0.07 0.09 0.13"/>
-			<spectrum name="specularReflectance" value="1"/>
-			<float name="intIOR" value="2"/>
-			<float name="alpha" value="0.02"/>
-		</bsdf>
-	</shape>
-
-	<shape type="obj">
-		<string name="filename" value="plate3.obj"/>
-
-		<bsdf type="roughconductor">
-			<rgb name="diffuseReflectance" value="0.07 0.09 0.13"/>
-			<spectrum name="specularReflectance" value="1"/>
-			<float name="intIOR" value="2"/>
-			<float name="alpha" value="0.05"/>
-		</bsdf>
-	</shape>
-
-	<shape type="obj">
-		<string name="filename" value="plate4.obj"/>
-
-		<bsdf type="roughconductor">
-			<rgb name="diffuseReflectance" value="0.07 0.09 0.13"/>
-			<spectrum name="specularReflectance" value="1"/>
-			<float name="intIOR" value="2"/>
-			<float name="alpha" value="0.1"/>
-		</bsdf>
-	</shape>
-
-	<shape type="obj">
-		<string name="filename" value="floor.obj"/>
-
-		<bsdf type="diffuse">
-			<rgb name="reflectance" value="0.4 0.4 0.4"/>
-		</bsdf>
 	</shape>
 
 	<sensor type="perspective">
-		<float name="fov" value="41.0108"/>
+		<float name="fov" value="36.7774"/>
 		<string name="fovAxis" value="x"/>
 		<transform name="toWorld">
 
 			<lookat target="0, 1.69522, 14.0476" origin="0, 2, 15" up="0, 0.952424, -0.304776"/>
 		</transform>
 
-		<sampler type="ldsampler">
-			<integer name="dimension" value="1"/>
+		<sampler type="independent">
 			<integer name="sampleCount" value="16"/>
 		</sampler>
 
 		<film type="hdrfilm">
 			<boolean name="banner" value="true"/>
-			<integer name="height" value="512"/>
-			<integer name="width" value="768"/>
+			<integer name="height" value="600"/>
+			<integer name="width" value="800"/>
 
-			<rfilter type="gaussian"/>
+			<rfilter type="box"/>
 		</film>
 	</sensor>
 </scene>

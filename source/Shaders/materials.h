@@ -73,7 +73,7 @@ SampledMaterial sampleMaterial(device const Material& material, float3 n, float3
 
         case MATERIAL_CONDUCTOR:
         {
-            wO = sampleGGXDistribution(reflected, noiseSample.wx, material.roughness);
+            wO = sampleGGXDistribution(reflected, noiseSample.wz, material.roughness * material.roughness);
             break;
         }
 
