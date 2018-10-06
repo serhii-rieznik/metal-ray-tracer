@@ -14,6 +14,10 @@ SampledMaterial sampleMaterial(device const Material& material, float3 n, float3
 {
     SampledMaterial result = { wO };
 
+    float NdotO = saturate(dot(n, wO));
+    if (NdotO <= 0.0f)
+        return result;
+
     switch (material.type)
     {
         case MATERIAL_MIRROR:
@@ -22,7 +26,7 @@ SampledMaterial sampleMaterial(device const Material& material, float3 n, float3
             float isMirrorDirection = float(abs(1.0 - dot(r, wO)) < ANGLE_EPSILON);
             result.bsdf = isMirrorDirection;
             result.pdf = isMirrorDirection;
-            result.bsdf_over_pdf = isMirrorDirection;
+            result.weight = isMirrorDirection;
             break;
         }
 
@@ -31,27 +35,26 @@ SampledMaterial sampleMaterial(device const Material& material, float3 n, float3
             wI = -wI;
             float3 h = normalize(wI + wO);
             
-            float NdotI = saturate(dot(n, wI));
-            float NdotO = saturate(dot(n, wO));
-            float HdotO = saturate(dot(h, wO));
-            float NdotH = max(dot(n, h), ANGLE_EPSILON);
-
-            float D = ggxNormalDistribution(material.roughness * material.roughness, NdotH);
-            float F = fresnelConductor(HdotO);
-            float G = ggxVisibilityTerm(material.roughness * material.roughness, NdotI, NdotO);
-
-            result.bsdf = D * F * G / (4.0 * NdotI); // D * F * G;
-            result.pdf = D * NdotH;
-            result.bsdf_over_pdf = F * G / (4.0 * NdotI * NdotH + ANGLE_EPSILON);
+            float NdotI = dot(n, wI);
+            float HdotI = dot(h, wI);
+            float HdotO = dot(h, wO);
+            float NdotH = dot(n, h);
+            {
+                float F = fresnelConductor(HdotO);
+                float D = ggxNormalDistribution(material.roughness * material.roughness, NdotH);
+                float G = ggxVisibilityTerm(material.roughness * material.roughness, HdotO, HdotI);
+                result.bsdf = F * D * G / (4.0 * NdotI);
+                result.pdf = D * NdotH / (4.0 * HdotO);
+                result.weight = F * (G * HdotO) / (NdotI * NdotH);
+            }
             break;
         }
 
         default:
         {
-            float NdotO = saturate(dot(n, wO));
             result.bsdf = INVERSE_PI * NdotO;
             result.pdf = INVERSE_PI * NdotO;
-            result.bsdf_over_pdf = 1.0f;
+            result.weight = 1.0f;
             break;
         }
     }

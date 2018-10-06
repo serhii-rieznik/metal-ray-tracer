@@ -105,32 +105,19 @@ float powerHeuristic(float fPdf, float gPdf)
 float ggxNormalDistribution(float alphaSquared, float cosTheta)
 {
     float denom = (alphaSquared - 1.0f) * cosTheta * cosTheta + 1.0f;
-    return (denom > 0.0f) ? (alphaSquared / (PI * denom * denom)) : 0.0f;
+    return alphaSquared / (PI * denom * denom);
 }
 
 float ggxVisibility(float alphaSquared, float cosTheta)
 {
-    float tanThetaSquared = (1.0f - cosTheta * cosTheta) / (cosTheta * cosTheta);
+    float cosThetaSquared = cosTheta * cosTheta;
+    float tanThetaSquared = (1.0f - cosThetaSquared) / cosThetaSquared;
     return 2.0f / (1.0f + sqrt(1.0f + alphaSquared * tanThetaSquared));
 }
 
-float ggxVisibilityTerm(float alphaSquared, float NdotI, float NdotO)
+float ggxVisibilityTerm(float alphaSquared, float t0, float t1)
 {
-    /*
-    {
-        float g1 = ggxVisibility(alphaSquared, NdotI);
-        float g2 = ggxVisibility(alphaSquared, NdotO);
-        return g1 * g2;
-    }
-    // */
-
-    //*
-    {
-        float g1 = NdotI * sqrt(saturate(alphaSquared + (1.0f - alphaSquared) * NdotO * NdotO));
-        float g2 = NdotO * sqrt(saturate(alphaSquared + (1.0f - alphaSquared) * NdotI * NdotI));
-        return ((g1 + g2) > 0.0f) ? (2.0f * NdotO * NdotI / (g1 + g2)) : 0.0f;
-    }
-    // */
+    return ggxVisibility(alphaSquared, t0) * ggxVisibility(alphaSquared, t1);
 }
 
 float fresnelDielectric(float cosTheta)

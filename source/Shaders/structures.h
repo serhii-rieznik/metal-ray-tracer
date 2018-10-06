@@ -41,6 +41,7 @@ struct Triangle
 struct EmitterTriangle
 {
     float area = 0.0f;
+    float scaledArea = 0.0f;
     float cdf = 0.0f;
     float pdf = 0.0f;
     uint globalIndex = 0;
@@ -56,8 +57,7 @@ struct Ray
     packed_float3 radiance = {};
     uint bounces = 0;
     packed_float3 throughput = {};
-    float lightSamplePdf = 0.0f;
-    float materialSamplePdf = 0.0f;
+    float materialPdf = 0.0f;
 };
 
 struct LightSamplingRay
@@ -78,7 +78,7 @@ struct SampledMaterial
     packed_float3 direction = {};
     float bsdf = 0.0f;
     float pdf = 0.0f;
-    float bsdf_over_pdf = 0.0f;
+    float weight = 0.0f;
 };
 
 using Intersection = MPSIntersectionDistancePrimitiveIndexCoordinates;

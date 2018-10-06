@@ -9,12 +9,20 @@
 # http://graphics.cs.williams.edu/data
 # http://www.graphics.cornell.edu/online/box/data.html
 #
+
+newmtl water
+    illum 1
+    Pr 0.05
+    Kd 1.0 1.0 1.0
+
 newmtl leftSphere
     illum 1
-    Pr 0.2
+    Pr 0.3
     Kd 1.0 1.0 1.0
 
 newmtl rightSphere
+    illum 1
+    Pr 0.01
     Kd 1.0 1.0 1.0
 
 newmtl floor
@@ -33,7 +41,5 @@ newmtl leftWall
 	Kd 0.6300 0.0650 0.0500
 
 newmtl light
-    Ke 10 10 10
-
-newmtl water
     Kd 1.0 1.0 1.0
+    Ke 10 10 10

@@ -3,31 +3,27 @@
 
 newmtl floor
 	illum 0
-	Kd 0.40000 0.40000 0.40000
+	Kd 0.40000 0.040000 0.040000
 
 newmtl plate_01
 	illum 1
     Pr 0.005
     Kd 1.0 1.0 1.0
-	Ks 0.07059 0.09020 0.12941
 
 newmtl plate_02
     illum 1
-    Pr 0.02
+    Pr 0.01
     Kd 1.0 1.0 1.0
-    Ks 0.07059 0.09020 0.12941
 
 newmtl plate_03
     illum 1
     Pr 0.05
     Kd 1.0 1.0 1.0
-    Ks 0.07059 0.09020 0.12941
 
 newmtl plate_04
     illum 1
     Pr 0.1
     Kd 1.0 1.0 1.0
-    Ks 0.07059 0.09020 0.12941
 
 newmtl l_1_23456
 	Ke 1.23456 1.23456 1.23456

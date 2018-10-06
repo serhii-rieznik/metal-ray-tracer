@@ -13,17 +13,18 @@
 #define PI                  3.1415926536
 #define DOUBLE_PI           6.2831853072
 #define INVERSE_PI          0.3183098862
-#define DISTANCE_EPSILON    0.001
-#define ANGLE_EPSILON       0.000157
+#define DISTANCE_EPSILON    0.005
+#define ANGLE_EPSILON       0.0001523048
 
 #define MATERIAL_DIFFUSE    0
 #define MATERIAL_CONDUCTOR  1
 #define MATERIAL_MIRROR     3
 #define MATERIAL_LIGHT      100
 
-#define NOISE_BLOCK_SIZE    256
+#define NOISE_BLOCK_SIZE    64
 
-#define MAX_PATH_LENGTH     2
+#define MAX_PATH_LENGTH     8
+#define MAX_SAMPLES         0xffffffff
 
 #define CONTENT_SCALE       2
 

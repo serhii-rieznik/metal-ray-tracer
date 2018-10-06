@@ -77,7 +77,7 @@ void GeometryProvider::loadFile(const std::string& fileName, id<MTLDevice> devic
     std::vector<EmitterTriangle> emitterTriangleBuffer;
 
     uint32_t globalTriangleIndex = 0;
-    float totalLightArea = 0.0f;
+    float totalLightScaledArea = 0.0f;
     for (const tinyobj::shape_t& shape : shapes)
     {
         size_t triangleCount = shape.mesh.num_face_vertices.size();
@@ -119,14 +119,16 @@ void GeometryProvider::loadFile(const std::string& fileName, id<MTLDevice> devic
             const Material& material = materialBuffer[triangleBuffer[triangleBufferOffset].materialIndex];
             if (simd_length(material.emissive) > 0.0f)
             {
+                float emissiveScale = simd_dot(material.emissive, simd_float3{0.2126f, 0.7152f, 0.0722f});
                 emitterTriangleBuffer.emplace_back();
                 emitterTriangleBuffer.back().area = area;
+                emitterTriangleBuffer.back().scaledArea = area * emissiveScale;
                 emitterTriangleBuffer.back().globalIndex = globalTriangleIndex;
                 emitterTriangleBuffer.back().v0 = v0;
                 emitterTriangleBuffer.back().v1 = v1;
                 emitterTriangleBuffer.back().v2 = v2;
                 emitterTriangleBuffer.back().emissive = material.emissive;
-                totalLightArea += area;
+                totalLightScaledArea += emitterTriangleBuffer.back().scaledArea;
 
             }
             ++triangleBufferOffset;
@@ -134,19 +136,19 @@ void GeometryProvider::loadFile(const std::string& fileName, id<MTLDevice> devic
         }
     }
 
-    std::random_shuffle(std::begin(emitterTriangleBuffer), std::end(emitterTriangleBuffer));
-    /*
+    // std::random_shuffle(std::begin(emitterTriangleBuffer), std::end(emitterTriangleBuffer));
+    //*
     std::sort(std::begin(emitterTriangleBuffer), std::end(emitterTriangleBuffer), [](const EmitterTriangle& l, const EmitterTriangle& r){
         return l.area < r.area;
     });
-    */
+    // */
     _emitterTriangleCount = static_cast<uint32_t>(emitterTriangleBuffer.size());
 
     float cdf = 0.0f;
     for (EmitterTriangle& t : emitterTriangleBuffer)
     {
         t.cdf = cdf;
-        t.pdf = t.area / totalLightArea;
+        t.pdf = t.scaledArea / totalLightScaledArea;
         cdf += t.pdf;
 
         triangleBuffer[t.globalIndex].emitterPdf = t.pdf;
