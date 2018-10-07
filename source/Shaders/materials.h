@@ -36,16 +36,15 @@ SampledMaterial sampleMaterial(device const Material& material, float3 n, float3
             float3 h = normalize(wI + wO);
             
             float NdotI = dot(n, wI);
-            float HdotI = dot(h, wI);
             float HdotO = dot(h, wO);
             float NdotH = dot(n, h);
             {
                 float F = fresnelConductor(HdotO);
                 float D = ggxNormalDistribution(material.roughness * material.roughness, NdotH);
-                float G = ggxVisibilityTerm(material.roughness * material.roughness, HdotO, HdotI);
+                float G = ggxVisibilityTerm(material.roughness * material.roughness, NdotO, NdotI);
                 result.bsdf = F * D * G / (4.0 * NdotI);
                 result.pdf = D * NdotH / (4.0 * HdotO);
-                result.weight = F * (G * HdotO) / (NdotI * NdotH);
+                result.weight = F * ((G * HdotO) / (NdotI * NdotH));
             }
             break;
         }

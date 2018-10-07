@@ -19,7 +19,7 @@
 
 	<bsdf type="roughconductor" id="rightSphere_material">
 		<string name="material" value="none"/>
-		<float name="alpha" value="0.01"/>
+		<float name="alpha" value="0.99"/>
 		<string name="distribution" value="ggx"/>
 	</bsdf>
 

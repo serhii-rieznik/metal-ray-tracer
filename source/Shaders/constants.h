@@ -13,7 +13,7 @@
 #define PI                  3.1415926536
 #define DOUBLE_PI           6.2831853072
 #define INVERSE_PI          0.3183098862
-#define DISTANCE_EPSILON    0.005
+#define DISTANCE_EPSILON    0.001
 #define ANGLE_EPSILON       0.0001523048
 
 #define MATERIAL_DIFFUSE    0

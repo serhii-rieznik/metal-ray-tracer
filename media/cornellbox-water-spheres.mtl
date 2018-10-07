@@ -22,7 +22,7 @@ newmtl leftSphere
 
 newmtl rightSphere
     illum 1
-    Pr 0.01
+    Pr 0.999
     Kd 1.0 1.0 1.0
 
 newmtl floor
