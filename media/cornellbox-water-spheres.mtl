@@ -41,5 +41,4 @@ newmtl leftWall
 	Kd 0.6300 0.0650 0.0500
 
 newmtl light
-    Kd 1.0 1.0 1.0
     Ke 10 10 10

@@ -69,7 +69,7 @@ SampledMaterial sampleMaterial(device const Material& material, float3 n, float3
     {
         case MATERIAL_MIRROR:
         {
-            wO = reflect(wI, n);
+            wO = reflected;
             break;
         }
 
