@@ -107,7 +107,7 @@ kernel void handleIntersections(device const Intersection* intersections [[buffe
         float distanceToLight = length(directionToLight);
         directionToLight /= distanceToLight;
         float cosTheta = -dot(directionToLight, currentVertex.n);
-        float lightSamplePdf = triangle.emitterPdf * (distanceToLight * distanceToLight) / (triangle.area * cosTheta);
+        float lightSamplePdf = currentRay.deltaBsdfScale * triangle.emitterPdf * (distanceToLight * distanceToLight) / (triangle.area * cosTheta);
         float weight = powerHeuristic(currentRay.materialPdf, lightSamplePdf);
     #elif (IS_MODE == IS_MODE_BSDF)
         float weight = 1.0;
@@ -165,6 +165,7 @@ kernel void handleIntersections(device const Intersection* intersections [[buffe
         currentRay.base.origin = currentVertex.v + currentVertex.n * DISTANCE_EPSILON;
         currentRay.base.direction = materialSample.direction;
         currentRay.materialPdf = materialSample.pdf;
+        currentRay.deltaBsdfScale = float(material.type != MATERIAL_MIRROR);
         currentRay.throughput *= material.color * materialSample.weight;
         currentRay.bounces += 1;
     }

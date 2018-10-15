@@ -58,6 +58,7 @@ struct Ray
     uint bounces = 0;
     packed_float3 throughput = {};
     float materialPdf = 0.0f;
+    float deltaBsdfScale = 0.0f;
 };
 
 struct LightSamplingRay
