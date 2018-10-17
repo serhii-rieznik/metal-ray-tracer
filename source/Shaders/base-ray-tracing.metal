@@ -58,6 +58,8 @@ kernel void generateRays(device Ray* rays [[buffer(0)]],
     rays[rayIndex].base.maxDistance = INFINITY;
     rays[rayIndex].radiance = 0.0f;
     rays[rayIndex].throughput = 1.0f;
+    rays[rayIndex].deltaBsdfScale = 0.0f;
+    rays[rayIndex].materialPdf = 1.0f;
     rays[rayIndex].bounces = 0;
 }
 
@@ -117,7 +119,7 @@ kernel void handleIntersections(device const Intersection* intersections [[buffe
 
         weight *= float(dot(currentRay.base.direction, currentVertex.n) < 0.0f);
 
-        currentRay.radiance += material.emissive * currentRay.throughput * ((currentRay.bounces == 0) ? 1.0f : weight);
+        currentRay.radiance += material.emissive * currentRay.throughput * weight;
     }
 
     // sample light
