@@ -8,8 +8,15 @@
 
 #pragma once
 
-#include <Metal/Metal.h>
+#include "Shaders/structures.h"
+#include <vector>
 #include <string>
+
+struct Environment
+{
+    packed_float3 uniformColor;
+    std::string textureName;
+};
 
 class GeometryProvider
 {
@@ -25,12 +32,15 @@ public:
     uint32_t triangleCount() const { return _triangleCount; }
     uint32_t emitterTriangleCount() const { return _emitterTriangleCount; }
 
+    const Environment& environment() const { return _environment; }
+
 private:
     id<MTLBuffer> _indexBuffer = nil;
     id<MTLBuffer> _vertexBuffer = nil;
     id<MTLBuffer> _materialBuffer = nil;
     id<MTLBuffer> _triangleBuffer = nil;
     id<MTLBuffer> _emitterTriangleBuffer = nil;
+    Environment _environment;
     uint32_t _triangleCount = 0;
     uint32_t _emitterTriangleCount = 0;
 };

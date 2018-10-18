@@ -15,6 +15,8 @@
 		6E6DF3B521503E3700089863 /* imgui_draw.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6E6DF2C421503E3700089863 /* imgui_draw.cpp */; };
 		6E6DF3BC2150415900089863 /* media in Resources */ = {isa = PBXBuildFile; fileRef = 6E6DF3BB2150415900089863 /* media */; };
 		6E6DF3BF2158287500089863 /* image-processing.metal in Sources */ = {isa = PBXBuildFile; fileRef = 6E6DF3BE2158287400089863 /* image-processing.metal */; settings = {COMPILER_FLAGS = "-gline-tables-only -MO"; }; };
+		6E799AA721790EEE00775537 /* tinyexr.cc in Sources */ = {isa = PBXBuildFile; fileRef = 6E799A0521790EEE00775537 /* tinyexr.cc */; };
+		6E799B0C217913B800775537 /* TextureProvider.mm in Sources */ = {isa = PBXBuildFile; fileRef = 6E799B0A217913B800775537 /* TextureProvider.mm */; };
 		6EC4F6C5214D90C5003A48EA /* AppDelegate.mm in Sources */ = {isa = PBXBuildFile; fileRef = 6EC4F6C4214D90C5003A48EA /* AppDelegate.mm */; };
 		6EC4F6C8214D90C5003A48EA /* Renderer.mm in Sources */ = {isa = PBXBuildFile; fileRef = 6EC4F6C7214D90C5003A48EA /* Renderer.mm */; };
 		6EC4F6CB214D90C5003A48EA /* GameViewController.mm in Sources */ = {isa = PBXBuildFile; fileRef = 6EC4F6CA214D90C5003A48EA /* GameViewController.mm */; };
@@ -45,6 +47,10 @@
 		6E6DF3BD21581E6B00089863 /* constants.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = constants.h; sourceTree = "<group>"; };
 		6E6DF3BE2158287400089863 /* image-processing.metal */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.metal; path = "image-processing.metal"; sourceTree = "<group>"; };
 		6E707E8921640BF200DB84BB /* materials.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = materials.h; sourceTree = "<group>"; };
+		6E799A0521790EEE00775537 /* tinyexr.cc */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = tinyexr.cc; sourceTree = "<group>"; };
+		6E799A9C21790EEE00775537 /* tinyexr.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = tinyexr.h; sourceTree = "<group>"; };
+		6E799B0A217913B800775537 /* TextureProvider.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = TextureProvider.mm; sourceTree = "<group>"; };
+		6E799B0B217913B800775537 /* TextureProvider.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TextureProvider.h; sourceTree = "<group>"; };
 		6E825D462159679F00B4419B /* raytracing.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = raytracing.h; sourceTree = "<group>"; };
 		6EC4F6C0214D90C5003A48EA /* Metal ray-tracer.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Metal ray-tracer.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		6EC4F6C3214D90C5003A48EA /* AppDelegate.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = AppDelegate.h; sourceTree = "<group>"; };
@@ -79,6 +85,7 @@
 		6E6DF17021503E3600089863 /* external */ = {
 			isa = PBXGroup;
 			children = (
+				6E7999FA21790EEE00775537 /* tinyexr */,
 				6E6DF17121503E3600089863 /* tinyobjloader */,
 				6E6DF1FC21503E3600089863 /* imgui */,
 			);
@@ -111,6 +118,15 @@
 			path = imgui;
 			sourceTree = "<group>";
 		};
+		6E7999FA21790EEE00775537 /* tinyexr */ = {
+			isa = PBXGroup;
+			children = (
+				6E799A0521790EEE00775537 /* tinyexr.cc */,
+				6E799A9C21790EEE00775537 /* tinyexr.h */,
+			);
+			path = tinyexr;
+			sourceTree = "<group>";
+		};
 		6EC4F6B7214D90C5003A48EA = {
 			isa = PBXGroup;
 			children = (
@@ -137,6 +153,8 @@
 				6EC853DD214DA332005418DF /* Shaders */,
 				6EC4F6C6214D90C5003A48EA /* Renderer.h */,
 				6EC4F6C7214D90C5003A48EA /* Renderer.mm */,
+				6E799B0B217913B800775537 /* TextureProvider.h */,
+				6E799B0A217913B800775537 /* TextureProvider.mm */,
 				6E6DF16C21503D6700089863 /* GeometryProvider.mm */,
 				6E6DF16D21503D6700089863 /* GeometryProvider.h */,
 			);
@@ -251,6 +269,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				6E799AA721790EEE00775537 /* tinyexr.cc in Sources */,
 				6E6DF34C21503E3700089863 /* imgui.cpp in Sources */,
 				6EC853E1214DA33F005418DF /* blit.metal in Sources */,
 				6EC4F6D6214D90C6003A48EA /* main.m in Sources */,
@@ -261,6 +280,7 @@
 				6E6DF16E21503D6700089863 /* GeometryProvider.mm in Sources */,
 				6E6DF3B521503E3700089863 /* imgui_draw.cpp in Sources */,
 				6EC4F6C5214D90C5003A48EA /* AppDelegate.mm in Sources */,
+				6E799B0C217913B800775537 /* TextureProvider.mm in Sources */,
 				6EC853E7214DB803005418DF /* base-ray-tracing.metal in Sources */,
 				6E6DF34821503E3700089863 /* imgui_widgets.cpp in Sources */,
 				6E6DF3B421503E3700089863 /* imgui_demo.cpp in Sources */,

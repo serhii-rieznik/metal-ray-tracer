@@ -17,7 +17,7 @@ newmtl water
 
 newmtl leftSphere
     illum 1
-    Pr 0.3
+    Pr 0.05
     Kd 1.0 1.0 1.0
 
 newmtl rightSphere

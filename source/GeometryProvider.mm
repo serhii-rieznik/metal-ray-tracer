@@ -6,9 +6,7 @@
 //  Copyright © 2018 Serhii Rieznik. All rights reserved.
 //
 
-#include <vector>
 #include "GeometryProvider.h"
-#include "Shaders/structures.h"
 #include "../external/tinyobjloader/tiny_obj_loader.h"
 
 class BufferConstructor
@@ -59,6 +57,14 @@ void GeometryProvider::loadFile(const std::string& fileName, id<MTLDevice> devic
     std::vector<Material> materialBuffer;
     for (const tinyobj::material_t& mtl : materials)
     {
+        if (mtl.name == "environment")
+        {
+            _environment.textureName = mtl.ambient_texname;
+            _environment.uniformColor.x = mtl.ambient[0];
+            _environment.uniformColor.y = mtl.ambient[1];
+            _environment.uniformColor.z = mtl.ambient[2];
+        }
+
         materialBuffer.emplace_back();
         Material& material = materialBuffer.back();
         material.color.x = mtl.diffuse[0];

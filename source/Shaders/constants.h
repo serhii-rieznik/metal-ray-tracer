@@ -16,6 +16,8 @@
 #define DISTANCE_EPSILON    0.001
 #define ANGLE_EPSILON       0.0001523048
 
+#define ENABLE_IMAGE_ACCUMULATION 1
+
 #define MATERIAL_DIFFUSE    0
 #define MATERIAL_CONDUCTOR  1
 #define MATERIAL_MIRROR     3
@@ -32,4 +34,11 @@
 #define IS_MODE_LIGHT       1
 #define IS_MODE_BSDF        2
 #define IS_MODE             IS_MODE_MIS
+
+#define SCENE_CORNELL_BOX           0
+#define SCENE_VEACH_MIS             1
+#define SCENE_CORNELL_BOX_SPHERES   2
+#define SCENE_SPHERE                3
+#define SCENE                       SCENE_CORNELL_BOX_SPHERES
+
 

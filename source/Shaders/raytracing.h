@@ -132,3 +132,11 @@ float fresnelConductor(float cosTheta)
 {
     return 1.0f; // TODO
 }
+
+float2 directionToEquirectangularCoordinates(float3 d)
+{
+    d = normalize(d);
+    float v = 0.5 - asin(d.y) / PI;
+    float u = 1.0 - atan2(d.x, d.z) / DOUBLE_PI;
+    return float2(u, v);
+}

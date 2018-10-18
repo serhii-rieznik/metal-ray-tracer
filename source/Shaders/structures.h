@@ -70,6 +70,8 @@ struct LightSamplingRay
 
 struct ApplicationData
 {
+    packed_float3 environmentColor = {};
+    float time = 0.0f;
     uint frameIndex = 0;
     uint emitterTrianglesCount = 0;
 };

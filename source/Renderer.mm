@@ -9,6 +9,7 @@
 #import <MetalPerformanceShaders/MetalPerformanceShaders.h>
 #import "Renderer.h"
 #import "GeometryProvider.h"
+#import "TextureProvider.h"
 #import "Shaders/structures.h"
 #import <random>
 
@@ -33,6 +34,7 @@ static const NSUInteger MaxFrames = 3;
     id<MTLCommandQueue> _commandQueue;
     id<MTLLibrary> _defaultLibrary;
     id<MTLTexture> _outputImage;
+    id<MTLTexture> _environmentMap;
     id<MTLRenderPipelineState> _blitPipelineState;
     id<MTLBuffer> _rayBuffer;
     id<MTLBuffer> _lightSamplingRayBuffer;
@@ -54,6 +56,8 @@ static const NSUInteger MaxFrames = 3;
     uint32_t _rayCount;
     uint32_t _frameIndex;
     uint32_t _frameContinuousIndex;
+    CFTimeInterval _startupTime;
+    bool _hasEmitters;
 }
 
 static std::mt19937 randomGenerator;
@@ -97,6 +101,8 @@ static std::uniform_real_distribution<float> uniformFloatDistribution(0.0f, 1.0f
             _appData[i] = [_device newBufferWithLength:sizeof(ApplicationData) options:MTLResourceStorageModeShared];
         }
         [self initializeRayTracing];
+
+        _startupTime = CACurrentMediaTime();
     }
 
     return self;
@@ -123,6 +129,7 @@ static std::uniform_real_distribution<float> uniformFloatDistribution(0.0f, 1.0f
         [self dispatchComputeShader:_rayGenerator withinCommandBuffer:commandBuffer setupBlock:^(id<MTLComputeCommandEncoder> commandEncoder) {
             [commandEncoder setBuffer:self->_rayBuffer offset:0 atIndex:0];
             [commandEncoder setBuffer:self->_noise[self->_frameIndex] offset:0 atIndex:1];
+            [commandEncoder setBuffer:self->_appData[self->_frameIndex] offset:0 atIndex:2];
         }];
 
         for (uint32_t bounce = 0; bounce < MAX_PATH_LENGTH; ++bounce)
@@ -136,21 +143,23 @@ static std::uniform_real_distribution<float> uniformFloatDistribution(0.0f, 1.0f
 
             // Handle intersections, generate light sampling rays, generate next bounce
             [self dispatchComputeShader:_intersectionHandler withinCommandBuffer:commandBuffer
-                             setupBlock:^(id<MTLComputeCommandEncoder> commandEncoder) {
-                                 [commandEncoder setBuffer:self->_intersectionBuffer offset:0 atIndex:0];
-                                 [commandEncoder setBuffer:self->_geometryProvider.materialBuffer() offset:0 atIndex:1];
-                                 [commandEncoder setBuffer:self->_geometryProvider.triangleBuffer() offset:0 atIndex:2];
-                                 [commandEncoder setBuffer:self->_geometryProvider.emitterTriangleBuffer() offset:0 atIndex:3];
-                                 [commandEncoder setBuffer:self->_geometryProvider.vertexBuffer() offset:0 atIndex:4];
-                                 [commandEncoder setBuffer:self->_geometryProvider.indexBuffer() offset:0 atIndex:5];
-                                 [commandEncoder setBuffer:self->_noise[self->_frameIndex] offset:0 atIndex:6];
-                                 [commandEncoder setBuffer:self->_rayBuffer offset:0 atIndex:7];
-                                 [commandEncoder setBuffer:self->_lightSamplingRayBuffer offset:0 atIndex:8];
-                                 [commandEncoder setBuffer:self->_appData[self->_frameIndex] offset:0 atIndex:9];
-                             }];
+                             setupBlock:^(id<MTLComputeCommandEncoder> commandEncoder)
+            {
+                [commandEncoder setTexture:self->_environmentMap atIndex:0];
+                [commandEncoder setBuffer:self->_intersectionBuffer offset:0 atIndex:0];
+                [commandEncoder setBuffer:self->_geometryProvider.materialBuffer() offset:0 atIndex:1];
+                [commandEncoder setBuffer:self->_geometryProvider.triangleBuffer() offset:0 atIndex:2];
+                [commandEncoder setBuffer:self->_geometryProvider.emitterTriangleBuffer() offset:0 atIndex:3];
+                [commandEncoder setBuffer:self->_geometryProvider.vertexBuffer() offset:0 atIndex:4];
+                [commandEncoder setBuffer:self->_geometryProvider.indexBuffer() offset:0 atIndex:5];
+                [commandEncoder setBuffer:self->_noise[self->_frameIndex] offset:0 atIndex:6];
+                [commandEncoder setBuffer:self->_rayBuffer offset:0 atIndex:7];
+                [commandEncoder setBuffer:self->_lightSamplingRayBuffer offset:0 atIndex:8];
+                [commandEncoder setBuffer:self->_appData[self->_frameIndex] offset:0 atIndex:9];
+            }];
 
             // do not sample
-            if (bounce + 1 < MAX_PATH_LENGTH)
+            if (_hasEmitters && (bounce + 1 < MAX_PATH_LENGTH))
             {
 
                 // Intersect light sampling rays with geometry
@@ -224,11 +233,12 @@ static std::uniform_real_distribution<float> uniformFloatDistribution(0.0f, 1.0f
     _rayCount = uint32_t(_outputImageSize.width) * uint32_t(_outputImageSize.height);
 
     _rayBuffer = [_device newBufferWithLength:sizeof(Ray) * _rayCount options:MTLResourceStorageModePrivate];
-    _lightSamplingRayBuffer = [_device newBufferWithLength:sizeof(LightSamplingRay) * _rayCount options:MTLResourceStorageModePrivate];
+    _lightSamplingRayBuffer = [_device newBufferWithLength:sizeof(LightSamplingRay) * _rayCount
+                                                   options:MTLResourceStorageModePrivate];
 
     _intersectionBuffer = [_device newBufferWithLength:sizeof(Intersection) * _rayCount options:MTLResourceStorageModePrivate];
     _lightSamplingIntersectionBuffer = [_device newBufferWithLength:sizeof(LightSamplingIntersection) * _rayCount
-                                                           options:MTLResourceStorageModePrivate];
+                                                            options:MTLResourceStorageModePrivate];
 }
 
 /*
@@ -261,9 +271,32 @@ static std::uniform_real_distribution<float> uniformFloatDistribution(0.0f, 1.0f
 
 -(void)initializeRayTracing
 {
+#if (SCENE == SCENE_VEACH_MIS)
     NSURL* assetUrl = [[NSBundle mainBundle] URLForResource:@"media/veach_mis" withExtension:@"obj"];
+#elif (SCENE == SCENE_CORNELL_BOX_SPHERES)
+    NSURL* assetUrl = [[NSBundle mainBundle] URLForResource:@"media/cornellbox-water-spheres" withExtension:@"obj"];
+#elif (SCENE == SCENE_SPHERE)
+    NSURL* assetUrl = [[NSBundle mainBundle] URLForResource:@"media/sphere" withExtension:@"obj"];
+#else
+    NSURL* assetUrl = [[NSBundle mainBundle] URLForResource:@"media/cornellbox" withExtension:@"obj"];
+#endif
+
     const char* fileName = [assetUrl fileSystemRepresentation];
     _geometryProvider.loadFile(fileName, _device);
+
+    if (_geometryProvider.environment().textureName.empty() == false)
+    {
+        NSString* textureName = [NSString stringWithFormat:@"media/%s", _geometryProvider.environment().textureName.c_str()];
+        textureName = [textureName stringByDeletingPathExtension];
+        NSURL* assetUrl = [[NSBundle mainBundle] URLForResource:textureName withExtension:@"exr"];
+        if (assetUrl != nil)
+        {
+            const char* fileName = [assetUrl fileSystemRepresentation];
+            _environmentMap = TextureProvider::loadFile(fileName, _device);
+        }
+    }
+
+    _hasEmitters = _geometryProvider.emitterTriangleCount() > 0;
     
     _accelerationStructure = [[MPSTriangleAccelerationStructure alloc] initWithDevice:_device];
     [_accelerationStructure setVertexBuffer:_geometryProvider.vertexBuffer()];
@@ -300,8 +333,10 @@ static std::uniform_real_distribution<float> uniformFloatDistribution(0.0f, 1.0f
     [_noise[_frameIndex] didModifyRange:NSMakeRange(0, [_noise[_frameIndex] length])];
 
     ApplicationData* appData = reinterpret_cast<ApplicationData*>([_appData[_frameIndex] contents]);
+    appData->environmentColor = _geometryProvider.environment().uniformColor;
     appData->frameIndex = _frameContinuousIndex;
     appData->emitterTrianglesCount = _geometryProvider.emitterTriangleCount();
+    appData->time = CACurrentMediaTime() - _startupTime;
 }
 
 @end

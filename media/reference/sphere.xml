@@ -1,0 +1,48 @@
+<?xml version='1.0' encoding='utf-8'?>
+<!--
+
+	Automatically converted from Wavefront OBJ
+
+-->
+
+<scene version="0.5.0">
+	<integrator type="path"/>
+
+	<shape type="serialized" id="default_mesh">
+		<string name="filename" value="sphere.serialized"/>
+		<integer name="shapeIndex" value="0"/>
+
+		<bsdf type="roughconductor" id="default_material">
+            <string name="material" value="none"/>
+			<string name="distribution" value="ggx"/>
+            <float name="alpha" value="0.05"/>
+		</bsdf>
+	</shape>
+
+    <emitter type="envmap">
+        <string name="filename" value="../tiergarten_4k.exr"/>
+    </emitter>
+
+	<sensor type="perspective">
+		<float name="farClip" value="245.02"/>
+		<float name="focusDistance" value="177.852"/>
+		<float name="fov" value="60"/>
+		<string name="fovAxis" value="x"/>
+		<float name="nearClip" value="1.0"/>
+		<transform name="toWorld">
+
+			<lookat target="0, 0, 0" origin="0, 0, -100.0" up="0, 1, 0"/>
+		</transform>
+
+		<sampler type="independent">
+			<integer name="sampleCount" value="256"/>
+		</sampler>
+
+		<film type="hdrfilm">
+			<integer name="height" value="600"/>
+			<integer name="width" value="800"/>
+
+			<rfilter type="box"/>
+		</film>
+	</sensor>
+</scene>

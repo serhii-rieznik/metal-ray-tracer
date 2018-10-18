@@ -62,20 +62,19 @@ SampledMaterial sampleMaterial(device const Material& material, float3 n, float3
 
 SampledMaterial sampleMaterial(device const Material& material, float3 n, float3 wI, device const float4& noiseSample)
 {
-    float3 reflected = reflect(wI, n);
-
     float3 wO;
     switch (material.type)
     {
         case MATERIAL_MIRROR:
         {
-            wO = reflected;
+            wO = reflect(wI, n);
             break;
         }
 
         case MATERIAL_CONDUCTOR:
         {
-            wO = sampleGGXDistribution(reflected, noiseSample.wz, material.roughness);
+            float3 m = sampleGGXDistribution(n, noiseSample.wz, material.roughness);
+            wO = reflect(wI, m);
             break;
         }
 

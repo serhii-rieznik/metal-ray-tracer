@@ -13,16 +13,13 @@
 
 using namespace metal;
 
-#define SCENE_CORNELL_BOX       0
-#define SCENE_VEACH_MIS         1
-#define SCENE                   SCENE_VEACH_MIS
-
 kernel void generateRays(device Ray* rays [[buffer(0)]],
                          device vector_float4* noise [[buffer(1)]],
+                         constant ApplicationData& appData [[buffer(2)]],
                          uint2 coordinates [[thread_position_in_grid]],
                          uint2 size [[threads_per_grid]])
 {
-#if (SCENE == SCENE_CORNELL_BOX)
+#if ((SCENE == SCENE_CORNELL_BOX) || (SCENE == SCENE_CORNELL_BOX_SPHERES))
     float3 up = float3(0.0f, 1.0f, 0.0f);
     const float3 origin = float3(0.0f, 1.0f, 2.35f);
     const float3 target = float3(0.0f, 1.0f, 0.0f);
@@ -32,6 +29,11 @@ kernel void generateRays(device Ray* rays [[buffer(0)]],
     const float3 origin = float3(0.0f, 2.0f, 15.0f);
     const float3 target = float3(0.0f, 1.69522f, 14.0476f);
     const float fov = 36.7774f * PI / 180.0f;
+#elif (SCENE == SCENE_SPHERE)
+    float3 up = float3(0.0f, 1.0, 0.0);
+    const float3 origin = float3(0.0f, 0.0f, 100.0f);
+    const float3 target = float3(0.0f, 0.0f, 0.0);
+    const float fov = 60.0f * PI / 180.0f;
 #else
 #   error No scene is defined
 #endif
@@ -63,7 +65,8 @@ kernel void generateRays(device Ray* rays [[buffer(0)]],
     rays[rayIndex].bounces = 0;
 }
 
-kernel void handleIntersections(device const Intersection* intersections [[buffer(0)]],
+kernel void handleIntersections(texture2d<float> environment [[texture(0)]],
+                                device const Intersection* intersections [[buffer(0)]],
                                 device const Material* materials [[buffer(1)]],
                                 device const Triangle* triangles [[buffer(2)]],
                                 device const EmitterTriangle* emitterTriangles [[buffer(3)]],
@@ -83,6 +86,12 @@ kernel void handleIntersections(device const Intersection* intersections [[buffe
 
     if (i.distance < DISTANCE_EPSILON)
     {
+        constexpr sampler environmentSampler = sampler(s_address::repeat, t_address::clamp_to_edge, filter::linear);
+        float2 uv = directionToEquirectangularCoordinates(currentRay.base.direction);
+
+        currentRay.radiance += currentRay.throughput *
+            (appData.environmentColor + environment.sample(environmentSampler, uv).xyz);
+        currentRay.throughput = 0.0;
         currentRay.base.maxDistance = -1.0;
         lightSamplingRay.base.maxDistance = -1.0;
         lightSamplingRay.targetPrimitiveIndex = uint(-1);
@@ -123,6 +132,7 @@ kernel void handleIntersections(device const Intersection* intersections [[buffe
     }
 
     // sample light
+    if (appData.emitterTrianglesCount > 0)
     {
         device const EmitterTriangle& emitterTriangle =
             sampleEmitterTriangle(emitterTriangles, appData.emitterTrianglesCount, noiseSample.w);
