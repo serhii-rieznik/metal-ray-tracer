@@ -1,0 +1,100 @@
+<?xml version='1.0' encoding='utf-8'?>
+<!--
+
+	Automatically converted from Wavefront OBJ
+
+-->
+
+<scene version="0.5.0">
+	<integrator type="path"/>
+
+	<bsdf type="diffuse" id="floor_material">
+		<rgb name="reflectance" value="0.5 0.5 0.5"/>
+	</bsdf>
+
+	<bsdf type="diffuse" id="diffuse_material">
+		<rgb name="reflectance" value="1.0 1.0 1.0"/>
+	</bsdf>
+
+	<bsdf type="roughplastic" id="plastic_material">
+		<float name="alpha" value="0.05"/>
+		<rgb name="diffuseReflectance" value="0.05 0.1 0.2"/>
+		<rgb name="specularReflectance" value="1 1 1"/>
+		<string name="distribution" value="ggx"/>
+	</bsdf>
+
+	<bsdf type="roughdielectric" id="dielectric_material">
+		<float name="alpha" value="0.05"/>
+		<rgb name="specularTransmittance" value="1 1 1"/>
+		<rgb name="specularReflectance" value="1 1 1"/>
+		<string name="distribution" value="ggx"/>
+	</bsdf>
+
+	<bsdf type="roughconductor" id="conductor_material">
+		<float name="alpha" value="0.05"/>
+		<string name="material" value="none"/>
+		<string name="distribution" value="ggx"/>
+	</bsdf>
+
+	<emitter type="envmap">
+		<string name="filename" value="../cloudy_vondelpark_4k.exr"/>
+	</emitter>
+
+	<shape type="serialized" id="floor_mesh">
+		<string name="filename" value="spheres.serialized"/>
+		<integer name="shapeIndex" value="0"/>
+
+		<ref name="bsdf" id="floor_material"/>
+	</shape>
+
+	<shape type="serialized" id="diffuse_mesh">
+		<string name="filename" value="spheres.serialized"/>
+		<integer name="shapeIndex" value="1"/>
+
+		<ref name="bsdf" id="diffuse_material"/>
+	</shape>
+
+	<shape type="serialized" id="plastic_mesh">
+		<string name="filename" value="spheres.serialized"/>
+		<integer name="shapeIndex" value="2"/>
+
+		<ref name="bsdf" id="plastic_material"/>
+	</shape>
+
+	<shape type="serialized" id="dielectric_mesh">
+		<string name="filename" value="spheres.serialized"/>
+		<integer name="shapeIndex" value="3"/>
+
+		<ref name="bsdf" id="dielectric_material"/>
+	</shape>
+
+	<shape type="serialized" id="conductor_mesh">
+		<string name="filename" value="spheres.serialized"/>
+		<integer name="shapeIndex" value="4"/>
+
+		<ref name="bsdf" id="conductor_material"/>
+	</shape>
+
+	<sensor type="perspective">
+		<float name="farClip" value="1000.0"/>
+		<float name="focusDistance" value="200.0"/>
+		<float name="fov" value="45"/>
+		<string name="fovAxis" value="x"/>
+		<float name="nearClip" value="1.0"/>
+		<transform name="toWorld">
+
+			<lookat target="0, 0, 0" origin="0.0, 100.0, 150.0" up="0.0 1.0 0.0"/>
+		</transform>
+
+		<sampler type="independent">
+			<integer name="sampleCount" value="256"/>
+		</sampler>
+
+		<film type="hdrfilm">
+			<integer name="height" value="600"/>
+			<integer name="width" value="800"/>
+
+			<rfilter type="box"/>
+		</film>
+	</sensor>
+</scene>
