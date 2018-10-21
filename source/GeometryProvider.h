@@ -35,6 +35,9 @@ public:
     const Environment& environment() const { return _environment; }
 
 private:
+    const char* materialTypeToString(uint32_t);
+
+private:
     id<MTLBuffer> _indexBuffer = nil;
     id<MTLBuffer> _vertexBuffer = nil;
     id<MTLBuffer> _materialBuffer = nil;

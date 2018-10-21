@@ -10,79 +10,109 @@
 
 #include "structures.h"
 
-SampledMaterial sampleMaterial(device const Material& material, float3 n, float3 wI, float3 wO)
+SampledMaterialProperties sampleMaterialProperties(device const Material& material, float3 n, float3 wI, float3 wO)
 {
-    SampledMaterial result = { wO };
+    float3 bsdf = 0.0;
+    float pdf = 0.0;
 
     float NdotO = saturate(dot(n, wO));
     if (NdotO <= 0.0f)
-        return result;
+        return {};
 
     switch (material.type)
     {
-        case MATERIAL_MIRROR:
-        {
-            float3 r = reflect(wI, n);
-            float isMirrorDirection = float(abs(1.0 - dot(r, wO)) < ANGLE_EPSILON);
-            result.bsdf = isMirrorDirection;
-            result.pdf = isMirrorDirection;
-            result.weight = isMirrorDirection;
-            break;
-        }
-
         case MATERIAL_CONDUCTOR:
         {
             wI = -wI;
-            float3 h = normalize(wI + wO);
+            float3 m = normalize(wI + wO);
             
             float NdotI = dot(n, wI);
-            float HdotO = dot(h, wO);
-            float NdotH = dot(n, h);
+            float MdotO = dot(m, wO);
+            float NdotM = dot(n, m);
             {
-                float F = fresnelConductor(HdotO);
-                float D = ggxNormalDistribution(material.roughness * material.roughness, NdotH);
+                float3 F = material.specular * fresnelConductor(MdotO);
+                float D = ggxNormalDistribution(material.roughness * material.roughness, NdotM);
                 float G = ggxVisibilityTerm(material.roughness * material.roughness, NdotO, NdotI);
-                result.bsdf = F * D * G / (4.0 * NdotI);
-                result.pdf = D * NdotH / (4.0 * HdotO);
-                result.weight = F * ((G * HdotO) / (NdotI * NdotH));
+                bsdf = F * (D * G / (4.0 * NdotI));
+                pdf = D * NdotM / (4.0 * MdotO);
             }
             break;
         }
 
+        case MATERIAL_PLASTIC:
+        {
+            bsdf = 0.0;
+            pdf = 1.0;
+            break;
+        }
+
+        case MATERIAL_DIELECTRIC:
+        {
+            bsdf = 0.0;
+            pdf = 1.0;
+            break;
+        }
+
         default:
         {
-            result.bsdf = INVERSE_PI * NdotO;
-            result.pdf = INVERSE_PI * NdotO;
-            result.weight = 1.0f;
+            bsdf = material.diffuse * INVERSE_PI * NdotO;
+            pdf = INVERSE_PI * NdotO;
             break;
         }
     }
-    return result;
+
+    return { bsdf, pdf };
 }
 
-SampledMaterial sampleMaterial(device const Material& material, float3 n, float3 wI, device const float4& noiseSample)
+SampledMaterial sampleMaterial(device const Material& material, float3 n, float3 wI, device const float4& randomSample)
 {
     float3 wO;
+    float pdf = 0.0f;
+    float3 weight = 0.0f;
     switch (material.type)
     {
-        case MATERIAL_MIRROR:
+        case MATERIAL_CONDUCTOR:
         {
-            wO = reflect(wI, n);
+            float3 m = sampleGGXDistribution(n, randomSample.wz, material.roughness);
+            wO = reflect(wI, m);
+            float NdotO = dot(n, wO);
+            if (NdotO > 0.0)
+            {
+                float NdotI = -dot(n, wI);
+                float MdotO = dot(m, wO);
+                float NdotM = dot(n, m);
+                float3 F = material.specular * fresnelConductor(MdotO);
+                float D = ggxNormalDistribution(material.roughness * material.roughness, NdotM);
+                float G = ggxVisibilityTerm(material.roughness * material.roughness, NdotO, NdotI);
+                pdf = D * NdotM / (4.0 * MdotO);
+                weight = F * ((G * MdotO) / (NdotI * NdotM));
+            }
             break;
         }
 
-        case MATERIAL_CONDUCTOR:
+        case MATERIAL_PLASTIC:
         {
-            float3 m = sampleGGXDistribution(n, noiseSample.wz, material.roughness);
-            wO = reflect(wI, m);
+            wO = sampleCosineWeightedHemisphere(n, randomSample.wx);
+            weight = 0.0f;
+            pdf = 1.0f;
+            break;
+        }
+
+        case MATERIAL_DIELECTRIC:
+        {
+            wO = sampleCosineWeightedHemisphere(n, randomSample.wx);
+            weight = 0.0f;
+            pdf = 1.0f;
             break;
         }
 
         default:
         {
-            wO = sampleCosineWeightedHemisphere(n, noiseSample.wx);
+            wO = sampleCosineWeightedHemisphere(n, randomSample.wx);
+            pdf = INVERSE_PI * dot(n, wO);
+            weight = material.diffuse;
         }
     }
 
-    return sampleMaterial(material, n, wI, wO);
+    return { wO, pdf, weight };
 }

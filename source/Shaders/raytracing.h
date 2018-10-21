@@ -122,10 +122,11 @@ float ggxVisibilityTerm(float alphaSquared, float t0, float t1)
 
 float fresnelDielectric(float cosTheta)
 {
-    float ior = 1.5;
-    float r0 = (ior - 1.0) / (ior + 1.0);
-    r0 *= r0;
-    return r0 + (1.0f - r0) * pow(1.0f - cosTheta, 5.0f);
+    constexpr const float ior = 1.5;
+    constexpr const float r0 = (ior - 1.0) / (ior + 1.0);
+    constexpr const float r0squared = r0 * r0;
+
+    return r0squared + (1.0f - r0squared) * pow(1.0f - cosTheta, 5.0f);
 }
 
 float fresnelConductor(float cosTheta)
@@ -136,7 +137,7 @@ float fresnelConductor(float cosTheta)
 float2 directionToEquirectangularCoordinates(float3 d)
 {
     d = normalize(d);
+    float u = 0.5 - atan2(d.x, d.z) / DOUBLE_PI;
     float v = 0.5 - asin(d.y) / PI;
-    float u = 1.0 - atan2(d.x, d.z) / DOUBLE_PI;
     return float2(u, v);
 }

@@ -14,16 +14,19 @@ newmtl water
     illum 1
     Pr 0.05
     Kd 1.0 1.0 1.0
+    Ks 1.0 1.0 1.0
 
 newmtl leftSphere
     illum 1
     Pr 0.05
     Kd 1.0 1.0 1.0
+    Ks 1.0 1.0 1.0
 
 newmtl rightSphere
     illum 1
     Pr 0.999
     Kd 1.0 1.0 1.0
+    Ks 1.0 1.0 1.0
 
 newmtl floor
     Kd 0.7250 0.7100 0.6800

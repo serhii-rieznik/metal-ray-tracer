@@ -16,16 +16,17 @@
 #define DISTANCE_EPSILON    0.001
 #define ANGLE_EPSILON       0.0001523048
 
-#define ENABLE_IMAGE_ACCUMULATION 1
+#define ENABLE_IMAGE_ACCUMULATION   1
 
-#define MATERIAL_DIFFUSE    0
-#define MATERIAL_CONDUCTOR  1
-#define MATERIAL_MIRROR     3
-#define MATERIAL_LIGHT      100
+#define MATERIAL_DIFFUSE            0
+#define MATERIAL_CONDUCTOR          1
+#define MATERIAL_PLASTIC            2
+#define MATERIAL_DIELECTRIC         3
+#define MATERIAL_EMITTER            1024
 
 #define NOISE_BLOCK_SIZE    64
 
-#define MAX_PATH_LENGTH     8
+#define MAX_PATH_LENGTH     2
 #define MAX_SAMPLES         0xffffffff
 
 #define CONTENT_SCALE       2
@@ -39,6 +40,7 @@
 #define SCENE_VEACH_MIS             1
 #define SCENE_CORNELL_BOX_SPHERES   2
 #define SCENE_SPHERE                3
-#define SCENE                       SCENE_CORNELL_BOX_SPHERES
+#define SCENE_PBS_SPHERES           4
+#define SCENE                       SCENE_VEACH_MIS
 
 

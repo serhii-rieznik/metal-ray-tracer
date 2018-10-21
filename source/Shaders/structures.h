@@ -25,10 +25,12 @@ struct Vertex
 
 struct Material
 {
-    packed_float3 color = {};
+    packed_float3 diffuse = {};
     uint type = MATERIAL_DIFFUSE;
-    packed_float3 emissive = {};
+    packed_float3 specular = {};
     float roughness = 0.0f;
+    packed_float3 transmittance = {};
+    packed_float3 emissive = {};
 };
 
 struct Triangle
@@ -58,7 +60,6 @@ struct Ray
     uint bounces = 0;
     packed_float3 throughput = {};
     float materialPdf = 0.0f;
-    float deltaBsdfScale = 0.0f;
 };
 
 struct LightSamplingRay
@@ -76,12 +77,17 @@ struct ApplicationData
     uint emitterTrianglesCount = 0;
 };
 
+struct SampledMaterialProperties
+{
+    packed_float3 bsdf = 0.0f;
+    float pdf = 0.0f;
+};
+
 struct SampledMaterial
 {
     packed_float3 direction = {};
-    float bsdf = 0.0f;
     float pdf = 0.0f;
-    float weight = 0.0f;
+    packed_float3 weight;
 };
 
 using Intersection = MPSIntersectionDistancePrimitiveIndexCoordinates;

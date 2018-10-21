@@ -1,9 +1,4 @@
 <?xml version='1.0' encoding='utf-8'?>
-<!--
-
-	Automatically converted from Wavefront OBJ
-
--->
 
 <scene version="0.5.0">
 	<integrator type="path"/>
@@ -76,14 +71,13 @@
 	</shape>
 
 	<sensor type="perspective">
-		<float name="farClip" value="1000.0"/>
-		<float name="focusDistance" value="200.0"/>
-		<float name="fov" value="45"/>
+		<float name="farClip" value="300"/>
+		<float name="focusDistance" value="10"/>
+		<float name="fov" value="45.0"/>
 		<string name="fovAxis" value="x"/>
-		<float name="nearClip" value="1.0"/>
+		<float name="nearClip" value="1"/>
 		<transform name="toWorld">
-
-			<lookat target="0, 0, 0" origin="0.0, 100.0, 150.0" up="0.0 1.0 0.0"/>
+			<lookat target="0, 0, 0" origin="0, 100, 150" up="0, 1, 0"/>
 		</transform>
 
 		<sampler type="independent">

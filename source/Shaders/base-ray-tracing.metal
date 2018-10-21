@@ -34,6 +34,11 @@ kernel void generateRays(device Ray* rays [[buffer(0)]],
     const float3 origin = float3(0.0f, 0.0f, 100.0f);
     const float3 target = float3(0.0f, 0.0f, 0.0);
     const float fov = 60.0f * PI / 180.0f;
+#elif (SCENE == SCENE_PBS_SPHERES)
+    float3 up = float3(0.0f, 1.0, 0.0);
+    const float3 origin = float3(0.0f, 100.0f, 150.0f);
+    const float3 target = float3(0.0f, 0.0f, 0.0);
+    const float fov = 55.0 * PI / 180.0f;
 #else
 #   error No scene is defined
 #endif
@@ -50,7 +55,7 @@ kernel void generateRays(device Ray* rays [[buffer(0)]],
     float2 uv = float2(coordinates) / float2(size - 1) * 2.0f - 1.0f;
     float2 rnd = (noiseSample.xy * 2.0 - 1.0) / float2(size - 1);
     float ax = fovScale * (uv.x + rnd.x);
-    float ay = fovScale * (aspect * (uv.y + rnd.y));
+    float ay = fovScale * (uv.y + rnd.y) * aspect;
     float az = 1.0f;
 
     uint rayIndex = coordinates.x + coordinates.y * size.x;
@@ -60,7 +65,6 @@ kernel void generateRays(device Ray* rays [[buffer(0)]],
     rays[rayIndex].base.maxDistance = INFINITY;
     rays[rayIndex].radiance = 0.0f;
     rays[rayIndex].throughput = 1.0f;
-    rays[rayIndex].deltaBsdfScale = 0.0f;
     rays[rayIndex].materialPdf = 1.0f;
     rays[rayIndex].bounces = 0;
 }
@@ -91,8 +95,10 @@ kernel void handleIntersections(texture2d<float> environment [[texture(0)]],
 
         currentRay.radiance += currentRay.throughput *
             (appData.environmentColor + environment.sample(environmentSampler, uv).xyz);
-        currentRay.throughput = 0.0;
+
         currentRay.base.maxDistance = -1.0;
+        currentRay.throughput = 0.0;
+
         lightSamplingRay.base.maxDistance = -1.0;
         lightSamplingRay.targetPrimitiveIndex = uint(-1);
         return;
@@ -118,7 +124,7 @@ kernel void handleIntersections(texture2d<float> environment [[texture(0)]],
         float distanceToLight = length(directionToLight);
         directionToLight /= distanceToLight;
         float cosTheta = -dot(directionToLight, currentVertex.n);
-        float lightSamplePdf = currentRay.deltaBsdfScale * triangle.emitterPdf * (distanceToLight * distanceToLight) / (triangle.area * cosTheta);
+        float lightSamplePdf = triangle.emitterPdf * (distanceToLight * distanceToLight) / (triangle.area * cosTheta);
         float weight = powerHeuristic(currentRay.materialPdf, lightSamplePdf);
     #elif (IS_MODE == IS_MODE_BSDF)
         float weight = 1.0;
@@ -126,8 +132,9 @@ kernel void handleIntersections(texture2d<float> environment [[texture(0)]],
         float weight = 0.0f;
     #endif
 
+        weight = mix(weight, 1.0, float(currentRay.bounces == 0));
         weight *= float(dot(currentRay.base.direction, currentVertex.n) < 0.0f);
-
+        
         currentRay.radiance += material.emissive * currentRay.throughput * weight;
     }
 
@@ -149,7 +156,8 @@ kernel void handleIntersections(texture2d<float> environment [[texture(0)]],
         float lightSamplePdf = emitterTriangle.pdf * (distanceToLight * distanceToLight) /
             (emitterTriangle.area * DdotLN);
 
-        SampledMaterial materialSample = sampleMaterial(material, currentVertex.n, currentRay.base.direction, directionToLight);
+        SampledMaterialProperties materialSample =
+            sampleMaterialProperties(material, currentVertex.n, currentRay.base.direction, directionToLight);
 
     #if (IS_MODE == IS_MODE_MIS)
         float weight = powerHeuristic(lightSamplePdf, materialSample.pdf);
@@ -159,7 +167,8 @@ kernel void handleIntersections(texture2d<float> environment [[texture(0)]],
         float weight = 0.0f;
     #endif
 
-        bool triangleSampled = (DdotN > 0.0f) && (DdotLN > 0.0f) && (materialSample.bsdf > 0.0f);
+        bool triangleSampled = (DdotN > 0.0f) && (DdotLN > 0.0f) &&
+            (dot(materialSample.bsdf, materialSample.bsdf) > 0.0f);
 
         lightSamplingRay.base.origin = currentVertex.v + currentVertex.n * DISTANCE_EPSILON;
         lightSamplingRay.base.direction = directionToLight;
@@ -168,7 +177,7 @@ kernel void handleIntersections(texture2d<float> environment [[texture(0)]],
         lightSamplingRay.targetPrimitiveIndex = emitterTriangle.globalIndex;
         lightSamplingRay.throughput = currentRay.throughput *
             (emitterTriangle.emissive / lightSamplePdf) *
-            (material.color * materialSample.bsdf) * weight;
+            (materialSample.bsdf) * weight;
     }
 
     // generate next bounce
@@ -177,8 +186,7 @@ kernel void handleIntersections(texture2d<float> environment [[texture(0)]],
         currentRay.base.origin = currentVertex.v + currentVertex.n * DISTANCE_EPSILON;
         currentRay.base.direction = materialSample.direction;
         currentRay.materialPdf = materialSample.pdf;
-        currentRay.deltaBsdfScale = float(material.type != MATERIAL_MIRROR);
-        currentRay.throughput *= material.color * materialSample.weight;
+        currentRay.throughput *= materialSample.weight;
         currentRay.bounces += 1;
     }
 }

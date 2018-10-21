@@ -13,12 +13,12 @@ class BufferConstructor
 {
 public:
     BufferConstructor(id<MTLDevice> device) :
-        _device(device) { }
+    _device(device) { }
 
     template <class T>
     id<MTLBuffer> operator()(const std::vector<T>& data, NSString* tag) {
         id<MTLBuffer> buffer = [_device newBufferWithBytes:data.data() length:sizeof(T) * data.size()
-                                                  options:MTLResourceStorageModeManaged];
+                                                   options:MTLResourceStorageModeManaged];
         [buffer setLabel:tag];
         return buffer;
     };
@@ -57,6 +57,23 @@ void GeometryProvider::loadFile(const std::string& fileName, id<MTLDevice> devic
     std::vector<Material> materialBuffer;
     for (const tinyobj::material_t& mtl : materials)
     {
+        materialBuffer.emplace_back();
+        Material& material = materialBuffer.back();
+        material.diffuse.x = mtl.diffuse[0];
+        material.diffuse.y = mtl.diffuse[1];
+        material.diffuse.z = mtl.diffuse[2];
+        material.specular.x = mtl.specular[0];
+        material.specular.y = mtl.specular[1];
+        material.specular.z = mtl.specular[2];
+        material.transmittance.x = mtl.transmittance[0];
+        material.transmittance.y = mtl.transmittance[1];
+        material.transmittance.z = mtl.transmittance[2];
+        material.emissive.x = mtl.emission[0];
+        material.emissive.y = mtl.emission[1];
+        material.emissive.z = mtl.emission[2];
+        material.type = mtl.illum;
+        material.roughness = mtl.roughness;
+
         if (mtl.name == "environment")
         {
             _environment.textureName = mtl.ambient_texname;
@@ -64,17 +81,10 @@ void GeometryProvider::loadFile(const std::string& fileName, id<MTLDevice> devic
             _environment.uniformColor.y = mtl.ambient[1];
             _environment.uniformColor.z = mtl.ambient[2];
         }
-
-        materialBuffer.emplace_back();
-        Material& material = materialBuffer.back();
-        material.color.x = mtl.diffuse[0];
-        material.color.y = mtl.diffuse[1];
-        material.color.z = mtl.diffuse[2];
-        material.emissive.x = mtl.emission[0];
-        material.emissive.y = mtl.emission[1];
-        material.emissive.z = mtl.emission[2];
-        material.type = mtl.illum;
-        material.roughness = mtl.roughness;
+        else
+        {
+            NSLog(@" + material: %s, type: %s", mtl.name.c_str(), materialTypeToString(material.type));
+        }
     }
 
     std::vector<uint32_t> indexBuffer;
@@ -86,6 +96,7 @@ void GeometryProvider::loadFile(const std::string& fileName, id<MTLDevice> devic
     float totalLightScaledArea = 0.0f;
     for (const tinyobj::shape_t& shape : shapes)
     {
+        NSLog(@" + shape: %s", shape.name.c_str());
         size_t triangleCount = shape.mesh.num_face_vertices.size();
         _triangleCount += static_cast<uint32_t>(triangleCount);
 
@@ -177,3 +188,18 @@ void GeometryProvider::loadFile(const std::string& fileName, id<MTLDevice> devic
           attrib.normals.size(), attrib.texcoords.size(), _triangleCount, materials.size());
 }
 
+const char* GeometryProvider::materialTypeToString(uint32_t t)
+{
+#define CASE(x) case x: return #x
+    switch (t)
+    {
+        CASE(MATERIAL_DIFFUSE);
+        CASE(MATERIAL_CONDUCTOR);
+        CASE(MATERIAL_PLASTIC);
+        CASE(MATERIAL_DIELECTRIC);
+        CASE(MATERIAL_EMITTER);
+        default:
+            return "unknown material, defaulted to diffuse";
+    }
+#undef CASE
+}

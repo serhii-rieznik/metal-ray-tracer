@@ -6,3 +6,4 @@ newmtl default
     illum 1
     Pr 0.05
     Kd 1.0 1.0 1.0
+    Ks 1.0 1.0 1.0

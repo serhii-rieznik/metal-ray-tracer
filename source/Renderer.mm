@@ -277,6 +277,8 @@ static std::uniform_real_distribution<float> uniformFloatDistribution(0.0f, 1.0f
     NSURL* assetUrl = [[NSBundle mainBundle] URLForResource:@"media/cornellbox-water-spheres" withExtension:@"obj"];
 #elif (SCENE == SCENE_SPHERE)
     NSURL* assetUrl = [[NSBundle mainBundle] URLForResource:@"media/sphere" withExtension:@"obj"];
+#elif (SCENE == SCENE_PBS_SPHERES)
+    NSURL* assetUrl = [[NSBundle mainBundle] URLForResource:@"media/spheres" withExtension:@"obj"];
 #else
     NSURL* assetUrl = [[NSBundle mainBundle] URLForResource:@"media/cornellbox" withExtension:@"obj"];
 #endif
