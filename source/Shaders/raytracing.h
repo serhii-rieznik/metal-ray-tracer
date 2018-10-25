@@ -137,7 +137,14 @@ float fresnelConductor(float cosTheta)
 float2 directionToEquirectangularCoordinates(float3 d)
 {
     d = normalize(d);
-    float u = 0.5 - atan2(d.x, d.z) / DOUBLE_PI;
+    float u = atan2(d.x, d.z) / DOUBLE_PI;
     float v = 0.5 - asin(d.y) / PI;
-    return float2(u, v);
+    return float2(-u, v);
+}
+
+float3 sampleEnvironment(texture2d<float> environment, float3 d)
+{
+    constexpr sampler environmentSampler = sampler(s_address::repeat, t_address::clamp_to_edge, filter::linear);
+    float2 uv = directionToEquirectangularCoordinates(d);
+    return environment.sample(environmentSampler, uv).xyz;
 }

@@ -15,12 +15,12 @@ newmtl diffuse
 
 newmtl conductor
     illum 1
-    Pr 0.05
+    Pr 0.025
     Ks 1.0 1.0 1.0
 
 newmtl plastic
     illum 2
-    Pr 0.25
+    Pr 0.025
     Kd 0.05 0.1 0.2
     Ks 1.0 1.0 1.0
 

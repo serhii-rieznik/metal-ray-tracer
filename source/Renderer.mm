@@ -313,12 +313,14 @@ static std::uniform_real_distribution<float> uniformFloatDistribution(0.0f, 1.0f
     [_rayIntersector setRayStride:sizeof(Ray)];
     [_rayIntersector setIntersectionDataType:MPSIntersectionDataTypeDistancePrimitiveIndexCoordinates];
     [_rayIntersector setIntersectionStride:sizeof(Intersection)];
+    [_rayIntersector setCullMode:MTLCullModeNone];
 
     _lightIntersector = [[MPSRayIntersector alloc] initWithDevice:_device];
     [_lightIntersector setRayDataType:MPSRayDataTypeOriginMinDistanceDirectionMaxDistance];
     [_lightIntersector setRayStride:sizeof(LightSamplingRay)];
     [_lightIntersector setIntersectionDataType:MPSIntersectionDataTypeDistancePrimitiveIndex];
     [_lightIntersector setIntersectionStride:sizeof(LightSamplingIntersection)];
+    [_lightIntersector setCullMode:MTLCullModeNone];
 }
 
 - (void)updateBuffers
