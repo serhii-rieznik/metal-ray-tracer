@@ -72,9 +72,14 @@ void buildOrthonormalBasis(float3 n, thread float3& u, thread float3& v)
     v = float3(b, s + n.y * n.y * a, -n.y);
 }
 
+float sqr(float a)
+{
+    return a * a;
+}
+
 float3 alignToDirection(float3 n, float cosTheta, float phi)
 {
-    float sinTheta = sqrt(1.0f - cosTheta * cosTheta);
+    float sinTheta = sqrt(1.0f - sqr(cosTheta));
 
     float3 u;
     float3 v;
@@ -91,47 +96,55 @@ float3 sampleCosineWeightedHemisphere(float3 n, float2 xi)
 
 float3 sampleGGXDistribution(float3 n, float2 xi, float alpha)
 {
-    float cosTheta = sqrt((1.0f - xi.x) / (xi.x * (alpha * alpha - 1.0f) + 1.0f));
+    float cosTheta = sqrt((1.0f - xi.x) / (xi.x * (sqr(alpha) - 1.0f) + 1.0f));
     return alignToDirection(n, cosTheta, xi.y * DOUBLE_PI);
 }
 
 float powerHeuristic(float fPdf, float gPdf)
 {
-    float f2 = fPdf * fPdf;
-    float g2 = gPdf * gPdf;
+    float f2 = sqr(fPdf);
+    float g2 = sqr(gPdf);
     return saturate(f2 / (f2 + g2));
 }
 
 float ggxNormalDistribution(float alphaSquared, float cosTheta)
 {
-    float denom = (alphaSquared - 1.0f) * cosTheta * cosTheta + 1.0f;
+    float denom = (alphaSquared - 1.0f) * sqr(cosTheta) + 1.0f;
     return alphaSquared / (PI * denom * denom);
 }
 
 float ggxVisibility(float alphaSquared, float cosTheta)
 {
-    float cosThetaSquared = cosTheta * cosTheta;
+    float cosThetaSquared = sqr(cosTheta);
     float tanThetaSquared = (1.0f - cosThetaSquared) / cosThetaSquared;
     return 2.0f / (1.0f + sqrt(1.0f + alphaSquared * tanThetaSquared));
 }
 
-float ggxVisibilityTerm(float alphaSquared, float t0, float t1)
+float ggxVisibilityTerm(float alphaSquared, float3 wI, float3 wO, float3 m)
 {
-    return ggxVisibility(alphaSquared, t0) * ggxVisibility(alphaSquared, t1);
+    float MdotI = dot(m, wI);
+    float MdotO = dot(m, wO);
+    return ggxVisibility(alphaSquared, MdotI) * ggxVisibility(alphaSquared, MdotO);
 }
 
-float fresnelDielectric(float cosTheta)
+float fresnelDielectric(float cosThetaI, float etaI, float etaO)
 {
-    constexpr const float ior = 1.5;
-    constexpr const float r0 = (ior - 1.0) / (ior + 1.0);
-    constexpr const float r0squared = r0 * r0;
-
-    return r0squared + (1.0f - r0squared) * pow(1.0f - cosTheta, 5.0f);
+    float sinThetaOSquared = sqr(etaI / etaO) * (1.0 - cosThetaI * cosThetaI);
+    float cosThetaO = sqrt(saturate(1.0 - sinThetaOSquared));
+    float Rs = sqr((etaI * cosThetaI - etaO * cosThetaO) / (etaI * cosThetaI + etaO * cosThetaO));
+    float Rp = sqr((etaI * cosThetaO - etaO * cosThetaI) / (etaI * cosThetaO + etaO * cosThetaI));
+    return 0.5f * (Rs + Rp);
 }
 
 float fresnelConductor(float cosTheta)
 {
     return 1.0f; // TODO
+}
+
+float fresnelDielectric(float3 i, float3 m, float etaI, float etaO)
+{
+    float cosTheta = abs(dot(i, m));
+    return fresnelDielectric(cosTheta, etaI, etaO);
 }
 
 float2 directionToEquirectangularCoordinates(float3 d)

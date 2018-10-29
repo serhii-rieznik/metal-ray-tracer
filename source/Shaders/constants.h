@@ -26,7 +26,7 @@
 
 #define NOISE_BLOCK_SIZE    64
 
-#define MAX_PATH_LENGTH     8
+#define MAX_PATH_LENGTH     20
 #define MAX_SAMPLES         0xffffffff
 
 #define CONTENT_SCALE       2
@@ -41,4 +41,4 @@
 #define SCENE_CORNELL_BOX_SPHERES   2
 #define SCENE_SPHERE                3
 #define SCENE_PBS_SPHERES           4
-#define SCENE                       SCENE_CORNELL_BOX_SPHERES
+#define SCENE                       SCENE_SPHERE
