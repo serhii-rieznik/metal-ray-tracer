@@ -38,9 +38,9 @@ kernel void generateRays(device Ray* rays [[buffer(0)]],
     const float fov = 50.0f * PI / 180.0f;
 #elif (SCENE == SCENE_PBS_SPHERES)
     float3 up = float3(0.0f, 1.0, 0.0);
-    const float3 origin = float3(0.0f, 100.0f, 150.0f);
+    const float3 origin = float3(0.0f, 75.0f, 150.0f);
     const float3 target = float3(0.0f, 0.0f, 0.0);
-    const float fov = 55.0 * PI / 180.0f;
+    const float fov = 60.0 * PI / 180.0f;
 #else
 #   error No scene is defined
 #endif
@@ -48,7 +48,7 @@ kernel void generateRays(device Ray* rays [[buffer(0)]],
     float3 direction = normalize(target - origin);
     float3 side = cross(direction, up);
     up = cross(side, direction);
-    float fovScale = tan(fov / 2.0);
+    float fovScale = tan(fov / 2.0f);
 
     uint noiseSampleIndex = (coordinates.x % NOISE_BLOCK_SIZE) + NOISE_BLOCK_SIZE * (coordinates.y % NOISE_BLOCK_SIZE);
     device const float4& noiseSample = noise[noiseSampleIndex];
@@ -162,27 +162,34 @@ kernel void handleIntersections(texture2d<float> environment [[texture(0)]],
             currentRay.base.direction, directionToLight);
 
     #if (IS_MODE == IS_MODE_MIS)
-        float weight0 = powerHeuristic(lightSamplePdf, materialSample.pdf0);
-        float weight1 = powerHeuristic(lightSamplePdf, materialSample.pdf1);
+        float weightDiffuse = powerHeuristic(lightSamplePdf, materialSample.pdfDiffuse);
+        float weightSpecular = powerHeuristic(lightSamplePdf, materialSample.pdfSpecular);
+        float weightTransmittance = powerHeuristic(lightSamplePdf, materialSample.pdfTransmittance);
     #elif (IS_MODE == IS_MODE_LIGHT)
-        float weight0 = 1.0f;
-        float weight1 = 0.0f;
+        float weightDiffuse = 1.0f;
+        float weightSpecular = 1.0f;
+        float weightTransmittance = 1.0f;
     #else
-        float weight0 = 0.0f;
-        float weight1 = 0.0f;
+        float weightDiffuse = 0.0f;
+        float weightSpecular = 0.0f;
+        float weightTransmittance = 0.0f;
     #endif
 
-        bool triangleSampled = (DdotN > 0.0f) && (DdotLN > 0.0f) &&
-            ((dot(materialSample.bsdf0, materialSample.bsdf0) + dot(materialSample.bsdf1, materialSample.bsdf1)) > 0.0f);
+        float3 weightedBsdf =
+            materialSample.bsdfDiffuse * weightDiffuse +
+            materialSample.bsdfSpecular * weightSpecular +
+            materialSample.bsdfTransmittance * weightTransmittance;
+
+        bool triangleSampled = (DdotN > 0.0f) && (DdotLN > 0.0f) && (dot(weightedBsdf, weightedBsdf) > 0.0f);
 
         lightSamplingRay.base.origin = currentVertex.v + currentVertex.n * DISTANCE_EPSILON;
         lightSamplingRay.base.direction = directionToLight;
         lightSamplingRay.base.minDistance = 0.0f;
         lightSamplingRay.base.maxDistance = triangleSampled ? INFINITY : -1.0;
         lightSamplingRay.targetPrimitiveIndex = emitterTriangle.globalIndex;
+
         lightSamplingRay.throughput = currentRay.throughput *
-            (emitterTriangle.emissive / lightSamplePdf) *
-            (materialSample.bsdf0 * weight0 + materialSample.bsdf1 * weight1);
+            (emitterTriangle.emissive / lightSamplePdf) * weightedBsdf;
     }
 
     // generate next bounce

@@ -12,53 +12,116 @@
 
 SampledMaterialProperties sampleMaterialProperties(device const Material& material, float3 n, float3 wI, float3 wO)
 {
+    float etaI = 1.0f;
+    float etaO = 1.5f;
+
     SampledMaterialProperties result = {};
 
-    wI = -wI;
-    float3 m = normalize(wI + wO);
-
-    float NdotI = dot(n, wI);
-    float MdotO = dot(m, wO);
-    float NdotM = dot(n, m);
-    float NdotO = saturate(dot(n, wO));
-
-    if (NdotO <= 0.0f)
-        return result;
+    float alpha = material.roughness * material.roughness;
 
     switch (material.type)
     {
+        case MATERIAL_DIFFUSE:
+        {
+            float NdotO = dot(n, wO);
+            if (NdotO > 0.0f)
+            {
+                result.bsdfDiffuse = material.diffuse * INVERSE_PI * NdotO;
+                result.pdfDiffuse = INVERSE_PI * NdotO;
+            }
+            break;
+        }
+
         case MATERIAL_CONDUCTOR:
         {
-            float3 F = material.specular * fresnelConductor(MdotO);
-            float D = ggxNormalDistribution(material.roughness * material.roughness, NdotM);
-            float G = ggxVisibilityTerm(material.roughness * material.roughness, wI, wO, n);
-            result.bsdf0 = F * (D * G / (4.0 * NdotI));
-            result.pdf0 = D * NdotM / (4.0 * MdotO);
+            float NdotO = dot(n, wO);
+            if (NdotO > 0.0f)
+            {
+                wI = -wI;
+                float3 m = normalize(wI + wO);
+                float NdotM = dot(n, m);
+                float NdotI = dot(n, wI);
+                float MdotO = dot(m, wO);
+                float3 F = material.specular * fresnelConductor(MdotO);
+                float D = ggxNormalDistribution(alpha, NdotM);
+                float G = ggxVisibilityTerm(alpha, wI, wO, n);
+                result.bsdfSpecular = F * (D * G / (4.0 * NdotI));
+                result.pdfSpecular = D * NdotM / (4.0 * MdotO);
+            }
             break;
         }
 
         case MATERIAL_PLASTIC:
         {
-            float3 F = material.specular * fresnelDielectric(MdotO, 1.0f, 1.5f);
-            float D = ggxNormalDistribution(material.roughness * material.roughness, NdotM);
-            float G = ggxVisibilityTerm(material.roughness * material.roughness, wI, wO, n);
-            result.bsdf0 = F * (D * G / (4.0 * NdotI));
-            result.pdf0 = D * NdotM / (4.0 * MdotO);
-
-            result.bsdf1 = material.diffuse * (1.0 - F) * INVERSE_PI * NdotO;
-            result.pdf1 = INVERSE_PI * NdotO;
+            float NdotO = dot(n, wO);
+            if (NdotO > 0.0f)
+            {
+                wI = -wI;
+                float3 m = normalize(wI + wO);
+                float NdotM = dot(n, m);
+                float NdotI = dot(n, wI);
+                float NdotO = dot(n, wO);
+                float MdotO = dot(m, wO);
+                float3 F = material.specular * fresnelDielectric(MdotO, etaI, etaO);
+                float D = ggxNormalDistribution(alpha, NdotM);
+                float G = ggxVisibilityTerm(alpha, wI, wO, n);
+                result.bsdfSpecular = material.specular * (F * D * G / (4.0 * NdotI));
+                result.pdfSpecular = D * NdotM / (4.0 * MdotO);
+                result.bsdfDiffuse = material.diffuse * (1.0 - F) * INVERSE_PI * NdotO;
+                result.pdfDiffuse = INVERSE_PI * NdotO;
+            }
             break;
         }
 
         case MATERIAL_DIELECTRIC:
         {
+            float NdotI = dot(n, wI);
+            float NdotO = dot(n, wO);
+
+            if ((NdotI * NdotO < 0.0f)) // ray is reflected
+            {
+                wI = -wI;
+                NdotI = -NdotI;
+                float3 m = normalize(wI + wO);
+                float NdotM = dot(n, m);
+                float MdotO = dot(m, wO);
+                float3 F = material.specular * fresnelDielectric(MdotO, etaI, etaO);
+                float D = ggxNormalDistribution(alpha, NdotM);
+                float G = ggxVisibilityTerm(alpha, wI, wO, n);
+                float J = 1.0 / (4.0 * MdotO);
+                result.pdfSpecular = D * NdotM * J;
+                result.bsdfSpecular = material.specular * (F * D * G / (4.0 * NdotI));
+            }
+            else
+            {
+                if (NdotI < 0.0f) // exiting material
+                {
+                    NdotI = -NdotI;
+                    float etaI_ = etaI;
+                    etaI = etaO;
+                    etaO = etaI_;
+                }
+                float3 m = normalize(wI * etaI + wO * etaO);
+                float MdotO = abs(dot(m, wO));
+                float MdotI = abs(dot(m, wI));
+                float NdotM = abs(dot(n, m));
+                float D = ggxNormalDistribution(alpha, NdotM);
+                float G = ggxVisibilityTerm(alpha, wI, wO, m);
+                float F = fresnelDielectric(wI, m, etaI, etaO);
+
+                float J = sqr(etaI / etaO) * MdotO / sqr(etaI * MdotI + etaO * MdotO);
+                result.pdfTransmittance = D * NdotM * J;
+
+                float t1 = (MdotI * MdotO) / (NdotI * NdotO);
+                float t2 = sqr(etaI / etaO) * (1.0f - F) * D * G / sqr(etaI * MdotI + etaO * MdotO);
+                result.bsdfTransmittance = material.transmittance * t1 * t2;
+            }
+
             break;
         }
 
         default:
         {
-            result.bsdf1 = material.diffuse * INVERSE_PI * NdotO;
-            result.pdf1 = INVERSE_PI * NdotO;
             break;
         }
     }
@@ -68,37 +131,39 @@ SampledMaterialProperties sampleMaterialProperties(device const Material& materi
 
 SampledMaterial sampleMaterial(device const Material& material, float3 n, float3 wI, device const float4& randomSample)
 {
-    float3 wO = {};
-
-    float3 m = sampleGGXDistribution(n, randomSample.wz, material.roughness);
-    float3 r = reflect(wI, m);
-    wI = -wI;
-
-    float NdotM = dot(n, m);
-    float NdotI = dot(n, wI);
-
-    float a = material.roughness * material.roughness;
-    float D = ggxNormalDistribution(a, NdotM);
-
+    float etaI = 1.0f;
+    float etaO = 1.5f;
     float pdf = 0.0f;
+    float alpha = material.roughness * material.roughness;
+
+    float3 wO = {};
     float3 weight = 0.0f;
 
     switch (material.type)
     {
         case MATERIAL_CONDUCTOR:
         {
-            wO = r;
-            float MdotO = dot(m, wO);
-            float F = fresnelConductor(MdotO);
-            float G = ggxVisibilityTerm(a, wI, wO, n);
-            pdf = D * NdotM / (4.0 * MdotO);
-            weight = material.specular * F * G * MdotO / (NdotI * NdotM);
+            float3 m = sampleGGXDistribution(n, randomSample.wz, material.roughness);
+            wO = reflect(wI, m);
+            float NdotI = -dot(n, wI);
+            float NdotO = dot(n, wO);
+            if ((NdotO > 0.0f) && (NdotI > 0.0f))
+            {
+                float NdotM = dot(n, m);
+                float MdotO = dot(m, wO);
+                float F = fresnelConductor(MdotO);
+                float D = ggxNormalDistribution(alpha, NdotM);
+                float G = ggxVisibilityTerm(alpha, wI, wO, n);
+                pdf = D * NdotM / (4.0 * MdotO);
+                weight = material.specular * F * G * MdotO / (NdotI * NdotM);
+            }
             break;
         }
 
         case MATERIAL_PLASTIC:
         {
-            float F = fresnelDielectric(wI, m, 1.0f, 1.5f);
+            float3 m = sampleGGXDistribution(n, randomSample.wz, material.roughness);
+            float F = fresnelDielectric(wI, m, etaI, etaO);
 
             float pdfSpecular = F;
             float pdfDiffuse = 1.0f - pdfSpecular;
@@ -111,72 +176,73 @@ SampledMaterial sampleMaterial(device const Material& material, float3 n, float3
             }
             else
             {
-                wO = r;
-                float MdotO = dot(m, wO);
-                float G = ggxVisibilityTerm(a, wI, wO, n);
-                float J = 1.0f / (4.0 * MdotO);
-                pdf = pdfSpecular * D * NdotM * J;
-                weight = material.specular * (F * G * MdotO) / (NdotI * NdotM * pdfSpecular);
+                wO = reflect(wI, m);
+                float NdotI = -dot(n, wI);
+                float NdotO = dot(n, wO);
+                if ((NdotO > 0.0f) && (NdotI > 0.0f))
+                {
+                    float NdotM = dot(n, m);
+                    float MdotO = dot(m, wO);
+                    float D = ggxNormalDistribution(alpha, NdotM);
+                    float G = ggxVisibilityTerm(alpha, wI, wO, n);
+                    float J = 1.0f / (4.0 * MdotO);
+                    pdf = pdfSpecular * D * NdotM * J;
+                    weight = material.specular * (F * G * MdotO) / (NdotI * NdotM * pdfSpecular);
+                }
             }
             break;
         }
 
         case MATERIAL_DIELECTRIC:
         {
-            float etaI = 1.0f;
-            float etaO = 1.5f;
-
-            if (NdotI <= 0.0f) // exiting material
+            if (dot(n, wI) > 0.0f)
             {
                 n = -n;
-                m = -m;
-                NdotI = -NdotI;
-                float etaK = etaI;
+                float etaX = etaI;
                 etaI = etaO;
-                etaO = etaK;
+                etaO = etaX;
             }
 
-            float etaR = etaI / etaO;
-            float MdotI = dot(m, wI);
-            float cosThetaI = MdotI;
-            float sinThetaTSquared = sqr(etaR) * (1.0 - cosThetaI * cosThetaI);
-            float F = fresnelDielectric(wI, m, etaI, etaO);
-
-            float pdfSpecular = (sinThetaTSquared < 1.0f) ? F : 1.0f;
+            float3 m = sampleGGXDistribution(n, randomSample.wz, material.roughness);
+            float pdfSpecular = fresnelDielectric(wI, m, etaI, etaO);
             float pdfTransmission = 1.0f - pdfSpecular;
 
             if (randomSample.y < pdfTransmission)
             {
+                float cosThetaI = -dot(m, wI);
+                float sinThetaTSquared = sqr(etaI / etaO) * (1.0 - cosThetaI * cosThetaI);
                 float cosThetaT = sqrt(saturate(1.0 - sinThetaTSquared));
-                wO = m * (etaR * cosThetaI - cosThetaT) - etaR * wI;
+                wO = wI * (etaI / etaO) + m * (etaI / etaO * cosThetaI - cosThetaT);
 
-                float3 h = normalize(wI * etaI + wO * etaO);
-                float G = ggxVisibilityTerm(a, wI, wO, h);
-                float HdotO = abs(dot(h, wO));
+                float3 h = normalize(wO * etaO - wI * etaI);
+
                 float HdotI = abs(dot(h, wI));
-
-                float J = sqr(etaO) * HdotI / sqr(etaI * HdotI + etaO * HdotO);
+                float HdotO = abs(dot(h, wO));
+                float NdotI = -dot(n, wI);
+                float NdotM = dot(n, m);
+                float G = ggxVisibilityTerm(alpha, wI, wO, n);
+                float D = ggxNormalDistribution(alpha, NdotM);
+                float J = sqr(etaO) * HdotO / sqr(etaI * HdotI + etaO * HdotO);
                 pdf = pdfTransmission * D * NdotM * J;
-
-                /*
-                float t1 = (HdotI * HdotO) / (NdotI * NdotO);
-                float t2 = sqr(etaO) * (1.0f - F) * D * G / sqr(etaI * HdotI + etaO * HdotO);
-                float btdf = t1 * t2;
-                // */
-
-                weight = material.transmittance * (HdotO * G * (1.0 - F)) / (NdotI * NdotM * pdfTransmission);
-
-                n = -n;
+                weight = material.transmittance * HdotI * G / (NdotM * NdotI);
             }
             else
             {
-                wO = r;
-                float MdotO = dot(m, wO);
-                float G = ggxVisibilityTerm(a, wI, wO, n);
-                float J = 1.0 / (4.0 * MdotO);
-                pdf = pdfSpecular * D * NdotM * J;
-                weight = material.specular * (F * G * MdotO) / (NdotI * NdotM * pdfSpecular);
+                wO = reflect(wI, m);
+                float NdotI = -dot(n, wI);
+                float NdotO = dot(n, wO);
+                if ((NdotO > 0.0f) && (NdotI > 0.0f))
+                {
+                    float NdotM = dot(n, m);
+                    float MdotO = dot(m, wO);
+                    float D = ggxNormalDistribution(alpha, NdotM);
+                    float G = ggxVisibilityTerm(alpha, wI, wO, n);
+                    float J = 1.0f / (4.0 * MdotO);
+                    pdf = pdfSpecular * D * NdotM * J;
+                    weight = material.specular * (G * MdotO) / (NdotI * NdotM);
+                }
             }
+
             break;
         }
 
@@ -189,11 +255,70 @@ SampledMaterial sampleMaterial(device const Material& material, float3 n, float3
         }
     }
 
-    if (!(dot(n, wO) > 0.0f))
-    {
-        pdf = 0.0f;
-        weight = 0.0f;
-    }
-
     return { wO, pdf, weight };
 }
+
+/*
+ * BTDF:
+ *
+ float t1 = (HdotI * HdotO) / (NdotI * NdotO);
+ float t2 = sqr(etaO) * (1.0f - F) * D * G / sqr(etaI * HdotI + etaO * HdotO);
+ float btdf = t1 * t2;
+//*/
+
+/*
+void t()
+{
+    wI = -wI;
+    float3 m = sampleGGXDistribution(n, randomSample.wz, material.roughness);
+    float NdotI = dot(n, wI);
+    float NdotM = dot(n, m);
+    float D = ggxNormalDistribution(alpha, NdotM);
+
+    float etaI = 1.0f;
+    float etaO = 1.5f;
+
+    if (NdotI <= 0.0f) // exiting material
+    {
+        n = -n;
+        m = -m;
+        NdotI = -NdotI;
+        float etaK = etaI;
+        etaI = etaO;
+        etaO = etaK;
+    }
+
+    float etaR = etaI / etaO;
+    float MdotI = dot(m, wI);
+    float cosThetaI = MdotI;
+    float sinThetaTSquared = sqr(etaR) * (1.0 - cosThetaI * cosThetaI);
+    float F = fresnelDielectric(wI, m, etaI, etaO);
+
+    float pdfSpecular = (sinThetaTSquared < 1.0f) ? F : 1.0f;
+    float pdfTransmission = 1.0f - pdfSpecular;
+
+    if (randomSample.y < pdfTransmission)
+    {
+
+        n = -n;
+    }
+}
+// */
+
+/*/
+{
+    float3 h = normalize(wI * etaI + wO * etaO);
+    float G = ggxVisibilityTerm(alpha, wI, wO, h);
+    float NdotO = abs(dot(n, wO));
+    float HdotO = abs(dot(h, wO));
+    float HdotI = abs(dot(h, wI));
+
+    float J = sqr(etaO) * HdotI / sqr(etaI * HdotI + etaO * HdotO);
+    pdf = pdfTransmission * D * NdotM * J;
+
+    float btdf = (HdotI * HdotO * sqr(etaO) * (1.0f - F) * D * G)
+    / (sqr(etaI * HdotI + etaO * HdotO) * NdotI * NdotO);
+
+    weight = btdf / pdf * NdotO;
+}
+// */

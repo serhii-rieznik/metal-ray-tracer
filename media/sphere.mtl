@@ -1,9 +1,11 @@
 newmtl environment
-    Ka 0.0 0.0 0.0
-    map_Ka tiergarten_4k.exr
+    Ka 0.5 0.5 0.5
+    Kx 0 0 0
+    map_Ka a_tiergarten_4k.exr
 
 newmtl default
     illum 3
-    Pr 0.01
-    Kt 1.0 1.0 1.0
+    Pr 0.33333
+    Kd 1.0 1.0 1.0
     Ks 1.0 1.0 1.0
+    Kt 1.0 1.0 1.0

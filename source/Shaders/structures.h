@@ -79,10 +79,12 @@ struct ApplicationData
 
 struct SampledMaterialProperties
 {
-    packed_float3 bsdf0 = 0.0f;
-    float pdf0 = 0.0f;
-    packed_float3 bsdf1 = 0.0f;
-    float pdf1 = 0.0f;
+    packed_float3 bsdfDiffuse = 0.0f;
+    float pdfDiffuse = 0.0f;
+    packed_float3 bsdfSpecular = 0.0f;
+    float pdfSpecular = 0.0f;
+    packed_float3 bsdfTransmittance = 0.0f;
+    float pdfTransmittance = 0.0f;
 };
 
 struct SampledMaterial

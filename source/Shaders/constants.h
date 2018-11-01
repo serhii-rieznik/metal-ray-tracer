@@ -24,9 +24,9 @@
 #define MATERIAL_DIELECTRIC         3
 #define MATERIAL_EMITTER            1024
 
-#define NOISE_BLOCK_SIZE    64
+#define NOISE_BLOCK_SIZE    128
 
-#define MAX_PATH_LENGTH     20
+#define MAX_PATH_LENGTH     10
 #define MAX_SAMPLES         0xffffffff
 
 #define CONTENT_SCALE       2
@@ -41,4 +41,4 @@
 #define SCENE_CORNELL_BOX_SPHERES   2
 #define SCENE_SPHERE                3
 #define SCENE_PBS_SPHERES           4
-#define SCENE                       SCENE_SPHERE
+#define SCENE                       SCENE_PBS_SPHERES

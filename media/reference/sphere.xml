@@ -6,35 +6,39 @@
 -->
 
 <scene version="0.5.0">
-	<integrator type="path"/>
+	<integrator type="path">
+		<integer name="maxDepth" value="8"/>
+		<integer name="rrDepth" value="100"/>
+	</integrator>
 
 	<shape type="serialized" id="default_mesh">
 		<string name="filename" value="sphere.serialized"/>
 		<integer name="shapeIndex" value="0"/>
 
 		<bsdf type="roughdielectric" id="default_material">
-            <string name="material" value="none"/>
+			<string name="material" value="none"/>
 			<string name="distribution" value="ggx"/>
-            <float name="alpha" value="0.01"/>
-            <rgb name="diffuseReflectance" value="1 1 1"/>
-            <rgb name="specularReflectance" value="1 1 1"/>
-            <rgb name="specularTransmittance" value="1 1 1"/>
-            <float name="intIOR" value="1.5"/>
+			<float name="alpha" value="0.33333"/>
+			<rgb name="diffuseReflectance" value="1 1 1"/>
+			<rgb name="specularReflectance" value="1 1 1"/>
+			<rgb name="specularTransmittance" value="1 1 1"/>
+			<float name="intIOR" value="1.5"/>
 		</bsdf>
 	</shape>
 
-    <emitter type="envmap">
-        <string name="filename" value="../tiergarten_4k.exr"/>
-    </emitter>
+	<emitter type="constant">
+		<rgb name="radiance" value="0.5 0.5 0.5"/>
+	</emitter>
 
 	<sensor type="perspective">
 		<float name="farClip" value="245.02"/>
 		<float name="focusDistance" value="177.852"/>
 		<float name="fov" value="50"/>
 		<string name="fovAxis" value="x"/>
-		<float name="nearClip" value="1.0"/>
+		<float name="nearClip" value="1"/>
 		<transform name="toWorld">
-			<lookat target="0, 0, 0" origin="0, 0, -100.0" up="0, 1, 0"/>
+
+			<lookat target="0, 0, -99" origin="0, 0, -100" up="0, 1, 0"/>
 		</transform>
 
 		<sampler type="independent">

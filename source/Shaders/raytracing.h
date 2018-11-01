@@ -129,11 +129,16 @@ float ggxVisibilityTerm(float alphaSquared, float3 wI, float3 wO, float3 m)
 
 float fresnelDielectric(float cosThetaI, float etaI, float etaO)
 {
-    float sinThetaOSquared = sqr(etaI / etaO) * (1.0 - cosThetaI * cosThetaI);
-    float cosThetaO = sqrt(saturate(1.0 - sinThetaOSquared));
-    float Rs = sqr((etaI * cosThetaI - etaO * cosThetaO) / (etaI * cosThetaI + etaO * cosThetaO));
-    float Rp = sqr((etaI * cosThetaO - etaO * cosThetaI) / (etaI * cosThetaO + etaO * cosThetaI));
-    return 0.5f * (Rs + Rp);
+    float result = 1.0f;
+    float sinThetaOSquared = sqr(etaI / etaO) * (1.0f - cosThetaI * cosThetaI);
+    if (sinThetaOSquared < 1.0)
+    {
+        float cosThetaO = sqrt(saturate(1.0 - sinThetaOSquared));
+        float Rs = sqr((etaI * cosThetaI - etaO * cosThetaO) / (etaI * cosThetaI + etaO * cosThetaO));
+        float Rp = sqr((etaI * cosThetaO - etaO * cosThetaI) / (etaI * cosThetaO + etaO * cosThetaI));
+        result = 0.5f * (Rs + Rp);
+    }
+    return result;
 }
 
 float fresnelConductor(float cosTheta)

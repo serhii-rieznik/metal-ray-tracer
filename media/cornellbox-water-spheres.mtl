@@ -12,21 +12,24 @@
 
 newmtl water
     illum 3
-    Pr 0.1
+    Pr 0.03
     Kd 1.0 1.0 1.0
     Ks 1.0 1.0 1.0
+    Kt 1.0 1.0 1.0
 
 newmtl leftSphere
     illum 2
     Pr 0.025
     Kd 1.0 1.0 1.0
     Ks 1.0 1.0 1.0
+    Kt 1.0 1.0 1.0
 
 newmtl rightSphere
-    illum 2
-    Pr 0.999
+    illum 1
+    Pr 0.1
     Kd 1.0 1.0 1.0
     Ks 1.0 1.0 1.0
+    Kt 1.0 1.0 1.0
 
 newmtl floor
     Kd 0.7250 0.7100 0.6800
