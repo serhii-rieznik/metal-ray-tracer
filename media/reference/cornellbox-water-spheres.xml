@@ -11,12 +11,13 @@
 		<integer name="rrDepth" value="100"/>
 	</integrator>
 
-	<bsdf type="roughplastic" id="leftSphere_material">
+	<bsdf type="roughdielectric" id="leftSphere_material">
 		<string name="material" value="none"/>
-		<float name="alpha" value="0.025"/>
 		<string name="distribution" value="ggx"/>
         <rgb name="diffuseReflectance" value="1 1 1"/>
         <rgb name="specularReflectance" value="1 1 1"/>
+        <float name="alpha" value="0.025"/>
+        <float name="intIOR" value="1.5"/>
 	</bsdf>
 
 	<bsdf type="roughconductor" id="rightSphere_material">
@@ -33,7 +34,7 @@
 		<string name="distribution" value="ggx"/>
         <rgb name="diffuseReflectance" value="1 1 1"/>
         <rgb name="specularReflectance" value="1 1 1"/>
-        <rgb name="specularTransmittance" value="1.0 1.0 1.0"/>
+        <rgb name="specularTransmittance" value="1 1 1"/>
         <float name="intIOR" value="1.5"/>
     </bsdf>
 

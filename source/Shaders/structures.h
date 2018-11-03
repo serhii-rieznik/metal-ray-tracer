@@ -30,7 +30,9 @@ struct Material
     packed_float3 specular = {};
     float roughness = 0.0f;
     packed_float3 transmittance = {};
+    float extIOR = 1.0f;
     packed_float3 emissive = {};
+    float intIOR = 1.5f;
 };
 
 struct Triangle
@@ -59,7 +61,7 @@ struct Ray
     packed_float3 radiance = {};
     uint bounces = 0;
     packed_float3 throughput = {};
-    float materialPdf = 0.0f;
+    float misPdf = 0.0f;
 };
 
 struct LightSamplingRay
@@ -90,7 +92,7 @@ struct SampledMaterialProperties
 struct SampledMaterial
 {
     packed_float3 direction = {};
-    float pdf = 0.0f;
+    float misPdf = 0.0f;
     packed_float3 weight;
 };
 

@@ -18,7 +18,7 @@
 		<bsdf type="roughdielectric" id="default_material">
 			<string name="material" value="none"/>
 			<string name="distribution" value="ggx"/>
-			<float name="alpha" value="0.33333"/>
+			<float name="alpha" value="1.0"/>
 			<rgb name="diffuseReflectance" value="1 1 1"/>
 			<rgb name="specularReflectance" value="1 1 1"/>
 			<rgb name="specularTransmittance" value="1 1 1"/>

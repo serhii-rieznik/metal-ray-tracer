@@ -73,6 +73,13 @@ void GeometryProvider::loadFile(const std::string& fileName, id<MTLDevice> devic
         material.emissive.z = mtl.emission[2];
         material.type = mtl.illum;
         material.roughness = mtl.roughness;
+        material.intIOR = mtl.ior;
+
+        if (mtl.unknown_parameter.count("Ne") > 0.0f)
+        {
+            double extIOR = std::atof(mtl.unknown_parameter.at("Ne").c_str());
+            material.extIOR = (extIOR < 1.0) ? 1.0f : float(extIOR);
+        }
 
         if (mtl.name == "environment")
         {

@@ -26,9 +26,9 @@ kernel void accumulateImage(texture2d<float, access::read_write> image [[texture
     if (any(isinf(outputColor)))
         outputColor = float4(0.0, 1000.0, 1000.0, 1.0);
 
-    /*
+    //*
     if (any(outputColor < 0.0f))
-        outputColor = float4(1000.0, 1000.0, 0.0, 1.0);
+        outputColor = float4(0.0, 1000.0, 0.0, 1.0);
     // */
 
     /*

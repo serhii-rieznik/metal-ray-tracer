@@ -67,7 +67,7 @@ kernel void generateRays(device Ray* rays [[buffer(0)]],
     rays[rayIndex].base.maxDistance = INFINITY;
     rays[rayIndex].radiance = 0.0f;
     rays[rayIndex].throughput = 1.0f;
-    rays[rayIndex].materialPdf = 1.0f;
+    rays[rayIndex].misPdf = 1.0f;
     rays[rayIndex].bounces = 0;
 }
 
@@ -126,7 +126,7 @@ kernel void handleIntersections(texture2d<float> environment [[texture(0)]],
         directionToLight /= distanceToLight;
         float cosTheta = -dot(directionToLight, currentVertex.n);
         float lightSamplePdf = triangle.emitterPdf * (distanceToLight * distanceToLight) / (triangle.area * cosTheta);
-        float weight = powerHeuristic(currentRay.materialPdf, lightSamplePdf);
+        float weight = (currentRay.misPdf > 0.0f) ? powerHeuristic(currentRay.misPdf, lightSamplePdf) : 1.0f;
     #elif (IS_MODE == IS_MODE_BSDF)
         float weight = 1.0;
     #else
@@ -197,7 +197,7 @@ kernel void handleIntersections(texture2d<float> environment [[texture(0)]],
         SampledMaterial materialSample = sampleMaterial(material, currentVertex.n, currentRay.base.direction, noiseSample);
         currentRay.base.origin = currentVertex.v + materialSample.direction * DISTANCE_EPSILON;
         currentRay.base.direction = materialSample.direction;
-        currentRay.materialPdf = materialSample.pdf;
+        currentRay.misPdf = materialSample.misPdf;
         currentRay.throughput *= materialSample.weight;
         currentRay.bounces += 1;
     }

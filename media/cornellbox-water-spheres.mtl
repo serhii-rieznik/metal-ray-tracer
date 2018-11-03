@@ -12,13 +12,17 @@
 
 newmtl water
     illum 3
-    Pr 0.03
+    Ni 1.5
+    Ne 1.0
+    Pr 0.1
     Kd 1.0 1.0 1.0
     Ks 1.0 1.0 1.0
     Kt 1.0 1.0 1.0
 
 newmtl leftSphere
-    illum 2
+    illum 3
+    Ni 1.5
+    Ne 1.0
     Pr 0.025
     Kd 1.0 1.0 1.0
     Ks 1.0 1.0 1.0
