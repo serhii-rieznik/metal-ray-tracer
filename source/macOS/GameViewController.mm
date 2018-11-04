@@ -25,6 +25,9 @@
     _view.device = MTLCreateSystemDefaultDevice();
     _view.depthStencilPixelFormat = MTLPixelFormatInvalid;
     _view.colorPixelFormat = MTLPixelFormatBGRA8Unorm_sRGB;
+    _view.paused = YES;
+    _view.enableSetNeedsDisplay = NO;
+    _view.preferredFramesPerSecond = 120;
 
     if (_view.device == nil)
     {
@@ -36,6 +39,10 @@
     _renderer = [[Renderer alloc] initWithMetalKitView:_view];
     [_renderer mtkView:_view drawableSizeWillChange:_view.drawableSize];
     _view.delegate = _renderer;
+
+    [NSTimer scheduledTimerWithTimeInterval:0.0f repeats:YES block:^(NSTimer * _Nonnull timer) {
+        [self->_view draw];
+    }];
 }
 
 @end

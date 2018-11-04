@@ -62,6 +62,8 @@ struct Ray
     uint bounces = 0;
     packed_float3 throughput = {};
     float misPdf = 0.0f;
+    uint completed = 0;
+    uint generation = 0;
 };
 
 struct LightSamplingRay

@@ -124,11 +124,17 @@ void GeometryProvider::loadFile(const std::string& fileName, id<MTLDevice> devic
                 vertex.v.x = attrib.vertices[3 * i.vertex_index + 0];
                 vertex.v.y = attrib.vertices[3 * i.vertex_index + 1];
                 vertex.v.z = attrib.vertices[3 * i.vertex_index + 2];
-                vertex.n.x = attrib.normals[3 * i.normal_index + 0];
-                vertex.n.y = attrib.normals[3 * i.normal_index + 1];
-                vertex.n.z = attrib.normals[3 * i.normal_index + 2];
-                vertex.t.x = attrib.texcoords[2 * i.texcoord_index + 0];
-                vertex.t.y = attrib.texcoords[2 * i.texcoord_index + 1];
+                if (i.normal_index >= 0)
+                {
+                    vertex.n.x = attrib.normals[3 * i.normal_index + 0];
+                    vertex.n.y = attrib.normals[3 * i.normal_index + 1];
+                    vertex.n.z = attrib.normals[3 * i.normal_index + 2];
+                }
+                if (i.texcoord_index >= 0)
+                {
+                    vertex.t.x = attrib.texcoords[2 * i.texcoord_index + 0];
+                    vertex.t.y = attrib.texcoords[2 * i.texcoord_index + 1];
+                }
                 ++index;
             }
 

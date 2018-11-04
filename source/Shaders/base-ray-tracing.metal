@@ -61,14 +61,19 @@ kernel void generateRays(device Ray* rays [[buffer(0)]],
     float az = 1.0f;
 
     uint rayIndex = coordinates.x + coordinates.y * size.x;
-    rays[rayIndex].base.origin = origin;
-    rays[rayIndex].base.direction = normalize(ax * side + ay * up + az * direction);
-    rays[rayIndex].base.minDistance = DISTANCE_EPSILON;
-    rays[rayIndex].base.maxDistance = INFINITY;
-    rays[rayIndex].radiance = 0.0f;
-    rays[rayIndex].throughput = 1.0f;
-    rays[rayIndex].misPdf = 1.0f;
-    rays[rayIndex].bounces = 0;
+    if ((appData.frameIndex == 0) || rays[rayIndex].completed)
+    {
+        rays[rayIndex].base.origin = origin;
+        rays[rayIndex].base.direction = normalize(ax * side + ay * up + az * direction);
+        rays[rayIndex].base.minDistance = DISTANCE_EPSILON;
+        rays[rayIndex].base.maxDistance = INFINITY;
+        rays[rayIndex].radiance = 0.0f;
+        rays[rayIndex].throughput = 1.0f;
+        rays[rayIndex].misPdf = 1.0f;
+        rays[rayIndex].bounces = 0;
+        rays[rayIndex].completed = 0;
+        rays[rayIndex].generation = (appData.frameIndex == 0) ? 0 : (rays[rayIndex].generation + 1);
+    }
 }
 
 kernel void handleIntersections(texture2d<float> environment [[texture(0)]],
@@ -86,8 +91,12 @@ kernel void handleIntersections(texture2d<float> environment [[texture(0)]],
                                 uint2 size [[threads_per_grid]])
 {
     uint rayIndex = coordinates.x + coordinates.y * size.x;
-    device const Intersection& i = intersections[rayIndex];
     device Ray& currentRay = rays[rayIndex];
+
+    if (currentRay.completed)
+        return;
+
+    device const Intersection& i = intersections[rayIndex];
     device LightSamplingRay& lightSamplingRay = lightSamplingRays[rayIndex];
 
     if (i.distance < DISTANCE_EPSILON)
@@ -99,13 +108,14 @@ kernel void handleIntersections(texture2d<float> environment [[texture(0)]],
 
         currentRay.base.maxDistance = -1.0;
         currentRay.throughput = 0.0;
+        currentRay.completed = 1;
         lightSamplingRay.base.maxDistance = -1.0;
         lightSamplingRay.targetPrimitiveIndex = uint(-1);
         return;
     }
 
     uint noiseSampleIndex = (coordinates.x % NOISE_BLOCK_SIZE) + (coordinates.y % NOISE_BLOCK_SIZE) * NOISE_BLOCK_SIZE +
-        currentRay.bounces * NOISE_BLOCK_SIZE * NOISE_BLOCK_SIZE;
+        (currentRay.bounces % MAX_PATH_LENGTH) * NOISE_BLOCK_SIZE * NOISE_BLOCK_SIZE;
 
     device const float4& noiseSample = noise[noiseSampleIndex];
     device const Triangle& triangle = triangles[i.primitiveIndex];
@@ -137,6 +147,7 @@ kernel void handleIntersections(texture2d<float> environment [[texture(0)]],
         weight *= float(dot(currentRay.base.direction, currentVertex.n) < 0.0f);
 
         currentRay.radiance += material.emissive * currentRay.throughput * weight;
+        currentRay.completed = true;
     }
 #endif
 
@@ -200,6 +211,19 @@ kernel void handleIntersections(texture2d<float> environment [[texture(0)]],
         currentRay.misPdf = materialSample.misPdf;
         currentRay.throughput *= materialSample.weight;
         currentRay.bounces += 1;
+    }
+
+    if (currentRay.bounces >= 5)
+    {
+        float q = min(0.95f, max(currentRay.throughput.x, max(currentRay.throughput.y, currentRay.throughput.z)));
+        if (noiseSample.x >= q)
+        {
+            currentRay.completed = true;
+        }
+        else
+        {
+            currentRay.throughput *= 1.0f / q;
+        }
     }
 }
 
