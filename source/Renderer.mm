@@ -96,7 +96,7 @@ static std::uniform_real_distribution<float> uniformFloatDistribution(0.0f, 1.0f
         _lightSamplingHandler = [self newComputePipelineWithFunctionName:@"lightSamplingHandler"];
         _accumulation = [self newComputePipelineWithFunctionName:@"accumulateImage"];
 
-        NSUInteger noiseBufferLength = MAX_PATH_LENGTH * NOISE_BLOCK_SIZE * NOISE_BLOCK_SIZE * sizeof(vector_float4);
+        NSUInteger noiseBufferLength = NOISE_BLOCK_SIZE * NOISE_BLOCK_SIZE * sizeof(RandomSample);
         for (uint32_t i = 0; i < MaxFrames; ++i)
         {
             _noise[i] = [_device newBufferWithLength:noiseBufferLength options:MTLResourceStorageModeManaged];
@@ -158,6 +158,7 @@ static std::uniform_real_distribution<float> uniformFloatDistribution(0.0f, 1.0f
              [commandEncoder setBuffer:self->_appData[self->_frameIndex] offset:0 atIndex:9];
          }];
 
+#   if (IS_MODE != IS_MODE_BSDF)
         if (_hasEmitters)
         {
 
@@ -179,6 +180,7 @@ static std::uniform_real_distribution<float> uniformFloatDistribution(0.0f, 1.0f
                                  [commandEncoder setBuffer:self->_rayBuffer offset:0 atIndex:2];
                              }];
         }
+#   endif
 
         /*
          * Accumulate image
@@ -320,13 +322,16 @@ static std::uniform_real_distribution<float> uniformFloatDistribution(0.0f, 1.0f
 
 - (void)updateBuffers
 {
-    vector_float4* ptr = reinterpret_cast<vector_float4*>([_noise[_frameIndex] contents]);
-    for (NSUInteger i = 0; i < (MAX_PATH_LENGTH * NOISE_BLOCK_SIZE * NOISE_BLOCK_SIZE); ++i)
+    RandomSample* ptr = reinterpret_cast<RandomSample*>([_noise[_frameIndex] contents]);
+    for (NSUInteger i = 0; i < (NOISE_BLOCK_SIZE * NOISE_BLOCK_SIZE); ++i)
     {
-        ptr->x = uniformFloatDistribution(randomGenerator);
-        ptr->y = uniformFloatDistribution(randomGenerator);
-        ptr->z = uniformFloatDistribution(randomGenerator);
-        ptr->w = uniformFloatDistribution(randomGenerator);
+        ptr->barycentricSample.x = uniformFloatDistribution(randomGenerator);
+        ptr->barycentricSample.y = uniformFloatDistribution(randomGenerator);
+        ptr->bsdfSample.x = uniformFloatDistribution(randomGenerator);
+        ptr->bsdfSample.y = uniformFloatDistribution(randomGenerator);
+        ptr->componentSample = uniformFloatDistribution(randomGenerator);
+        ptr->emitterSample = uniformFloatDistribution(randomGenerator);
+        ptr->rrSample = uniformFloatDistribution(randomGenerator);
         ++ptr;
     }
     [_noise[_frameIndex] didModifyRange:NSMakeRange(0, [_noise[_frameIndex] length])];

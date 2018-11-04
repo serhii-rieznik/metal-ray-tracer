@@ -34,7 +34,7 @@ kernel void accumulateImage(texture2d<float, access::read_write> image [[texture
         // */
 
         /*
-         constexpr const float4 grayscale = float4(0.2126f, 0.7152f, 0.0722f, 0.0f);
+         constexpr const float4 grayscale = float4(LUMINANCE_VECTOR, 0.0f);
          float lumOut = dot(outputColor, grayscale);
          outputColor = lumOut > 0.5f ? float4(0.0f, lumOut - 0.5f, 0.0f, 1.0f) :  float4(0.5 - lumOut, 0.0f, 0.0f, 1.0f);
          // */

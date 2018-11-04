@@ -117,7 +117,7 @@ SampledMaterialProperties sampleMaterialProperties(device const Material& materi
     return result;
 }
 
-SampledMaterial sampleMaterial(device const Material& material, float3 n, float3 wI, device const float4& randomSample)
+SampledMaterial sampleMaterial(device const Material& material, float3 n, float3 wI, device const RandomSample& randomSample)
 {
     float etaI = material.extIOR;
     float etaO = material.intIOR;
@@ -131,7 +131,7 @@ SampledMaterial sampleMaterial(device const Material& material, float3 n, float3
     {
         case MATERIAL_CONDUCTOR:
         {
-            float3 m = sampleGGXDistribution(n, randomSample.wz, material.roughness);
+            float3 m = sampleGGXDistribution(n, randomSample.bsdfSample, material.roughness);
             wO = reflect(wI, m);
             float NdotI = -dot(n, wI);
             float NdotO = dot(n, wO);
@@ -150,14 +150,14 @@ SampledMaterial sampleMaterial(device const Material& material, float3 n, float3
 
         case MATERIAL_PLASTIC:
         {
-            float3 m = sampleGGXDistribution(n, randomSample.wz, material.roughness);
+            float3 m = sampleGGXDistribution(n, randomSample.bsdfSample, material.roughness);
 
             float pdfSpecular = fresnelDielectric(wI, m, etaI, etaO);
             float pdfDiffuse = 1.0f - pdfSpecular;
 
-            if (randomSample.y < pdfDiffuse)
+            if (randomSample.componentSample < pdfDiffuse)
             {
-                wO = sampleCosineWeightedHemisphere(n, randomSample.wx);
+                wO = sampleCosineWeightedHemisphere(n, randomSample.bsdfSample);
                 pdf = /* pdfDiffuse */ INVERSE_PI * dot(n, wO);
                 weight = material.diffuse;
             }
@@ -194,11 +194,11 @@ SampledMaterial sampleMaterial(device const Material& material, float3 n, float3
             alpha = (1.2f - 0.2f * sqrt(abs(NdotI))) * material.roughness;
             alpha *= alpha;
 
-            float3 m = sampleGGXDistribution(n, randomSample.wz, material.roughness);
+            float3 m = sampleGGXDistribution(n, randomSample.bsdfSample, material.roughness);
             float pdfSpecular = fresnelDielectric(wI, m, etaI, etaO);
             float pdfTransmission = 1.0f - pdfSpecular;
 
-            if (randomSample.y < pdfTransmission)
+            if (randomSample.componentSample < pdfTransmission)
             {
                 float cosThetaI = -dot(m, wI);
                 float sinThetaTSquared = sqr(etaI / etaO) * (1.0 - cosThetaI * cosThetaI);
@@ -236,7 +236,7 @@ SampledMaterial sampleMaterial(device const Material& material, float3 n, float3
 
         default:
         {
-            wO = sampleCosineWeightedHemisphere(n, randomSample.wx);
+            wO = sampleCosineWeightedHemisphere(n, randomSample.bsdfSample);
             pdf = INVERSE_PI * dot(n, wO);
             weight = material.diffuse;
             break;

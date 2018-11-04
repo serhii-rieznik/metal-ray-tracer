@@ -98,5 +98,14 @@ struct SampledMaterial
     packed_float3 weight;
 };
 
+struct RandomSample
+{
+    packed_float2 barycentricSample;
+    packed_float2 bsdfSample;
+    float componentSample;
+    float emitterSample;
+    float rrSample;
+};
+
 using Intersection = MPSIntersectionDistancePrimitiveIndexCoordinates;
 using LightSamplingIntersection = MPSIntersectionDistancePrimitiveIndex;

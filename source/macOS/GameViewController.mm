@@ -18,6 +18,8 @@
 
 - (void)viewDidLoad
 {
+    [[NSProcessInfo processInfo] beginActivityWithOptions:0x00FFFFFF reason:@"running in the background"];
+
     [super viewDidLoad];
 
     _view = (MTKView*)self.view;

@@ -45,24 +45,24 @@ kernel void generateRays(device Ray* rays [[buffer(0)]],
 #   error No scene is defined
 #endif
 
-    float3 direction = normalize(target - origin);
-    float3 side = cross(direction, up);
-    up = cross(side, direction);
-    float fovScale = tan(fov / 2.0f);
-
-    uint noiseSampleIndex = (coordinates.x % NOISE_BLOCK_SIZE) + NOISE_BLOCK_SIZE * (coordinates.y % NOISE_BLOCK_SIZE);
-    device const float4& noiseSample = noise[noiseSampleIndex];
-
-    float aspect = float(size.y) / float(size.x);
-    float2 uv = float2(coordinates) / float2(size - 1) * 2.0f - 1.0f;
-    float2 rnd = (noiseSample.xy * 2.0 - 1.0) / float2(size - 1);
-    float ax = fovScale * (uv.x + rnd.x);
-    float ay = fovScale * (uv.y + rnd.y) * aspect;
-    float az = 1.0f;
-
     uint rayIndex = coordinates.x + coordinates.y * size.x;
     if ((appData.frameIndex == 0) || rays[rayIndex].completed)
     {
+        float3 direction = normalize(target - origin);
+        float3 side = cross(direction, up);
+        up = cross(side, direction);
+        float fovScale = tan(fov / 2.0f);
+
+        uint randomSampleIndex = (coordinates.x % NOISE_BLOCK_SIZE) + NOISE_BLOCK_SIZE * (coordinates.y % NOISE_BLOCK_SIZE);
+        device const float4& randomSample = noise[randomSampleIndex];
+
+        float aspect = float(size.y) / float(size.x);
+        float2 uv = float2(coordinates) / float2(size - 1) * 2.0f - 1.0f;
+        float2 rnd = (randomSample.xy * 2.0 - 1.0) / float2(size - 1);
+        float ax = fovScale * (uv.x + rnd.x);
+        float ay = fovScale * (uv.y + rnd.y) * aspect;
+        float az = 1.0f;
+
         rays[rayIndex].base.origin = origin;
         rays[rayIndex].base.direction = normalize(ax * side + ay * up + az * direction);
         rays[rayIndex].base.minDistance = DISTANCE_EPSILON;
@@ -83,7 +83,7 @@ kernel void handleIntersections(texture2d<float> environment [[texture(0)]],
                                 device const EmitterTriangle* emitterTriangles [[buffer(3)]],
                                 device const Vertex* vertices [[buffer(4)]],
                                 device packed_uint3* indices [[buffer(5)]],
-                                device const float4* noise [[buffer(6)]],
+                                device const RandomSample* noise [[buffer(6)]],
                                 device Ray* rays [[buffer(7)]],
                                 device LightSamplingRay* lightSamplingRays [[buffer(8)]],
                                 constant ApplicationData& appData [[buffer(9)]],
@@ -101,10 +101,10 @@ kernel void handleIntersections(texture2d<float> environment [[texture(0)]],
 
     if (i.distance < DISTANCE_EPSILON)
     {
-    #if (ADD_RADIANCE)
+#   if (ADD_RADIANCE)
         currentRay.radiance += currentRay.throughput *
             (appData.environmentColor + sampleEnvironment(environment, currentRay.base.direction));
-    #endif
+#   endif
 
         currentRay.base.maxDistance = -1.0;
         currentRay.throughput = 0.0;
@@ -114,10 +114,9 @@ kernel void handleIntersections(texture2d<float> environment [[texture(0)]],
         return;
     }
 
-    uint noiseSampleIndex = (coordinates.x % NOISE_BLOCK_SIZE) + (coordinates.y % NOISE_BLOCK_SIZE) * NOISE_BLOCK_SIZE +
-        (currentRay.bounces % MAX_PATH_LENGTH) * NOISE_BLOCK_SIZE * NOISE_BLOCK_SIZE;
+    uint randomSampleIndex = (coordinates.x % NOISE_BLOCK_SIZE) + (coordinates.y % NOISE_BLOCK_SIZE) * NOISE_BLOCK_SIZE;
 
-    device const float4& noiseSample = noise[noiseSampleIndex];
+    device const RandomSample& randomSample = noise[randomSampleIndex];
     device const Triangle& triangle = triangles[i.primitiveIndex];
     device const Material& material = materials[triangle.materialIndex];
     device const packed_uint3& triangleIndices = indices[i.primitiveIndex];
@@ -127,37 +126,38 @@ kernel void handleIntersections(texture2d<float> environment [[texture(0)]],
     
     Vertex currentVertex = interpolate(a, b, c, i.coordinates);
 
-#if (ADD_RADIANCE)
     if (dot(material.emissive, material.emissive) > 0.0)
     {
-    #if (IS_MODE == IS_MODE_MIS)
+#   if (IS_MODE == IS_MODE_MIS)
         packed_float3 directionToLight = currentVertex.v - currentRay.base.origin;
         float distanceToLight = length(directionToLight);
         directionToLight /= distanceToLight;
         float cosTheta = -dot(directionToLight, currentVertex.n);
         float lightSamplePdf = triangle.emitterPdf * (distanceToLight * distanceToLight) / (triangle.area * cosTheta);
         float weight = (currentRay.misPdf > 0.0f) ? powerHeuristic(currentRay.misPdf, lightSamplePdf) : 1.0f;
-    #elif (IS_MODE == IS_MODE_BSDF)
+#   elif (IS_MODE == IS_MODE_BSDF)
         float weight = 1.0;
-    #else
-        float weight = 0.0f;
-    #endif
+#   else
+        float weight = 0.0;
+#   endif
 
         weight = mix(weight, 1.0, float(currentRay.bounces == 0));
         weight *= float(dot(currentRay.base.direction, currentVertex.n) < 0.0f);
 
+#   if (ADD_RADIANCE)
         currentRay.radiance += material.emissive * currentRay.throughput * weight;
+#   endif
+
         currentRay.completed = true;
     }
-#endif
 
-    // sample light
+#if (IS_MODE != IS_MODE_BSDF)
     if (appData.emitterTrianglesCount > 0)
     {
         device const EmitterTriangle& emitterTriangle =
-            sampleEmitterTriangle(emitterTriangles, appData.emitterTrianglesCount, noiseSample.w);
+            sampleEmitterTriangle(emitterTriangles, appData.emitterTrianglesCount, randomSample.emitterSample);
 
-        float3 lightTriangleBarycentric = barycentric(noiseSample.yz);
+        float3 lightTriangleBarycentric = barycentric(randomSample.barycentricSample);
         Vertex lightVertex = interpolate(emitterTriangle.v0, emitterTriangle.v1, emitterTriangle.v2, lightTriangleBarycentric);
 
         packed_float3 directionToLight = lightVertex.v - currentVertex.v;
@@ -172,19 +172,15 @@ kernel void handleIntersections(texture2d<float> environment [[texture(0)]],
         SampledMaterialProperties materialSample = sampleMaterialProperties(material, currentVertex.n,
             currentRay.base.direction, directionToLight);
 
-    #if (IS_MODE == IS_MODE_MIS)
+#   if (IS_MODE == IS_MODE_MIS)
         float weightDiffuse = powerHeuristic(lightSamplePdf, materialSample.pdfDiffuse);
         float weightSpecular = powerHeuristic(lightSamplePdf, materialSample.pdfSpecular);
         float weightTransmittance = powerHeuristic(lightSamplePdf, materialSample.pdfTransmittance);
-    #elif (IS_MODE == IS_MODE_LIGHT)
+#   elif (IS_MODE == IS_MODE_LIGHT)
         float weightDiffuse = 1.0f;
         float weightSpecular = 1.0f;
         float weightTransmittance = 1.0f;
-    #else
-        float weightDiffuse = 0.0f;
-        float weightSpecular = 0.0f;
-        float weightTransmittance = 0.0f;
-    #endif
+#   endif
 
         float3 weightedBsdf =
             materialSample.bsdfDiffuse * weightDiffuse +
@@ -202,21 +198,23 @@ kernel void handleIntersections(texture2d<float> environment [[texture(0)]],
         lightSamplingRay.throughput = currentRay.throughput *
             (emitterTriangle.emissive / lightSamplePdf) * weightedBsdf;
     }
+#endif
 
     // generate next bounce
     {
-        SampledMaterial materialSample = sampleMaterial(material, currentVertex.n, currentRay.base.direction, noiseSample);
+        SampledMaterial materialSample = sampleMaterial(material, currentVertex.n, currentRay.base.direction, randomSample);
         currentRay.base.origin = currentVertex.v + materialSample.direction * DISTANCE_EPSILON;
         currentRay.base.direction = materialSample.direction;
-        currentRay.misPdf = materialSample.misPdf;
         currentRay.throughput *= materialSample.weight;
         currentRay.bounces += 1;
+        currentRay.misPdf = materialSample.misPdf;
     }
 
     if (currentRay.bounces >= 5)
     {
-        float q = min(0.95f, max(currentRay.throughput.x, max(currentRay.throughput.y, currentRay.throughput.z)));
-        if (noiseSample.x >= q)
+        float lum = dot(currentRay.throughput, LUMINANCE_VECTOR);
+        float q = min(0.95f, lum); // max(currentRay.throughput.x, max(currentRay.throughput.y, currentRay.throughput.z)));
+        if (randomSample.rrSample >= q)
         {
             currentRay.completed = true;
         }
@@ -233,11 +231,11 @@ kernel void lightSamplingHandler(device const LightSamplingIntersection* interse
                                  uint2 coordinates [[thread_position_in_grid]],
                                  uint2 size [[threads_per_grid]])
 {
+#if (ADD_RADIANCE)
     uint rayIndex = coordinates.x + coordinates.y * size.x;
     if (intersections[rayIndex].primitiveIndex == lightSamplingRays[rayIndex].targetPrimitiveIndex)
     {
-    #if (ADD_RADIANCE)
         rays[rayIndex].radiance += lightSamplingRays[rayIndex].throughput;
-    #endif
     }
+#endif
 }

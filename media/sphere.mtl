@@ -5,8 +5,8 @@ newmtl environment
 
 newmtl default
     illum 3
-    Ni 1.5
-    Pr 0.05
+    Ni 1.41
+    Pr 0.005
     Kd 1.0 1.0 1.0
     Ks 1.0 1.0 1.0
     Kt 1.0 1.0 1.0

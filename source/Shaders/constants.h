@@ -10,11 +10,12 @@
 
 #include <MetalPerformanceShaders/MetalPerformanceShaders.h>
 
-#define PI                  3.1415926536
-#define DOUBLE_PI           6.2831853072
-#define INVERSE_PI          0.3183098862
-#define DISTANCE_EPSILON    0.001
-#define ANGLE_EPSILON       0.0001523048
+#define PI                          3.1415926536
+#define DOUBLE_PI                   6.2831853072
+#define INVERSE_PI                  0.3183098862
+#define DISTANCE_EPSILON            0.001
+#define ANGLE_EPSILON               0.0001523048
+#define LUMINANCE_VECTOR            packed_float3(0.2126f, 0.7152f, 0.0722f)
 
 #define ENABLE_IMAGE_ACCUMULATION   1
 
@@ -30,16 +31,16 @@
 #define MAX_PATH_LENGTH             2
 #define MAX_SAMPLES                 0xffffffff
 
-#define CONTENT_SCALE       2
+#define CONTENT_SCALE               1
 
-#define IS_MODE_MIS         0
-#define IS_MODE_LIGHT       1
-#define IS_MODE_BSDF        2
-#define IS_MODE             IS_MODE_MIS
+#define IS_MODE_MIS                 0
+#define IS_MODE_LIGHT               1
+#define IS_MODE_BSDF                2
+#define IS_MODE                     IS_MODE_MIS
 
 #define SCENE_CORNELL_BOX           0
 #define SCENE_VEACH_MIS             1
 #define SCENE_CORNELL_BOX_SPHERES   2
 #define SCENE_SPHERE                3
 #define SCENE_PBS_SPHERES           4
-#define SCENE                       SCENE_CORNELL_BOX_SPHERES
+#define SCENE                       SCENE_CORNELL_BOX
