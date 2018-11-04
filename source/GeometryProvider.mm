@@ -31,16 +31,18 @@ void GeometryProvider::loadFile(const std::string& fileName, id<MTLDevice> devic
     tinyobj::attrib_t attrib;
     std::vector<tinyobj::shape_t> shapes;
     std::vector<tinyobj::material_t> materials;
-    std::string error;
+    std::string errors;
+    std::string warnings;
     std::string baseDir = fileName;
     size_t slash = baseDir.find_last_of('/');
     if (slash != std::string::npos)
         baseDir.erase(slash);
 
-    if (tinyobj::LoadObj(&attrib, &shapes, &materials, &error, fileName.c_str(), baseDir.c_str()) == false)
+    if (!tinyobj::LoadObj(&attrib, &shapes, &materials, &warnings, &errors, fileName.c_str(), baseDir.c_str()))
     {
         NSLog(@"Failed to load .obj file `%s`", fileName.c_str());
-        NSLog(@"Error: %s", error.c_str());
+        NSLog(@"Warnings: %s", warnings.c_str());
+        NSLog(@"Errors: %s", errors.c_str());
 
         Vertex vertices[3] = {
             { { 0.25f, 0.25f, 0.0f }, {}, {} },
