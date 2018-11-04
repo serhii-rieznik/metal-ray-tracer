@@ -147,8 +147,6 @@ kernel void handleIntersections(texture2d<float> environment [[texture(0)]],
 #   if (ADD_RADIANCE)
         currentRay.radiance += material.emissive * currentRay.throughput * weight;
 #   endif
-
-        currentRay.completed = true;
     }
 
 #if (IS_MODE != IS_MODE_BSDF)
