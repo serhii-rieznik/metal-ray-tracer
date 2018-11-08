@@ -6,34 +6,39 @@
 -->
 
 <scene version="0.5.0">
-	<integrator type="path">
-		<integer name="maxDepth" value="8"/>
-		<integer name="rrDepth" value="100"/>
-	</integrator>
+	<integrator type="path"/>
 
 	<bsdf type="diffuse" id="floor_material">
 		<rgb name="reflectance" value="0.4 0.04 0.04"/>
 	</bsdf>
 
-	<bsdf type="roughconductor" id="plate_01_material">
+	<bsdf type="roughplastic" id="plate_01_material">
+		<rgb name="diffuseReflectance" value="0.2 0.3 0.4"/>
+		<rgb name="specularReflectance" value="1 1 1"/>
 		<string name="distribution" value="ggx"/>
 		<string name="material" value="none"/>
 		<float name="alpha" value="0.005"/>
 	</bsdf>
 
-	<bsdf type="roughconductor" id="plate_02_material">
+	<bsdf type="roughplastic" id="plate_02_material">
+		<rgb name="diffuseReflectance" value="0.2 0.3 0.4"/>
+		<rgb name="specularReflectance" value="1 1 1"/>
 		<string name="distribution" value="ggx"/>
 		<string name="material" value="none"/>
 		<float name="alpha" value="0.01"/>
 	</bsdf>
 
-	<bsdf type="roughconductor" id="plate_03_material">
+	<bsdf type="roughplastic" id="plate_03_material">
+		<rgb name="diffuseReflectance" value="0.2 0.3 0.4"/>
+		<rgb name="specularReflectance" value="1 1 1"/>
 		<string name="distribution" value="ggx"/>
 		<string name="material" value="none"/>
 		<float name="alpha" value="0.05"/>
 	</bsdf>
 
-	<bsdf type="roughconductor" id="plate_04_material">
+	<bsdf type="roughplastic" id="plate_04_material">
+		<rgb name="diffuseReflectance" value="0.2 0.3 0.4"/>
+		<rgb name="specularReflectance" value="1 1 1"/>
 		<string name="distribution" value="ggx"/>
 		<string name="material" value="none"/>
 		<float name="alpha" value="0.1"/>
@@ -115,7 +120,7 @@
 		<string name="fovAxis" value="x"/>
 		<transform name="toWorld">
 
-			<lookat target="0, 1.69521, 14.0476" origin="0, 2, 15" up="0, 0.952421, -0.304787"/>
+			<lookat target="0, 1.6952, 14.0476" origin="0, 2, 15" up="0, 0.952418, -0.304796"/>
 		</transform>
 
 		<sampler type="independent">

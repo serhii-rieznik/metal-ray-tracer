@@ -12,6 +12,7 @@
 #import "TextureProvider.h"
 #import "Shaders/structures.h"
 #import <random>
+#import <map>
 
 static const NSUInteger MaxFrames = 3;
 
@@ -35,6 +36,7 @@ static const NSUInteger MaxFrames = 3;
     id<MTLLibrary> _defaultLibrary;
     id<MTLTexture> _outputImage;
     id<MTLTexture> _environmentMap;
+    id<MTLTexture> _referenceImage;
     id<MTLRenderPipelineState> _blitPipelineState;
     id<MTLBuffer> _rayBuffer;
     id<MTLBuffer> _lightSamplingRayBuffer;
@@ -42,6 +44,7 @@ static const NSUInteger MaxFrames = 3;
     id<MTLBuffer> _lightSamplingIntersectionBuffer;
     id<MTLComputePipelineState> _rayGenerator;
     id<MTLComputePipelineState> _intersectionHandler;
+    id<MTLComputePipelineState> _lightSamplingGenerator;
     id<MTLComputePipelineState> _lightSamplingHandler;
     id<MTLComputePipelineState> _accumulation;
     id<MTLBuffer> _noise[MaxFrames];
@@ -54,7 +57,6 @@ static const NSUInteger MaxFrames = 3;
     GeometryProvider _geometryProvider;
     MTLSize _outputImageSize;
     uint32_t _rayCount;
-    uint32_t _frameIndex;
     uint32_t _frameContinuousIndex;
     CFTimeInterval _startupTime;
     CFTimeInterval _lastFrameTime;
@@ -93,6 +95,7 @@ static std::uniform_real_distribution<float> uniformFloatDistribution(0.0f, 1.0f
 
         _rayGenerator = [self newComputePipelineWithFunctionName:@"generateRays"];
         _intersectionHandler = [self newComputePipelineWithFunctionName:@"handleIntersections"];
+        _lightSamplingGenerator = [self newComputePipelineWithFunctionName:@"generateLightSamplingRays"];
         _lightSamplingHandler = [self newComputePipelineWithFunctionName:@"lightSamplingHandler"];
         _accumulation = [self newComputePipelineWithFunctionName:@"accumulateImage"];
 
@@ -110,9 +113,22 @@ static std::uniform_real_distribution<float> uniformFloatDistribution(0.0f, 1.0f
     return self;
 }
 
+- (uint32_t)frameIndex
+{
+    return _frameContinuousIndex % MaxFrames;
+}
+
 - (void)drawInMTKView:(nonnull MTKView *)view
 {
     dispatch_semaphore_wait(_frameSemaphore, DISPATCH_TIME_FOREVER);
+
+    bool cap = false;
+
+    if (_frameContinuousIndex > 110000)
+    {
+        [[MTLCaptureManager sharedCaptureManager] startCaptureWithDevice:_device];
+        cap = true;
+    }
 
     id<MTLCommandBuffer> commandBuffer = [_commandQueue commandBuffer];
 
@@ -130,8 +146,8 @@ static std::uniform_real_distribution<float> uniformFloatDistribution(0.0f, 1.0f
          */
         [self dispatchComputeShader:_rayGenerator withinCommandBuffer:commandBuffer setupBlock:^(id<MTLComputeCommandEncoder> commandEncoder) {
             [commandEncoder setBuffer:self->_rayBuffer offset:0 atIndex:0];
-            [commandEncoder setBuffer:self->_noise[self->_frameIndex] offset:0 atIndex:1];
-            [commandEncoder setBuffer:self->_appData[self->_frameIndex] offset:0 atIndex:2];
+            [commandEncoder setBuffer:self->_noise[[self frameIndex]] offset:0 atIndex:1];
+            [commandEncoder setBuffer:self->_appData[[self frameIndex]] offset:0 atIndex:2];
         }];
 
         // Intersect rays with triangles inside acceleration structure
@@ -152,15 +168,30 @@ static std::uniform_real_distribution<float> uniformFloatDistribution(0.0f, 1.0f
              [commandEncoder setBuffer:self->_geometryProvider.emitterTriangleBuffer() offset:0 atIndex:3];
              [commandEncoder setBuffer:self->_geometryProvider.vertexBuffer() offset:0 atIndex:4];
              [commandEncoder setBuffer:self->_geometryProvider.indexBuffer() offset:0 atIndex:5];
-             [commandEncoder setBuffer:self->_noise[self->_frameIndex] offset:0 atIndex:6];
+             [commandEncoder setBuffer:self->_noise[[self frameIndex]] offset:0 atIndex:6];
              [commandEncoder setBuffer:self->_rayBuffer offset:0 atIndex:7];
-             [commandEncoder setBuffer:self->_lightSamplingRayBuffer offset:0 atIndex:8];
-             [commandEncoder setBuffer:self->_appData[self->_frameIndex] offset:0 atIndex:9];
+             [commandEncoder setBuffer:self->_appData[[self frameIndex]] offset:0 atIndex:8];
          }];
 
 #   if (IS_MODE != IS_MODE_BSDF)
         if (_hasEmitters)
         {
+            // generate light sampling rays
+            [self dispatchComputeShader:_lightSamplingGenerator withinCommandBuffer:commandBuffer
+                             setupBlock:^(id<MTLComputeCommandEncoder> commandEncoder)
+             {
+                 [commandEncoder setTexture:self->_environmentMap atIndex:0];
+                 [commandEncoder setBuffer:self->_intersectionBuffer offset:0 atIndex:0];
+                 [commandEncoder setBuffer:self->_geometryProvider.materialBuffer() offset:0 atIndex:1];
+                 [commandEncoder setBuffer:self->_geometryProvider.triangleBuffer() offset:0 atIndex:2];
+                 [commandEncoder setBuffer:self->_geometryProvider.emitterTriangleBuffer() offset:0 atIndex:3];
+                 [commandEncoder setBuffer:self->_geometryProvider.vertexBuffer() offset:0 atIndex:4];
+                 [commandEncoder setBuffer:self->_geometryProvider.indexBuffer() offset:0 atIndex:5];
+                 [commandEncoder setBuffer:self->_noise[[self frameIndex]] offset:0 atIndex:6];
+                 [commandEncoder setBuffer:self->_rayBuffer offset:0 atIndex:7];
+                 [commandEncoder setBuffer:self->_lightSamplingRayBuffer offset:0 atIndex:8];
+                 [commandEncoder setBuffer:self->_appData[[self frameIndex]] offset:0 atIndex:9];
+             }];
 
             // Intersect light sampling rays with geometry
             [_lightIntersector encodeIntersectionToCommandBuffer:commandBuffer
@@ -188,31 +219,36 @@ static std::uniform_real_distribution<float> uniformFloatDistribution(0.0f, 1.0f
         [self dispatchComputeShader:_accumulation withinCommandBuffer:commandBuffer
                          setupBlock:^(id<MTLComputeCommandEncoder> commandEncoder) {
                              [commandEncoder setBuffer:self->_rayBuffer offset:0 atIndex:0];
-                             [commandEncoder setBuffer:self->_appData[self->_frameIndex] offset:0 atIndex:1];
+                             [commandEncoder setBuffer:self->_appData[[self frameIndex]] offset:0 atIndex:1];
                              [commandEncoder setTexture:self->_outputImage atIndex:0];
                          }];
+
+        if (_frameContinuousIndex % MaxFrames == 0)
+        {
+            id<MTLRenderCommandEncoder> blitEncoder = [commandBuffer renderCommandEncoderWithDescriptor:view.currentRenderPassDescriptor];
+            [blitEncoder setRenderPipelineState:_blitPipelineState];
+            [blitEncoder setFragmentTexture:_outputImage atIndex:0];
+            [blitEncoder setFragmentTexture:_referenceImage atIndex:1];
+            [blitEncoder drawPrimitives:MTLPrimitiveTypeTriangle vertexStart:0 vertexCount:3];
+            [blitEncoder endEncoding];
+
+            [commandBuffer presentDrawable:view.currentDrawable];
+
+            [[NSApp mainWindow] setTitle:[NSString stringWithFormat:@"Frame: %u (%.2fms. last frame, %.2fs. elapsed)",
+                _frameContinuousIndex, _lastFrameDuration * 1000.0f, _lastFrameTime]];
+        }
     }
 
-    if ((_frameContinuousIndex % 4 == 0) || (_lastFrameTime >= CFTimeInterval(MAX_RUN_TIME_IN_SECONDS)))
-    {
-        id<MTLRenderCommandEncoder> blitEncoder = [commandBuffer renderCommandEncoderWithDescriptor:view.currentRenderPassDescriptor];
-        [blitEncoder setRenderPipelineState:_blitPipelineState];
-        [blitEncoder setFragmentTexture:_outputImage atIndex:0];
-        [blitEncoder drawPrimitives:MTLPrimitiveTypeTriangle vertexStart:0 vertexCount:3];
-        [blitEncoder endEncoding];
-
-        [commandBuffer presentDrawable:view.currentDrawable];
-
-        [[NSApp mainWindow] setTitle:[NSString stringWithFormat:@"Frame: %u (%.3fms last frame, %.3fms elapsed)",
-                                      _frameContinuousIndex, _lastFrameDuration, _lastFrameTime]];
-    }
-    
     [commandBuffer commit];
+
+    if (cap)
+    {
+        [[MTLCaptureManager sharedCaptureManager] stopCapture];
+    }
 }
 
 - (void)mtkView:(nonnull MTKView *)view drawableSizeWillChange:(CGSize)inSize
 {
-    _frameIndex = 0;
     _frameContinuousIndex = 0;
 
     _outputImageSize.width = inSize.width / CONTENT_SCALE;
@@ -268,20 +304,33 @@ static std::uniform_real_distribution<float> uniformFloatDistribution(0.0f, 1.0f
 
 -(void)initializeRayTracing
 {
-#if (SCENE == SCENE_VEACH_MIS)
-    NSURL* assetUrl = [[NSBundle mainBundle] URLForResource:@"media/veach_mis" withExtension:@"obj"];
-#elif (SCENE == SCENE_CORNELL_BOX_SPHERES)
-    NSURL* assetUrl = [[NSBundle mainBundle] URLForResource:@"media/cornellbox-water-spheres" withExtension:@"obj"];
-#elif (SCENE == SCENE_SPHERE)
-    NSURL* assetUrl = [[NSBundle mainBundle] URLForResource:@"media/sphere" withExtension:@"obj"];
-#elif (SCENE == SCENE_PBS_SPHERES)
-    NSURL* assetUrl = [[NSBundle mainBundle] URLForResource:@"media/spheres" withExtension:@"obj"];
-#else
-    NSURL* assetUrl = [[NSBundle mainBundle] URLForResource:@"media/cornellbox" withExtension:@"obj"];
-#endif
+    const std::map<uint32_t, std::pair<NSString*, NSString*>> sceneNames =
+    {
+        { SCENE_VEACH_MIS, { @"media/veach_mis", @"media/reference/veach_mis" } },
+        { SCENE_SPHERE, { @"media/sphere", @"media/reference/sphere" } },
+        { SCENE_PBS_SPHERES, { @"media/spheres", @"media/reference/spheres" } },
+        { SCENE_CORNELL_BOX_DIFFUSE, { @"media/cornellbox-diffuse", @"media/reference/cornellbox-diffuse" } },
+        { SCENE_CORNELL_BOX_CONDUCTOR, { @"media/cornellbox-conductor", @"media/reference/cornellbox-conductor" } },
+        { SCENE_CORNELL_BOX_PLASTIC, { @"media/cornellbox-plastic", @"media/reference/cornellbox-plastic" } },
+        { SCENE_CORNELL_BOX_DIELECTRIC, { @"media/cornellbox-dielectric", @"media/reference/cornellbox-dielectric" } },
+        { SCENE_CORNELL_BOX_SPHERES, { @"media/cornellbox-water-spheres", @"media/reference/cornellbox-water-spheres" } },
+    };
 
-    const char* fileName = [assetUrl fileSystemRepresentation];
-    _geometryProvider.loadFile(fileName, _device);
+    uint32_t sceneId = SCENE;
+    {
+        NSURL* modelUrl = [[NSBundle mainBundle] URLForResource:sceneNames.at(sceneId).first withExtension:@"obj"];
+        const char* fileName = [modelUrl fileSystemRepresentation];
+        _geometryProvider.loadFile(fileName, _device);
+    }
+
+#if (COMPARE_TO_REFERENCE)
+    NSURL* referenceUrl = [[NSBundle mainBundle] URLForResource:sceneNames.at(sceneId).second withExtension:@"exr"];
+    if (referenceUrl != nil)
+    {
+        const char* fileName = [referenceUrl fileSystemRepresentation];
+        _referenceImage = TextureProvider::loadFile(fileName, _device);
+    }
+#endif
 
     if (_geometryProvider.environment().textureName.empty() == false)
     {
@@ -322,11 +371,13 @@ static std::uniform_real_distribution<float> uniformFloatDistribution(0.0f, 1.0f
 
 - (void)updateBuffers
 {
-    RandomSample* ptr = reinterpret_cast<RandomSample*>([_noise[_frameIndex] contents]);
+    RandomSample* ptr = reinterpret_cast<RandomSample*>([_noise[[self frameIndex]] contents]);
     for (NSUInteger i = 0; i < (NOISE_BLOCK_SIZE * NOISE_BLOCK_SIZE); ++i)
     {
         ptr->barycentricSample.x = uniformFloatDistribution(randomGenerator);
         ptr->barycentricSample.y = uniformFloatDistribution(randomGenerator);
+        ptr->emitterBsdfSample.x = uniformFloatDistribution(randomGenerator);
+        ptr->emitterBsdfSample.y = uniformFloatDistribution(randomGenerator);
         ptr->bsdfSample.x = uniformFloatDistribution(randomGenerator);
         ptr->bsdfSample.y = uniformFloatDistribution(randomGenerator);
         ptr->componentSample = uniformFloatDistribution(randomGenerator);
@@ -334,20 +385,19 @@ static std::uniform_real_distribution<float> uniformFloatDistribution(0.0f, 1.0f
         ptr->rrSample = uniformFloatDistribution(randomGenerator);
         ++ptr;
     }
-    [_noise[_frameIndex] didModifyRange:NSMakeRange(0, [_noise[_frameIndex] length])];
+    [_noise[[self frameIndex]] didModifyRange:NSMakeRange(0, [_noise[[self frameIndex]] length])];
 
     CFTimeInterval frameTime = CACurrentMediaTime() - _startupTime;
     _lastFrameDuration = frameTime - _lastFrameTime;
     _lastFrameTime = frameTime;
 
-    ApplicationData* appData = reinterpret_cast<ApplicationData*>([_appData[_frameIndex] contents]);
+    ApplicationData* appData = reinterpret_cast<ApplicationData*>([_appData[[self frameIndex]] contents]);
     appData->environmentColor = _geometryProvider.environment().uniformColor;
     appData->frameIndex = _frameContinuousIndex;
     appData->emitterTrianglesCount = _geometryProvider.emitterTriangleCount();
     appData->time = frameTime;
     
     ++_frameContinuousIndex;
-    _frameIndex = _frameContinuousIndex % MaxFrames;
 }
 
 @end

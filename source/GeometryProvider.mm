@@ -92,7 +92,7 @@ void GeometryProvider::loadFile(const std::string& fileName, id<MTLDevice> devic
         }
         else
         {
-            NSLog(@" + material: %s, type: %s", mtl.name.c_str(), materialTypeToString(material.type));
+            NSLog(@" + material: %s, r: %.3f - %s", materialTypeToString(material.type), mtl.roughness, mtl.name.c_str());
         }
     }
 

@@ -81,27 +81,19 @@ struct ApplicationData
     uint emitterTrianglesCount = 0;
 };
 
-struct SampledMaterialProperties
-{
-    packed_float3 bsdfDiffuse = 0.0f;
-    float pdfDiffuse = 0.0f;
-    packed_float3 bsdfSpecular = 0.0f;
-    float pdfSpecular = 0.0f;
-    packed_float3 bsdfTransmittance = 0.0f;
-    float pdfTransmittance = 0.0f;
-};
-
 struct SampledMaterial
 {
     packed_float3 direction = {};
-    float misPdf = 0.0f;
-    packed_float3 weight;
+    float pdf = 0.0f;
+    packed_float3 bsdf = 0.0f;
+    packed_float3 weight = 0.0f;
 };
 
 struct RandomSample
 {
     packed_float2 barycentricSample;
     packed_float2 bsdfSample;
+    packed_float2 emitterBsdfSample;
     float componentSample;
     float emitterSample;
     float rrSample;

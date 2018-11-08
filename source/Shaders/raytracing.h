@@ -10,7 +10,7 @@
 
 #include "structures.h"
 
-Vertex interpolate(device const Vertex& a, device const Vertex& b, device const Vertex& c, float3 barycentric)
+inline Vertex interpolate(device const Vertex& a, device const Vertex& b, device const Vertex& c, float3 barycentric)
 {
     float u = barycentric.x;
     float v = barycentric.y;
@@ -23,7 +23,7 @@ Vertex interpolate(device const Vertex& a, device const Vertex& b, device const 
     return result;
 }
 
-Vertex interpolate(device const Vertex& a, device const Vertex& b, device const Vertex& c, float2 barycentric)
+inline Vertex interpolate(device const Vertex& a, device const Vertex& b, device const Vertex& c, float2 barycentric)
 {
     float u = barycentric.x;
     float v = barycentric.y;
@@ -36,7 +36,7 @@ Vertex interpolate(device const Vertex& a, device const Vertex& b, device const 
     return result;
 }
 
-device const EmitterTriangle& sampleEmitterTriangle(device const EmitterTriangle* triangles, uint triangleCount, float xi)
+inline device const EmitterTriangle& sampleEmitterTriangle(device const EmitterTriangle* triangles, uint triangleCount, float xi)
 {
     uint l = 0;
     uint r = triangleCount - 1;
@@ -56,14 +56,14 @@ device const EmitterTriangle& sampleEmitterTriangle(device const EmitterTriangle
     return triangles[l];
 }
 
-float3 barycentric(float2 smp)
+inline float3 barycentric(float2 smp)
 {
     float r1 = sqrt(smp.x);
     float r2 = smp.y;
     return float3(1.0f - r1, r1 * (1.0f - r2), r1 * r2);
 }
 
-void buildOrthonormalBasis(float3 n, thread float3& u, thread float3& v)
+inline void buildOrthonormalBasis(float3 n, thread float3& u, thread float3& v)
 {
     float s = (n.z < 0.0 ? -1.0f : 1.0f);
     float a = -1.0f / (s + n.z);
@@ -72,14 +72,14 @@ void buildOrthonormalBasis(float3 n, thread float3& u, thread float3& v)
     v = float3(b, s + n.y * n.y * a, -n.y);
 }
 
-float sqr(float a)
+inline float sqr(float a)
 {
     return a * a;
 }
 
-float3 alignToDirection(float3 n, float cosTheta, float phi)
+inline float3 alignToDirection(float3 n, float cosTheta, float phi)
 {
-    float sinTheta = sqrt(1.0f - sqr(cosTheta));
+    float sinTheta = sqrt(saturate(1.0f - cosTheta * cosTheta));
 
     float3 u;
     float3 v;
@@ -88,48 +88,54 @@ float3 alignToDirection(float3 n, float cosTheta, float phi)
     return (u * cos(phi) + v * sin(phi)) * sinTheta + n * cosTheta;
 }
 
-float3 sampleCosineWeightedHemisphere(float3 n, float2 xi)
+inline float3 sampleCosineWeightedHemisphere(float3 n, float2 xi)
 {
     float cosTheta = sqrt(xi.x);
     return alignToDirection(n, cosTheta, xi.y * DOUBLE_PI);
 }
 
-float3 sampleGGXDistribution(float3 n, float2 xi, float alpha)
+inline float3 sampleGGXDistribution(float3 n, float2 xi, float alphaSquared)
 {
-    float cosTheta = sqrt((1.0f - xi.x) / (xi.x * (sqr(alpha) - 1.0f) + 1.0f));
+    float cosTheta = sqrt(saturate((1.0f - xi.x) / (xi.x * (alphaSquared - 1.0f) + 1.0f)));
     return alignToDirection(n, cosTheta, xi.y * DOUBLE_PI);
 }
 
-float powerHeuristic(float fPdf, float gPdf)
+inline float powerHeuristic(float fPdf, float gPdf)
 {
     float f2 = sqr(fPdf);
     float g2 = sqr(gPdf);
     return saturate(f2 / (f2 + g2));
 }
 
-float ggxNormalDistribution(float alphaSquared, float cosTheta)
+inline float ggxNormalDistribution(float alphaSquared, float cosTheta)
 {
     float denom = (alphaSquared - 1.0f) * sqr(cosTheta) + 1.0f;
     return alphaSquared / (PI * denom * denom);
 }
 
-float ggxVisibility(float alphaSquared, float cosTheta)
+inline float ggxVisibility(float alphaSquared, float cosTheta)
 {
     float cosThetaSquared = sqr(cosTheta);
     float tanThetaSquared = (1.0f - cosThetaSquared) / cosThetaSquared;
     return 2.0f / (1.0f + sqrt(1.0f + alphaSquared * tanThetaSquared));
 }
 
-float ggxVisibilityTerm(float alphaSquared, float3 wI, float3 wO, float3 m)
+inline float ggxVisibilityTerm(float alphaSquared, float3 wI, float3 wO, float3 m)
 {
     float MdotI = dot(m, wI);
     float MdotO = dot(m, wO);
     return ggxVisibility(alphaSquared, MdotI) * ggxVisibility(alphaSquared, MdotO);
 }
 
-float fresnelDielectric(float cosThetaI, float etaI, float etaO)
+inline float fresnelConductor(float cosTheta)
+{
+    return 1.0f; // TODO
+}
+
+inline float fresnelDielectric(float3 i, float3 m, float etaI, float etaO)
 {
     float result = 1.0f;
+    float cosThetaI = abs(dot(i, m));
     float sinThetaOSquared = sqr(etaI / etaO) * (1.0f - cosThetaI * cosThetaI);
     if (sinThetaOSquared < 1.0)
     {
@@ -141,18 +147,7 @@ float fresnelDielectric(float cosThetaI, float etaI, float etaO)
     return result;
 }
 
-float fresnelConductor(float cosTheta)
-{
-    return 1.0f; // TODO
-}
-
-float fresnelDielectric(float3 i, float3 m, float etaI, float etaO)
-{
-    float cosTheta = abs(dot(i, m));
-    return fresnelDielectric(cosTheta, etaI, etaO);
-}
-
-float2 directionToEquirectangularCoordinates(float3 d)
+inline float2 directionToEquirectangularCoordinates(float3 d)
 {
     d = normalize(d);
     float u = atan2(d.x, d.z) / DOUBLE_PI;
@@ -160,9 +155,15 @@ float2 directionToEquirectangularCoordinates(float3 d)
     return float2(-u, v);
 }
 
-float3 sampleEnvironment(texture2d<float> environment, float3 d)
+inline float3 sampleEnvironment(texture2d<float> environment, float3 d)
 {
     constexpr sampler environmentSampler = sampler(s_address::repeat, t_address::clamp_to_edge, filter::linear);
     float2 uv = directionToEquirectangularCoordinates(d);
     return environment.sample(environmentSampler, uv).xyz;
+}
+
+inline float remapRoughness(float r, float NdotI)
+{
+    float alpha = (1.2f - 0.2f * sqrt(abs(NdotI))) * r;
+    return alpha * alpha;
 }

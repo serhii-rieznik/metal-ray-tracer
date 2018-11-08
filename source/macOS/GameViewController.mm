@@ -42,9 +42,13 @@
     [_renderer mtkView:_view drawableSizeWillChange:_view.drawableSize];
     _view.delegate = _renderer;
 
-    [NSTimer scheduledTimerWithTimeInterval:0.0f repeats:YES block:^(NSTimer * _Nonnull timer) {
-        [self->_view draw];
+    [NSTimer scheduledTimerWithTimeInterval:1.0f repeats:NO block:^(NSTimer * _Nonnull timer) {
+        NSLog(@"Launching render loop...");
+        [NSTimer scheduledTimerWithTimeInterval:0.0f repeats:YES block:^(NSTimer * _Nonnull timer) {
+            [self->_view draw];
+        }];
     }];
+    NSLog(@"Loading completed");
 }
 
 @end

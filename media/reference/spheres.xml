@@ -1,49 +1,63 @@
 <?xml version='1.0' encoding='utf-8'?>
+<!--
+
+	Automatically converted from Wavefront OBJ
+
+-->
 
 <scene version="0.5.0">
-	<integrator type="path">
-		<integer name="maxDepth" value="10"/>
-		<integer name="rrDepth" value="100"/>
-	</integrator>
+	<integrator type="path"/>
 
 	<bsdf type="diffuse" id="floor_material">
 		<rgb name="reflectance" value="0.5 0.5 0.5"/>
 	</bsdf>
 
 	<bsdf type="diffuse" id="diffuse_material">
-		<float name="alpha" value="0.01"/>
+		<rgb name="reflectance" value="0.5 0.5 0.5"/>
 		<rgb name="diffuseReflectance" value="0.5 0.5 0.5"/>
-		<rgb name="specularTransmittance" value="1 1 1"/>
 		<rgb name="specularReflectance" value="1 1 1"/>
+		<rgb name="specularTransmittance" value="1 1 1"/>
 		<string name="distribution" value="ggx"/>
 		<string name="material" value="none"/>
+		<float name="intIOR" value="1.5"/>
+		<float name="extIOR" value="1.0"/>
+		<float name="alpha" value="0.05"/>
 	</bsdf>
 
 	<bsdf type="roughplastic" id="plastic_material">
-		<float name="alpha" value="0.05"/>
+		<rgb name="reflectance" value="1 1 1"/>
 		<rgb name="diffuseReflectance" value="0.25 0.5 0.125"/>
-		<rgb name="specularTransmittance" value="1 1 1"/>
 		<rgb name="specularReflectance" value="1 1 1"/>
+		<rgb name="specularTransmittance" value="1 1 1"/>
 		<string name="distribution" value="ggx"/>
 		<string name="material" value="none"/>
+		<float name="intIOR" value="1.5"/>
+		<float name="extIOR" value="1.0"/>
+		<float name="alpha" value="0.05"/>
 	</bsdf>
 
 	<bsdf type="roughdielectric" id="dielectric_material">
-		<float name="alpha" value="0.1"/>
+		<rgb name="reflectance" value="1 1 1"/>
 		<rgb name="diffuseReflectance" value="1 1 1"/>
-		<rgb name="specularTransmittance" value="0.9 0.95 1.0"/>
 		<rgb name="specularReflectance" value="1 1 1"/>
+		<rgb name="specularTransmittance" value="0.9 0.95 1.0"/>
 		<string name="distribution" value="ggx"/>
 		<string name="material" value="none"/>
+		<float name="intIOR" value="1.5"/>
+		<float name="extIOR" value="1.0"/>
+		<float name="alpha" value="0.05"/>
 	</bsdf>
 
 	<bsdf type="roughconductor" id="conductor_material">
-		<float name="alpha" value="0.2"/>
+		<rgb name="reflectance" value="1 1 1"/>
 		<rgb name="diffuseReflectance" value="1 1 1"/>
-		<rgb name="specularTransmittance" value="1 1 1"/>
 		<rgb name="specularReflectance" value="0.721 0.45 0.2"/>
+		<rgb name="specularTransmittance" value="1 1 1"/>
 		<string name="distribution" value="ggx"/>
 		<string name="material" value="none"/>
+		<float name="intIOR" value="1.5"/>
+		<float name="extIOR" value="1.0"/>
+		<float name="alpha" value="0.05"/>
 	</bsdf>
 
 	<emitter type="envmap">
@@ -89,14 +103,13 @@
 	</shape>
 
 	<sensor type="perspective">
-		<float name="farClip" value="300"/>
-		<float name="focusDistance" value="10"/>
-		<float name="fov" value="60"/>
+		<float name="farClip" value="868.995"/>
+		<float name="focusDistance" value="198.995"/>
+		<float name="fov" value="45"/>
 		<string name="fovAxis" value="x"/>
-		<float name="nearClip" value="0.1"/>
+		<float name="nearClip" value="1.68995"/>
 		<transform name="toWorld">
-
-			<lookat target="0, 74.5528, 149.106" origin="0, 75, 150" up="0, 0.894427, -0.447214"/>
+			<lookat target="0, 10, 0" origin="0, 75, -175" up="0, 1, 0"/>
 		</transform>
 
 		<sampler type="independent">
