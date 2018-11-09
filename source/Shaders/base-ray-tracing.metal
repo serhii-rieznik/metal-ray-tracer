@@ -59,7 +59,7 @@ kernel void generateRays(device Ray* rays [[buffer(0)]],
 
         float aspect = float(size.y) / float(size.x);
         float2 uv = float2(coordinates) / float2(size - 1) * 2.0f - 1.0f;
-        float2 rnd = (randomSample.xy * 2.0 - 1.0) / float2(size - 1);
+        float2 rnd = (randomSample.xy * 2.0 - 1.0) / float2(size);
         float ax = fovScale * (uv.x + rnd.x);
         float ay = fovScale * (uv.y + rnd.y) * aspect;
         float az = 1.0f;
@@ -122,16 +122,12 @@ kernel void handleIntersections(texture2d<float> environment [[texture(0)]],
     
     Vertex currentVertex = interpolate(a, b, c, i.coordinates);
 
-    if (dot(material.emissive, material.emissive) > 0.0)
+    if ((currentRay.bounces < MAX_PATH_LENGTH) && (dot(material.emissive, material.emissive) > 0.0))
     {
 #   if (IS_MODE == IS_MODE_MIS)
-        packed_float3 directionToLight = currentVertex.v - currentRay.base.origin;
-        float distanceToLightSquared = dot(directionToLight, directionToLight);
-        directionToLight /= sqrt(distanceToLightSquared);
-        float cosTheta = -dot(directionToLight, currentVertex.n);
-        float lightSamplePdf = triangle.emitterPdf * distanceToLightSquared / (triangle.area * cosTheta);
+        float lightSamplePdf = lightSamplingPdf(currentVertex.n, currentVertex.v - currentRay.base.origin, triangle.area);
         float3 weight = currentRay.throughput *
-            (float(currentRay.bounces == 0) ? 1.0f : powerHeuristic(currentRay.misPdf, lightSamplePdf));
+            ((currentRay.bounces == 0) ? 1.0f : powerHeuristic(currentRay.misPdf, lightSamplePdf));
         weight *= float(dot(currentRay.base.direction, currentVertex.n) < 0.0f);
 #   elif (IS_MODE == IS_MODE_BSDF)
         float3 weight = currentRay.throughput;
@@ -151,6 +147,7 @@ kernel void handleIntersections(texture2d<float> environment [[texture(0)]],
         currentRay.throughput *= materialSample.weight;
         currentRay.misPdf = materialSample.pdf;
         currentRay.bounces += 1;
+        currentRay.completed = (currentRay.bounces >= MAX_PATH_LENGTH);
     }
 
 #if (ENABLE_RUSSIAN_ROULETTE)

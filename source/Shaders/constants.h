@@ -29,19 +29,20 @@
 
 #define MAX_RUN_TIME_IN_SECONDS     (60 * 60 * 24) // one day
 #define MAX_SAMPLES                 0xffffffff
+#define MAX_PATH_LENGTH             0xffffffff
 
 #define COMPARE_DISABLED            0
 #define COMPARE_TO_REFERENCE        1
 #define COMPARE_TO_GRAY             2
-#define COMPARE_MODE                COMPARE_TO_REFERENCE
-#define COMPARE_SCALE               1.0f
+#define COMPARE_MODE                COMPARE_DISABLED
+#define COMPARE_SCALE               2.0f
 
 #define CONTENT_SCALE               2
 
 #define IS_MODE_MIS                 0
 #define IS_MODE_LIGHT               1
 #define IS_MODE_BSDF                2
-#define IS_MODE                     IS_MODE_BSDF
+#define IS_MODE                     IS_MODE_MIS
 
 #define ENABLE_RUSSIAN_ROULETTE     1
 
@@ -53,10 +54,12 @@
 #define SCENE_CORNELL_BOX_PLASTIC       2
 #define SCENE_CORNELL_BOX_DIELECTRIC    3
 #define SCENE_CORNELL_BOX_SPHERES       4
-#define SCENE_VEACH_MIS                 5
-#define SCENE_SPHERE                    6
-#define SCENE_PBS_SPHERES               7
+#define SCENE_CORNELL_BOX_SMALL_LIGHT   5
 
-#define SCENE                           SCENE_VEACH_MIS
+#define SCENE_VEACH_MIS                 10
+#define SCENE_SPHERE                    11
+#define SCENE_PBS_SPHERES               12
 
-#define SCENE_CORNELL_BOX_MAX           SCENE_CORNELL_BOX_SPHERES
+#define SCENE                           SCENE_CORNELL_BOX_SPHERES
+
+#define SCENE_CORNELL_BOX_MAX           SCENE_CORNELL_BOX_SMALL_LIGHT

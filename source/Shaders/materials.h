@@ -22,54 +22,37 @@ inline SampledMaterial evaluateMaterial(device const Material& material, float3 
     {
         case MATERIAL_DIFFUSE:
         {
-            float NdotO = dot(n, wO);
-            if (NdotO > 0.0f)
-            {
-                result.bsdf = material.diffuse * INVERSE_PI * NdotO;
-                result.pdf = INVERSE_PI * NdotO;
-                result.weight = material.diffuse;
-            }
+            evaluateDiffuseReflection(material, n, normalize(wO - wI), wI, wO, result.bsdf, result.pdf, result.weight);
             break;
         }
 
         case MATERIAL_CONDUCTOR:
         {
-            float NdotO = dot(n, wO);
-            float NdotI = -dot(n, wI);
-            float alpha = remapRoughness(material.roughness, NdotI);
-            if ((NdotO > 0.0f) && (NdotI > 0.0f))
-            {
-                float3 m = normalize(wO - wI);
-                float NdotM = dot(n, m);
-                float MdotO = dot(m, wO);
-                float F = fresnelConductor(MdotO);
-                float D = ggxNormalDistribution(alpha, NdotM);
-                float G = ggxVisibilityTerm(alpha, wI, wO, n);
-                float J = 1.0f / (4.0 * MdotO);
-                result.bsdf = material.specular * F * D * G / (4.0 * NdotI);
-                result.pdf = D * NdotM * J;
-                result.weight = material.specular * F * G * MdotO / (NdotI * NdotM);
-            }
+            float3 m = normalize(wO - wI);
+            FresnelSample F = fresnelConductor(wI, m, material.extIOR, material.intIOR);
+            evaluateMicrofacetReflection(material, n, normalize(wO - wI), wI, wO, F, result.bsdf, result.pdf, result.weight);
             break;
         }
 
         case MATERIAL_PLASTIC:
         {
             float3 m = normalize(wO - wI);
-            float NdotM = dot(n, m);
-            float NdotO = dot(n, wO);
-            float NdotI = -dot(n, wI);
-            float alpha = remapRoughness(material.roughness, NdotI);
-            if ((NdotO > 0.0f) && (NdotI > 0.0f))
-            {
-                float MdotO = dot(m, wO);
-                float F = fresnelDielectric(wI, m, etaI, etaO);
-                float D = ggxNormalDistribution(alpha, NdotM);
-                float G = ggxVisibilityTerm(alpha, wI, wO, n);
-                float J = 1.0f / (4.0 * MdotO);
+            FresnelSample F = fresnelDielectric(wI, m, material.extIOR, material.intIOR);
 
-                result.bsdf = mix(material.diffuse * INVERSE_PI * NdotO, material.specular * D * G / (4.0 * NdotI), F);
-                result.pdf = mix(INVERSE_PI * NdotO, D * NdotM * J, F);
+            packed_float3 diffuseBsdf = 0.0f;
+            float diffusePdf = 0.0f;
+            packed_float3 diffuseWeight = 0.0f;
+            bool hasDiffuse = evaluateDiffuseReflection(material, n, m, wI, wO, diffuseBsdf, diffusePdf, diffuseWeight);
+
+            packed_float3 specularBsdf = 0.0f;
+            float specularPdf = 0.0f;
+            packed_float3 specularWeight = 0.0f;
+            bool hasSpecular = evaluateMicrofacetReflection(material, n, m, wI, wO, F, specularBsdf, specularPdf, specularWeight);
+
+            if (hasDiffuse || hasSpecular)
+            {
+                result.bsdf = diffuseBsdf * (1.0f - F.value) + specularBsdf;
+                result.pdf = diffusePdf * (1.0f - F.value) + specularPdf * F.value;
                 result.weight = result.bsdf / result.pdf;
             }
             break;
@@ -86,37 +69,19 @@ inline SampledMaterial evaluateMaterial(device const Material& material, float3 
             }
             
             float NdotI = -dot(n, wI);
-            float NdotO = dot(n, wO);
             float alpha = remapRoughness(material.roughness, NdotI);
-
             float3 m = sampleGGXDistribution(n, randomSample.bsdfSample, alpha);
-            float NdotM = abs(dot(n, m));
+            FresnelSample F = fresnelDielectric(wI, m, etaI, etaO);
 
-            float F = fresnelDielectric(wI, m, etaI, etaO);
-
-            if ((NdotI * NdotO < 0.0f) && (F < 1.0f)) // ray is refracted
+            if (evaluateMicrofacetTransmission(material, n, m, wI, wO, F, result.bsdf, result.pdf, result.weight))
             {
-                float MdotI = abs(dot(m, wI));
-                float MdotO = abs(dot(m, wO));
-                float D = ggxNormalDistribution(alpha, NdotM);
-                float G = ggxVisibilityTerm(alpha, wI, wO, n);
-                float J = MdotO / sqr(etaI * MdotI + etaO * MdotO);
-
-                result.bsdf = material.transmittance * (1.0f - F) * D * G * MdotI * MdotO /
-                    (NdotI * sqr(etaI * MdotI + etaO * MdotO));
-                result.pdf = (1.0f - F) * D * NdotM * J;
-                result.weight = material.transmittance * G * MdotI / (NdotI * NdotM);
+                result.pdf *= 1.0f - F.value;
+                result.weight /= 1.0f - F.value;
             }
-            else
+            else if (evaluateMicrofacetReflection(material, n, m, wI, wO, F, result.bsdf, result.pdf, result.weight))
             {
-                float MdotO = abs(dot(m, wO));
-                float F = fresnelDielectric(wI, m, etaI, etaO);
-                float D = ggxNormalDistribution(alpha, NdotM);
-                float G = ggxVisibilityTerm(alpha, wI, wO, n);
-                float J = 1.0f / (4.0 * MdotO);
-                result.bsdf = material.specular * F * D * G / (4.0 * NdotI);
-                result.pdf = F * D * NdotM * J;
-                result.weight = material.specular * G * MdotO / (NdotI * NdotM);
+                result.pdf *= F.value;
+                result.weight /= F.value;
             }
             break;
         }
@@ -161,8 +126,8 @@ inline SampledMaterial sampleMaterial(device const Material& material, float3 n,
             float NdotI = -dot(n, wI);
             float alpha = remapRoughness(material.roughness, NdotI);
             float3 m = sampleGGXDistribution(n, randomSample.bsdfSample, alpha);
-            float pdfSpecular = fresnelDielectric(wI, m, etaI, etaO);
-            if (randomSample.componentSample >= pdfSpecular)
+            FresnelSample F = fresnelDielectric(wI, m, etaI, etaO);
+            if (randomSample.componentSample >= F.value)
             {
                 wO = sampleCosineWeightedHemisphere(n, randomSample.bsdfSample);
             }
@@ -185,8 +150,8 @@ inline SampledMaterial sampleMaterial(device const Material& material, float3 n,
             float NdotI = -dot(n, wI);
             float alpha = remapRoughness(material.roughness, NdotI);
             float3 m = sampleGGXDistribution(n, randomSample.bsdfSample, alpha);
-            float pdfSpecular = fresnelDielectric(wI, m, etaI, etaO);
-            if (randomSample.componentSample >= pdfSpecular)
+            FresnelSample F = fresnelDielectric(wI, m, etaI, etaO);
+            if (randomSample.componentSample >= F.value)
             {
                 float cosThetaI = -dot(m, wI);
                 float sinThetaTSquared = sqr(etaI / etaO) * (1.0 - cosThetaI * cosThetaI);

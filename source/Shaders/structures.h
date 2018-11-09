@@ -91,12 +91,29 @@ struct SampledMaterial
 
 struct RandomSample
 {
-    packed_float2 barycentricSample;
-    packed_float2 bsdfSample;
-    packed_float2 emitterBsdfSample;
-    float componentSample;
-    float emitterSample;
-    float rrSample;
+    packed_float2 barycentricSample = { };
+    packed_float2 bsdfSample = { };
+    packed_float2 emitterBsdfSample = { };
+    float componentSample = 0.0f;
+    float emitterSample = 0.0f;
+    float rrSample = 0.0f;
+};
+
+struct LightSample
+{
+    packed_float3 value = { };
+    float pdf = 0.0f;
+    packed_float3 direction = { };
+    uint primitiveIndex = 0;
+    packed_float3 position = { };
+    bool valid = false;
+};
+
+struct FresnelSample
+{
+    float value = 0.0f;
+    float etaI = 0.0f;
+    float etaO = 0.0f;
 };
 
 using Intersection = MPSIntersectionDistancePrimitiveIndexCoordinates;

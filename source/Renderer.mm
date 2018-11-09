@@ -157,26 +157,10 @@ static std::uniform_real_distribution<float> uniformFloatDistribution(0.0f, 1.0f
                                         intersectionBuffer:_intersectionBuffer intersectionBufferOffset:0
                                                   rayCount:_rayCount accelerationStructure:_accelerationStructure];
 
-        // Handle intersections, generate light sampling rays, generate next bounce
-        [self dispatchComputeShader:_intersectionHandler withinCommandBuffer:commandBuffer
-                         setupBlock:^(id<MTLComputeCommandEncoder> commandEncoder)
-         {
-             [commandEncoder setTexture:self->_environmentMap atIndex:0];
-             [commandEncoder setBuffer:self->_intersectionBuffer offset:0 atIndex:0];
-             [commandEncoder setBuffer:self->_geometryProvider.materialBuffer() offset:0 atIndex:1];
-             [commandEncoder setBuffer:self->_geometryProvider.triangleBuffer() offset:0 atIndex:2];
-             [commandEncoder setBuffer:self->_geometryProvider.emitterTriangleBuffer() offset:0 atIndex:3];
-             [commandEncoder setBuffer:self->_geometryProvider.vertexBuffer() offset:0 atIndex:4];
-             [commandEncoder setBuffer:self->_geometryProvider.indexBuffer() offset:0 atIndex:5];
-             [commandEncoder setBuffer:self->_noise[[self frameIndex]] offset:0 atIndex:6];
-             [commandEncoder setBuffer:self->_rayBuffer offset:0 atIndex:7];
-             [commandEncoder setBuffer:self->_appData[[self frameIndex]] offset:0 atIndex:8];
-         }];
-
-#   if (IS_MODE != IS_MODE_BSDF)
+#   if ((MAX_PATH_LENGTH > 1) && (IS_MODE != IS_MODE_BSDF))
         if (_hasEmitters)
         {
-            // generate light sampling rays
+            // Generate light sampling rays
             [self dispatchComputeShader:_lightSamplingGenerator withinCommandBuffer:commandBuffer
                              setupBlock:^(id<MTLComputeCommandEncoder> commandEncoder)
              {
@@ -213,6 +197,22 @@ static std::uniform_real_distribution<float> uniformFloatDistribution(0.0f, 1.0f
         }
 #   endif
 
+        // Handle intersections generate next bounce
+        [self dispatchComputeShader:_intersectionHandler withinCommandBuffer:commandBuffer
+                         setupBlock:^(id<MTLComputeCommandEncoder> commandEncoder)
+         {
+             [commandEncoder setTexture:self->_environmentMap atIndex:0];
+             [commandEncoder setBuffer:self->_intersectionBuffer offset:0 atIndex:0];
+             [commandEncoder setBuffer:self->_geometryProvider.materialBuffer() offset:0 atIndex:1];
+             [commandEncoder setBuffer:self->_geometryProvider.triangleBuffer() offset:0 atIndex:2];
+             [commandEncoder setBuffer:self->_geometryProvider.emitterTriangleBuffer() offset:0 atIndex:3];
+             [commandEncoder setBuffer:self->_geometryProvider.vertexBuffer() offset:0 atIndex:4];
+             [commandEncoder setBuffer:self->_geometryProvider.indexBuffer() offset:0 atIndex:5];
+             [commandEncoder setBuffer:self->_noise[[self frameIndex]] offset:0 atIndex:6];
+             [commandEncoder setBuffer:self->_rayBuffer offset:0 atIndex:7];
+             [commandEncoder setBuffer:self->_appData[[self frameIndex]] offset:0 atIndex:8];
+         }];
+        
         /*
          * Accumulate image
          */
@@ -314,6 +314,7 @@ static std::uniform_real_distribution<float> uniformFloatDistribution(0.0f, 1.0f
         { SCENE_CORNELL_BOX_PLASTIC, { @"media/cornellbox-plastic", @"media/reference/cornellbox-plastic" } },
         { SCENE_CORNELL_BOX_DIELECTRIC, { @"media/cornellbox-dielectric", @"media/reference/cornellbox-dielectric" } },
         { SCENE_CORNELL_BOX_SPHERES, { @"media/cornellbox-water-spheres", @"media/reference/cornellbox-water-spheres" } },
+        { SCENE_CORNELL_BOX_SMALL_LIGHT, { @"media/cornellbox-small-light", @"media/reference/cornellbox-small-light" } },
     };
 
     uint32_t sceneId = SCENE;
