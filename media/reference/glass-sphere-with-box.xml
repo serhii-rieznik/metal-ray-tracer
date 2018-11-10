@@ -1,0 +1,83 @@
+<?xml version='1.0' encoding='utf-8'?>
+<!--
+
+	Automatically converted from Wavefront OBJ
+
+-->
+
+<scene version="0.5.0">
+	<integrator type="path"/>
+
+	<bsdf type="diffuse" id="diffuse_material">
+		<rgb name="reflectance" value="0.5 0.5 0.5"/>
+	</bsdf>
+
+	<bsdf type="roughdielectric" id="glass_material">
+		<string name="distribution" value="ggx"/>
+		<rgb name="specularReflectance" value="1 1 1"/>
+		<rgb name="specularTransmittance" value="1 1 1"/>
+		<float name="alpha" value="0.001"/>
+		<float name="intIOR" value="1.33333"/>
+	</bsdf>
+
+	<bsdf type="diffuse" id="box_material">
+		<rgb name="reflectance" value="1 1 1"/>
+	</bsdf>
+
+	<emitter type="constant">
+		<rgb name="radiance" value="0.0125 0.025 0.05"/>
+	</emitter>
+
+	<shape type="serialized" id="plane_mesh">
+		<string name="filename" value="glass-sphere-with-box.serialized"/>
+		<integer name="shapeIndex" value="0"/>
+
+		<ref name="bsdf" id="diffuse_material"/>
+	</shape>
+
+	<shape type="serialized" id="sphere_mesh">
+		<string name="filename" value="glass-sphere-with-box.serialized"/>
+		<integer name="shapeIndex" value="1"/>
+
+		<ref name="bsdf" id="glass_material"/>
+	</shape>
+
+	<shape type="serialized" id="emitter_mesh">
+		<string name="filename" value="glass-sphere-with-box.serialized"/>
+		<integer name="shapeIndex" value="2"/>
+
+		<emitter type="area">
+			<rgb name="radiance" value="5 5 5"/>
+		</emitter>
+	</shape>
+
+	<shape type="serialized" id="box_mesh">
+		<string name="filename" value="glass-sphere-with-box.serialized"/>
+		<integer name="shapeIndex" value="3"/>
+
+		<bsdf type="diffuse"/>
+	</shape>
+
+	<sensor type="perspective">
+		<float name="farClip" value="620.711"/>
+		<float name="focusDistance" value="170.711"/>
+		<float name="fov" value="45"/>
+		<string name="fovAxis" value="x"/>
+		<float name="nearClip" value="1.20711"/>
+		<transform name="toWorld">
+
+			<lookat target="0, 25.0, 0.0" origin="0.0, 50.0, -150.0" up="0 1 0"/>
+		</transform>
+
+		<sampler type="independent">
+			<integer name="sampleCount" value="256"/>
+		</sampler>
+
+		<film type="hdrfilm">
+			<integer name="height" value="600"/>
+			<integer name="width" value="800"/>
+
+			<rfilter type="box"/>
+		</film>
+	</sensor>
+</scene>
