@@ -147,7 +147,7 @@ kernel void handleIntersections(texture2d<float> environment [[texture(0)]],
         currentRay.throughput *= materialSample.weight;
         currentRay.misPdf = materialSample.pdf;
         currentRay.bounces += 1;
-        currentRay.completed = (currentRay.bounces >= MAX_PATH_LENGTH);
+        currentRay.completed = (materialSample.valid == 0) || (currentRay.bounces >= MAX_PATH_LENGTH);
     }
 
 #if (ENABLE_RUSSIAN_ROULETTE)

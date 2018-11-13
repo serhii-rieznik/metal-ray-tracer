@@ -86,6 +86,7 @@ struct SampledMaterial
     packed_float3 direction = {};
     float pdf = 0.0f;
     packed_float3 bsdf = 0.0f;
+    uint valid = 0;
     packed_float3 weight = 0.0f;
 };
 

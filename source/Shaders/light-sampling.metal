@@ -67,8 +67,8 @@ kernel void generateLightSamplingRays(device const Intersection* intersections [
     lightSamplingRay.base.origin = currentVertex.v + lightSample.direction * DISTANCE_EPSILON;
     lightSamplingRay.base.direction = lightSample.direction;
     lightSamplingRay.base.minDistance = DISTANCE_EPSILON;
-    lightSamplingRay.base.maxDistance = lightSample.valid ? INFINITY : -1.0;
-    lightSamplingRay.targetPrimitiveIndex = lightSample.primitiveIndex;
+    lightSamplingRay.base.maxDistance = (materialSample.valid && lightSample.valid) ? INFINITY : -1.0;
+    lightSamplingRay.targetPrimitiveIndex = (materialSample.valid && lightSample.valid) ? lightSample.primitiveIndex : uint(-2);
     lightSamplingRay.throughput = currentRay.throughput * lightSample.value * materialSample.bsdf * weight;
 }
 

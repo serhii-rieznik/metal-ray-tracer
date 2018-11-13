@@ -8,28 +8,76 @@
 <scene version="0.5.0">
     <integrator type="path"/>
 
-	<bsdf type="diffuse" id="white_material">
-		<rgb name="reflectance" value="1 1 1"/>
+	<bsdf type="roughplastic" id="white_material">
+        <rgb name="reflectance" value="1 1 1"/>
+        <rgb name="diffuseReflectance" value="1 1 1"/>
+        <rgb name="specularReflectance" value="1 1 1"/>
+        <rgb name="specularTransmittance" value="1 1 1"/>
+        <string name="distribution" value="ggx"/>
+        <string name="material" value="none"/>
+        <float name="intIOR" value="1.5"/>
+        <float name="extIOR" value="1.0"/>
+        <float name="alpha" value="0.1"/>
 	</bsdf>
 
-	<bsdf type="diffuse" id="leftWall_material">
-		<rgb name="reflectance" value="1 0 0"/>
+	<bsdf type="roughplastic" id="leftWall_material">
+        <rgb name="reflectance" value="1 1 1"/>
+        <rgb name="diffuseReflectance" value="1 0 0"/>
+        <rgb name="specularReflectance" value="1 1 1"/>
+        <rgb name="specularTransmittance" value="1 1 1"/>
+        <string name="distribution" value="ggx"/>
+        <string name="material" value="none"/>
+        <float name="intIOR" value="1.5"/>
+        <float name="extIOR" value="1.0"/>
+        <float name="alpha" value="0.1"/>
 	</bsdf>
 
-	<bsdf type="diffuse" id="rightWall_material">
-		<rgb name="reflectance" value="0 1 0"/>
+	<bsdf type="roughplastic" id="rightWall_material">
+        <rgb name="reflectance" value="1 1 1"/>
+        <rgb name="diffuseReflectance" value="0 1 0"/>
+        <rgb name="specularReflectance" value="1 1 1"/>
+        <rgb name="specularTransmittance" value="1 1 1"/>
+        <string name="distribution" value="ggx"/>
+        <string name="material" value="none"/>
+        <float name="intIOR" value="1.5"/>
+        <float name="extIOR" value="1.0"/>
+        <float name="alpha" value="0.1"/>
 	</bsdf>
 
-	<bsdf type="diffuse" id="floor_material">
-		<rgb name="reflectance" value="1 1 1"/>
+	<bsdf type="roughplastic" id="floor_material">
+        <rgb name="reflectance" value="1 1 1"/>
+        <rgb name="diffuseReflectance" value="1 1 1"/>
+        <rgb name="specularReflectance" value="1 1 1"/>
+        <rgb name="specularTransmittance" value="1 1 1"/>
+        <string name="distribution" value="ggx"/>
+        <string name="material" value="none"/>
+        <float name="intIOR" value="1.5"/>
+        <float name="extIOR" value="1.0"/>
+        <float name="alpha" value="0.1"/>
 	</bsdf>
 
-	<bsdf type="diffuse" id="ceiling_material">
-		<rgb name="reflectance" value="1 1 1"/>
+	<bsdf type="roughplastic" id="ceiling_material">
+        <rgb name="reflectance" value="1 1 1"/>
+        <rgb name="diffuseReflectance" value="1 1 1"/>
+        <rgb name="specularReflectance" value="1 1 1"/>
+        <rgb name="specularTransmittance" value="1 1 1"/>
+        <string name="distribution" value="ggx"/>
+        <string name="material" value="none"/>
+        <float name="intIOR" value="1.5"/>
+        <float name="extIOR" value="1.0"/>
+        <float name="alpha" value="0.1"/>
 	</bsdf>
 
-	<bsdf type="diffuse" id="frontWall_material">
-		<rgb name="reflectance" value="1 1 1"/>
+	<bsdf type="roughplastic" id="frontWall_material">
+        <rgb name="reflectance" value="1 1 1"/>
+        <rgb name="diffuseReflectance" value="1 1 1"/>
+        <rgb name="specularReflectance" value="1 1 1"/>
+        <rgb name="specularTransmittance" value="1 1 1"/>
+        <string name="distribution" value="ggx"/>
+        <string name="material" value="none"/>
+        <float name="intIOR" value="1.5"/>
+        <float name="extIOR" value="1.0"/>
+        <float name="alpha" value="0.1"/>
 	</bsdf>
 
 	<bsdf type="roughplastic" id="shortBox_material">
@@ -55,10 +103,6 @@
         <float name="extIOR" value="1.0"/>
         <float name="alpha" value="0.1"/>
     </bsdf>
-
-	<bsdf type="diffuse" id="light_material">
-		<rgb name="reflectance" value="0 0 0"/>
-	</bsdf>
 
 	<shape type="serialized" id="ceiling_Mesh_mesh">
 		<string name="filename" value="cornellbox.serialized"/>
@@ -134,7 +178,7 @@
 		</sampler>
 
 		<film type="hdrfilm">
-			<integer name="height" value="600"/>
+			<integer name="height" value="800"/>
 			<integer name="width" value="800"/>
 
 			<rfilter type="box"/>

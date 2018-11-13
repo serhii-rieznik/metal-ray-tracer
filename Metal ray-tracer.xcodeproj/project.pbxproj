@@ -13,11 +13,11 @@
 		6E6DF34C21503E3700089863 /* imgui.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6E6DF21A21503E3700089863 /* imgui.cpp */; };
 		6E6DF3B421503E3700089863 /* imgui_demo.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6E6DF2C321503E3700089863 /* imgui_demo.cpp */; };
 		6E6DF3B521503E3700089863 /* imgui_draw.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6E6DF2C421503E3700089863 /* imgui_draw.cpp */; };
-		6E6DF3BC2150415900089863 /* media in Resources */ = {isa = PBXBuildFile; fileRef = 6E6DF3BB2150415900089863 /* media */; };
 		6E6DF3BF2158287500089863 /* image-processing.metal in Sources */ = {isa = PBXBuildFile; fileRef = 6E6DF3BE2158287400089863 /* image-processing.metal */; settings = {COMPILER_FLAGS = "-gline-tables-only -MO"; }; };
 		6E799AA721790EEE00775537 /* tinyexr.cc in Sources */ = {isa = PBXBuildFile; fileRef = 6E799A0521790EEE00775537 /* tinyexr.cc */; };
 		6E799B0C217913B800775537 /* TextureProvider.mm in Sources */ = {isa = PBXBuildFile; fileRef = 6E799B0A217913B800775537 /* TextureProvider.mm */; };
 		6E9F765F2193ABED00E5DD21 /* light-sampling.metal in Sources */ = {isa = PBXBuildFile; fileRef = 6E9F765E2193ABED00E5DD21 /* light-sampling.metal */; };
+		6EC16A8F2199726B0001E755 /* media in Resources */ = {isa = PBXBuildFile; fileRef = 6EC16A8E2199726B0001E755 /* media */; };
 		6EC4F6C5214D90C5003A48EA /* AppDelegate.mm in Sources */ = {isa = PBXBuildFile; fileRef = 6EC4F6C4214D90C5003A48EA /* AppDelegate.mm */; };
 		6EC4F6C8214D90C5003A48EA /* Renderer.mm in Sources */ = {isa = PBXBuildFile; fileRef = 6EC4F6C7214D90C5003A48EA /* Renderer.mm */; };
 		6EC4F6CB214D90C5003A48EA /* GameViewController.mm in Sources */ = {isa = PBXBuildFile; fileRef = 6EC4F6CA214D90C5003A48EA /* GameViewController.mm */; };
@@ -44,7 +44,6 @@
 		6E6DF2C021503E3700089863 /* imstb_rectpack.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = imstb_rectpack.h; sourceTree = "<group>"; };
 		6E6DF2C321503E3700089863 /* imgui_demo.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = imgui_demo.cpp; sourceTree = "<group>"; };
 		6E6DF2C421503E3700089863 /* imgui_draw.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = imgui_draw.cpp; sourceTree = "<group>"; };
-		6E6DF3BB2150415900089863 /* media */ = {isa = PBXFileReference; lastKnownFileType = folder; path = media; sourceTree = "<group>"; };
 		6E6DF3BD21581E6B00089863 /* constants.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = constants.h; sourceTree = "<group>"; };
 		6E6DF3BE2158287400089863 /* image-processing.metal */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.metal; path = "image-processing.metal"; sourceTree = "<group>"; };
 		6E707E8921640BF200DB84BB /* materials.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = materials.h; sourceTree = "<group>"; };
@@ -54,6 +53,7 @@
 		6E799B0B217913B800775537 /* TextureProvider.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TextureProvider.h; sourceTree = "<group>"; };
 		6E825D462159679F00B4419B /* raytracing.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = raytracing.h; sourceTree = "<group>"; };
 		6E9F765E2193ABED00E5DD21 /* light-sampling.metal */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.metal; path = "light-sampling.metal"; sourceTree = "<group>"; };
+		6EC16A8E2199726B0001E755 /* media */ = {isa = PBXFileReference; lastKnownFileType = folder; path = media; sourceTree = "<group>"; };
 		6EC4F6C0214D90C5003A48EA /* Metal ray-tracer.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Metal ray-tracer.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		6EC4F6C3214D90C5003A48EA /* AppDelegate.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = AppDelegate.h; sourceTree = "<group>"; };
 		6EC4F6C4214D90C5003A48EA /* AppDelegate.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = AppDelegate.mm; sourceTree = "<group>"; };
@@ -132,7 +132,7 @@
 		6EC4F6B7214D90C5003A48EA = {
 			isa = PBXGroup;
 			children = (
-				6E6DF3BB2150415900089863 /* media */,
+				6EC16A8E2199726B0001E755 /* media */,
 				6E6DF17021503E3600089863 /* external */,
 				6EC4F6C2214D90C5003A48EA /* source */,
 				6EC4F6C1214D90C5003A48EA /* Products */,
@@ -259,7 +259,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				6E6DF3BC2150415900089863 /* media in Resources */,
+				6EC16A8F2199726B0001E755 /* media in Resources */,
 				6EC4F6D0214D90C6003A48EA /* Assets.xcassets in Resources */,
 				6EC4F6D3214D90C6003A48EA /* Main.storyboard in Resources */,
 			);

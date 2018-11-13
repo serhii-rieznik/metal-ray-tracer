@@ -9,6 +9,7 @@
 #import <MetalKit/MetalKit.h>
 #import "GameViewController.h"
 #import "Renderer.h"
+#import "../Shaders/constants.h"
 
 @implementation GameViewController
 {
@@ -26,7 +27,7 @@
     _view.layer.contentsScale = [[NSScreen mainScreen] backingScaleFactor];
     _view.device = MTLCreateSystemDefaultDevice();
     _view.depthStencilPixelFormat = MTLPixelFormatInvalid;
-    _view.colorPixelFormat = MTLPixelFormatBGRA8Unorm_sRGB;
+    _view.colorPixelFormat = (COMPARE_MODE == COMPARE_TO_REFERENCE) ? MTLPixelFormatBGRA8Unorm : MTLPixelFormatBGRA8Unorm_sRGB;
     _view.paused = YES;
     _view.enableSetNeedsDisplay = NO;
     _view.preferredFramesPerSecond = 120;

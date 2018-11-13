@@ -140,8 +140,8 @@ inline float powerHeuristic(float fPdf, float gPdf)
 inline float ggxNormalDistribution(float alphaSquared, float cosTheta)
 {
     float cosThetaSquared = sqr(cosTheta);
-    float tanThetaSquared = (1.0f - cosThetaSquared) / cosThetaSquared;
-    return float(cosTheta > 0.0f) * INVERSE_PI * alphaSquared / sqr(alphaSquared + tanThetaSquared);
+    float denom = cosThetaSquared * (alphaSquared - 1.0f) + 1.0f;
+    return float(cosTheta > 0.0f) * INVERSE_PI * alphaSquared / (denom * denom);
 }
 
 inline float ggxVisibility(float alphaSquared, float cosTheta)
@@ -158,12 +158,12 @@ inline float ggxVisibilityTerm(float alphaSquared, float3 wI, float3 wO, float3 
     return ggxVisibility(alphaSquared, MdotI) * ggxVisibility(alphaSquared, MdotO);
 }
 
-inline FresnelSample fresnelConductor(float3 i, float3 m, float etaI, float etaO)
+inline float FresnelConductor(float3 i, float3 m, float etaI, float etaO)
 {
-    return { 1.0f, etaI, etaO };
+    return 1.0f;
 }
 
-inline FresnelSample fresnelDielectric(float3 i, float3 m, float etaI, float etaO)
+inline float fresnelDielectric(float3 i, float3 m, float etaI, float etaO)
 {
     float result = 1.0f;
     float cosThetaI = abs(dot(i, m));
@@ -175,7 +175,7 @@ inline FresnelSample fresnelDielectric(float3 i, float3 m, float etaI, float eta
         float Rp = (etaO * cosThetaI - etaI * cosThetaI) / (etaO * cosThetaI + etaI * cosThetaI);
         result = 0.5f * (Rs * Rs + Rp * Rp);
     }
-    return { result, etaI, etaO };
+    return result;
 }
 
 inline float2 directionToEquirectangularCoordinates(float3 d)

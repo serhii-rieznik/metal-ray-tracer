@@ -1,20 +1,56 @@
 newmtl white
+    illum 1
+    Pr 0.1
+    Ni 1.5
+    Ne 1.0
     Kd 1.0 1.0 1.0
+    Ks 1.0 1.0 1.0
+    Kt 1.0 1.0 1.0
 
 newmtl leftWall
-    Kd 1.0 0.0 0.0
+    illum 1
+    Pr 0.1
+    Ni 1.5
+    Ne 1.0
+    Kd 1.0 1.0 1.0
+    Ks 1.0 1.0 1.0
+    Kt 1.0 1.0 1.0
 
 newmtl rightWall
-    Kd 0.0 1.0 0.0
+    illum 1
+    Pr 0.1
+    Ni 1.5
+    Ne 1.0
+    Kd 1.0 1.0 1.0
+    Ks 1.0 1.0 1.0
+    Kt 1.0 1.0 1.0
 
 newmtl floor
+    illum 1
+    Pr 0.1
+    Ni 1.5
+    Ne 1.0
     Kd 1.0 1.0 1.0
+    Ks 1.0 1.0 1.0
+    Kt 1.0 1.0 1.0
 
 newmtl ceiling
+    illum 1
+    Pr 0.1
+    Ni 1.5
+    Ne 1.0
     Kd 1.0 1.0 1.0
+    Ks 1.0 1.0 1.0
+    Kt 1.0 1.0 1.0
 
 newmtl frontWall
+    illum 1
+    Pr 0.1
+    Ni 1.5
+    Ne 1.0
     Kd 1.0 1.0 1.0
+    Ks 1.0 1.0 1.0
+    Kt 1.0 1.0 1.0
 
 newmtl shortBox
     illum 1

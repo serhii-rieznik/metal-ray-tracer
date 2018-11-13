@@ -120,7 +120,7 @@
 		</sampler>
 
 		<film type="hdrfilm">
-			<integer name="height" value="600"/>
+			<integer name="height" value="800"/>
 			<integer name="width" value="800"/>
 
 			<rfilter type="box"/>

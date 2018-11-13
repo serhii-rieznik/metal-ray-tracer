@@ -24,14 +24,14 @@ kernel void accumulateImage(texture2d<float, access::read_write> image [[texture
         float4 outputColor = float4(rays[rayIndex].radiance, 1.0);
 
         if (any(isnan(outputColor)))
-            outputColor = float4(1000.0, 0.0, 1000.0, 1.0);
+            outputColor = float4(1000.0f, 0.0f, 1000.0, 1.0f);
 
         if (any(isinf(outputColor)))
-            outputColor = float4(0.0, 1000.0, 1000.0, 1.0);
+            outputColor = float4(1000.0f, 0.0f, 0.0f, 1.0f);
 
-        /*
+        //*
         if (any(outputColor < 0.0f))
-            outputColor = float4(0.0, 1000.0, 1000.0, 1.0);
+            outputColor = float4(0.0f, 1000.0f, 1000.0, 1.0f);
         // */
 
         /*

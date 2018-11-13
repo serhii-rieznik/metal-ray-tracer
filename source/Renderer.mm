@@ -309,11 +309,11 @@ static std::uniform_real_distribution<float> uniformFloatDistribution(0.0f, 1.0f
         { SCENE_VEACH_MIS, { @"media/veach_mis", @"media/reference/veach_mis" } },
         { SCENE_SPHERE, { @"media/sphere", @"media/reference/sphere" } },
         { SCENE_PBS_SPHERES, { @"media/spheres", @"media/reference/spheres" } },
-        { SCENE_CORNELL_BOX_DIFFUSE, { @"media/cornellbox-diffuse", @"media/reference/cornellbox-diffuse" } },
-        { SCENE_CORNELL_BOX_CONDUCTOR, { @"media/cornellbox-conductor", @"media/reference/cornellbox-conductor" } },
-        { SCENE_CORNELL_BOX_PLASTIC, { @"media/cornellbox-plastic", @"media/reference/cornellbox-plastic" } },
-        { SCENE_CORNELL_BOX_DIELECTRIC, { @"media/cornellbox-dielectric", @"media/reference/cornellbox-dielectric" } },
-        { SCENE_CORNELL_BOX_SPHERES, { @"media/cornellbox-water-spheres", @"media/reference/cornellbox-water-spheres" } },
+        { SCENE_CORNELL_BOX_DIFFUSE, { @"media/cornellbox-diffuse", @"media/reference-pbrt/cornellbox-diffuse" } },
+        { SCENE_CORNELL_BOX_CONDUCTOR, { @"media/cornellbox-conductor", @"media/reference-pbrt/cornellbox-conductor" } },
+        { SCENE_CORNELL_BOX_PLASTIC, { @"media/cornellbox-plastic", @"media/reference-pbrt/cornellbox-plastic" } },
+        { SCENE_CORNELL_BOX_DIELECTRIC, { @"media/cornellbox-dielectric", @"media/reference-pbrt/cornellbox-dielectric" } },
+        { SCENE_CORNELL_BOX_SPHERES, { @"media/cornellbox-water-spheres", @"media/reference-pbrt/cornellbox-water-spheres" } },
         { SCENE_CORNELL_BOX_SMALL_LIGHT, { @"media/cornellbox-small-light", @"media/reference/cornellbox-small-light" } },
     };
 

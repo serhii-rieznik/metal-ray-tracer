@@ -13,8 +13,10 @@
 #define PI                          3.1415926536
 #define DOUBLE_PI                   6.2831853072
 #define INVERSE_PI                  0.3183098862
-#define DISTANCE_EPSILON            0.0033333333
+
+#define DISTANCE_EPSILON            0.0001111111
 #define ANGLE_EPSILON               0.0001523048
+
 #define LUMINANCE_VECTOR            packed_float3(0.2126f, 0.7152f, 0.0722f)
 
 #define ENABLE_IMAGE_ACCUMULATION   1
