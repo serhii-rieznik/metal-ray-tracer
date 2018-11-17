@@ -39,6 +39,16 @@ kernel void generateRays(device Ray* rays [[buffer(0)]],
     const float3 origin = float3(0.0f, 75.0f, -175.0f);
     const float3 target = float3(0.0f, 10.0f, 0.0f);
     const float fov = (47.5 + 0.125) * PI / 180.0f;
+#elif (SCENE == SCENE_FURNACE_LIGHT_SAMPLING)
+    float3 up = float3(0.0f, 1.0, 0.0);
+    const float3 origin = float3(0.0f, 0.0f, 75.0f);
+    const float3 target = float3(0.0f, 0.0f, 0.0f);
+    const float fov = 35.0 * PI / 180.0f;
+#elif ((SCENE == SCENE_GLASS_SPHERE) || (SCENE == SCENE_GLASS_SPHERE_BOX))
+    float3 up = float3(0.0f, 1.0, 0.0);
+    const float3 origin = float3(0.0f, 50.0f, -150.0f);
+    const float3 target = float3(0.0f, 25.0f, 0.0f);
+    const float fov = 45.0 * PI / 180.0f;
 #else
 #   error No scene is defined
 #endif
@@ -70,10 +80,10 @@ kernel void generateRays(device Ray* rays [[buffer(0)]],
         r.base.maxDistance = INFINITY;
         r.radiance = 0.0f;
         r.throughput = 1.0f;
-        r.misPdf = 0.0f;
+        r.misPdf = 1.0f;
         r.bounces = 0;
-        r.completed = 0;
         r.generation = (appData.frameIndex == 0) ? 0 : (r.generation + 1);
+        r.completed = 0;
         rays[rayIndex] = r;
     }
 }
@@ -122,26 +132,28 @@ kernel void handleIntersections(texture2d<float> environment [[texture(0)]],
     
     Vertex currentVertex = interpolate(a, b, c, i.coordinates);
 
+    // if (currentRay.bounces == 0)
     if ((currentRay.bounces < MAX_PATH_LENGTH) && (dot(material.emissive, material.emissive) > 0.0))
     {
-#   if (IS_MODE == IS_MODE_MIS)
-        float lightSamplePdf = lightSamplingPdf(currentVertex.n, currentVertex.v - currentRay.base.origin, triangle.area);
-        float3 weight = currentRay.throughput *
-            ((currentRay.bounces == 0) ? 1.0f : powerHeuristic(currentRay.misPdf, lightSamplePdf));
-        weight *= float(dot(currentRay.base.direction, currentVertex.n) < 0.0f);
-#   elif (IS_MODE == IS_MODE_BSDF)
-        float3 weight = currentRay.throughput;
-        weight *= float(dot(currentRay.base.direction, currentVertex.n) < 0.0f);
-#   elif (IS_MODE == IS_MODE_LIGHT)
-        float3 weight = float(currentRay.bounces == 0);
-#   endif
+        float3 direction = currentVertex.v - currentRay.base.origin;
+        float samplePdf = triangle.discretePdf * directSamplingPdf(currentVertex.n, direction, triangle.area);
 
-        currentRay.radiance += material.emissive * weight;
+        float weights[3] = {
+            powerHeuristic(currentRay.misPdf, samplePdf), // IS_MODE_MIS
+            0.0f, // IS_MODE_LIGHT
+            1.0f, // IS_MODE_BSDF
+        };
+
+        float weight = float(currentRay.bounces == 0) ? 1.0f : weights[IS_MODE];
+
+        weight *= float(dot(currentRay.base.direction, currentVertex.n) < 0.0f);
+        currentRay.radiance += material.emissive * currentRay.throughput * weight;
     }
 
     // generate next bounce
     {
         SampledMaterial materialSample = sampleMaterial(material, currentVertex.n, currentRay.base.direction, randomSample);
+        
         currentRay.base.origin = currentVertex.v + materialSample.direction * DISTANCE_EPSILON;
         currentRay.base.direction = materialSample.direction;
         currentRay.throughput *= materialSample.weight;

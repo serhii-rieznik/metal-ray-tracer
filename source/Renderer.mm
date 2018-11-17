@@ -315,6 +315,9 @@ static std::uniform_real_distribution<float> uniformFloatDistribution(0.0f, 1.0f
         { SCENE_CORNELL_BOX_DIELECTRIC, { @"media/cornellbox-dielectric", @"media/reference-pbrt/cornellbox-dielectric" } },
         { SCENE_CORNELL_BOX_SPHERES, { @"media/cornellbox-water-spheres", @"media/reference-pbrt/cornellbox-water-spheres" } },
         { SCENE_CORNELL_BOX_SMALL_LIGHT, { @"media/cornellbox-small-light", @"media/reference/cornellbox-small-light" } },
+        { SCENE_FURNACE_LIGHT_SAMPLING, { @"media/furnace-light-sampling", @"media/reference/furnace-light-sampling" } },
+        { SCENE_GLASS_SPHERE, { @"media/glass-sphere", @"media/reference/glass-sphere" } },
+        { SCENE_GLASS_SPHERE_BOX, { @"media/glass-sphere-with-box", @"media/reference/glass-sphere-with-box" } },
     };
 
     uint32_t sceneId = SCENE;
@@ -397,7 +400,7 @@ static std::uniform_real_distribution<float> uniformFloatDistribution(0.0f, 1.0f
     appData->frameIndex = _frameContinuousIndex;
     appData->emitterTrianglesCount = _geometryProvider.emitterTriangleCount();
     appData->time = frameTime;
-    
+
     ++_frameContinuousIndex;
 }
 

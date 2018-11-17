@@ -9,6 +9,12 @@
 #include "GeometryProvider.h"
 #include "../external/tinyobjloader/tiny_obj_loader.h"
 
+#define VALIDATE_SAMPLING_FUNCTION 0
+
+#if (VALIDATE_SAMPLING_FUNCTION)
+#   include <set>
+#endif
+
 class BufferConstructor
 {
 public:
@@ -92,7 +98,8 @@ void GeometryProvider::loadFile(const std::string& fileName, id<MTLDevice> devic
         }
         else
         {
-            NSLog(@" + material: %s, r: %.3f - %s", materialTypeToString(material.type), mtl.roughness, mtl.name.c_str());
+            NSLog(@" + material: %s, r: %.3f - %s (%.3f, %.3f, %.3f)", materialTypeToString(material.type), mtl.roughness, mtl.name.c_str(),
+                  mtl.diffuse[0], mtl.diffuse[1], mtl.diffuse[2]);
         }
     }
 
@@ -102,6 +109,7 @@ void GeometryProvider::loadFile(const std::string& fileName, id<MTLDevice> devic
     std::vector<EmitterTriangle> emitterTriangleBuffer;
 
     uint32_t globalTriangleIndex = 0;
+    float totalLightArea = 0.0f;
     float totalLightScaledArea = 0.0f;
     for (const tinyobj::shape_t& shape : shapes)
     {
@@ -143,51 +151,118 @@ void GeometryProvider::loadFile(const std::string& fileName, id<MTLDevice> devic
             const Vertex& v0 = vertexBuffer[vertexBuffer.size() - 3];
             const Vertex& v1 = vertexBuffer[vertexBuffer.size() - 2];
             const Vertex& v2 = vertexBuffer[vertexBuffer.size() - 1];
+
+            const Material& material = materialBuffer[shape.mesh.material_ids[f]];
+            float emissiveScale = simd_dot(material.emissive, simd_float3{0.2126f, 0.7152f, 0.0722f});
+
             float area = 0.5f * simd_length(simd_cross(v2.v - v0.v, v1.v - v0.v));
+            float scaledArea = area * emissiveScale;
 
             triangleBuffer[triangleBufferOffset].materialIndex = shape.mesh.material_ids[f];
             triangleBuffer[triangleBufferOffset].area = area;
 
-            const Material& material = materialBuffer[triangleBuffer[triangleBufferOffset].materialIndex];
             if (simd_length(material.emissive) > 0.0f)
             {
-                float emissiveScale = simd_dot(material.emissive, simd_float3{0.2126f, 0.7152f, 0.0722f});
                 emitterTriangleBuffer.emplace_back();
                 emitterTriangleBuffer.back().area = area;
-                emitterTriangleBuffer.back().scaledArea = area * emissiveScale;
+                emitterTriangleBuffer.back().scaledArea = scaledArea;
                 emitterTriangleBuffer.back().globalIndex = globalTriangleIndex;
                 emitterTriangleBuffer.back().v0 = v0;
                 emitterTriangleBuffer.back().v1 = v1;
                 emitterTriangleBuffer.back().v2 = v2;
                 emitterTriangleBuffer.back().emissive = material.emissive;
+                totalLightArea += emitterTriangleBuffer.back().area;
                 totalLightScaledArea += emitterTriangleBuffer.back().scaledArea;
-
             }
+
             ++triangleBufferOffset;
             ++globalTriangleIndex;
         }
     }
 
     // std::random_shuffle(std::begin(emitterTriangleBuffer), std::end(emitterTriangleBuffer));
+
     //*
     std::sort(std::begin(emitterTriangleBuffer), std::end(emitterTriangleBuffer), [](const EmitterTriangle& l, const EmitterTriangle& r){
-        return l.area < r.area;
+        return l.scaledArea < r.scaledArea;
     });
     // */
-    _emitterTriangleCount = static_cast<uint32_t>(emitterTriangleBuffer.size());
 
-    float cdf = 0.0f;
+    _emitterTriangleCount = static_cast<uint32_t>(emitterTriangleBuffer.size());
+    float emittersCDFIntegral = 0.0f;
+
     for (EmitterTriangle& t : emitterTriangleBuffer)
     {
-        t.cdf = cdf;
-        t.pdf = t.scaledArea / totalLightScaledArea;
-        cdf += t.pdf;
+        t.cdf = emittersCDFIntegral;
+        t.discretePdf = (t.scaledArea / totalLightScaledArea);
+        triangleBuffer[t.globalIndex].discretePdf = t.discretePdf;
+        emittersCDFIntegral += t.scaledArea;
 
-        triangleBuffer[t.globalIndex].emitterPdf = t.pdf;
-        triangleBuffer[t.globalIndex].area = t.area;
+#   if (VALIDATE_SAMPLING_FUNCTION)
+        NSLog(@"E: a - %.3f, sa - %.3f, cdf - %.3f, pdf - %.3f, global: %.3f",
+            t.area, t.scaledArea, t.cdf, t.discretePdf, 0.0f);
+#   endif
     }
+
     emitterTriangleBuffer.emplace_back();
-    emitterTriangleBuffer.back().cdf = 1.0f;
+    emitterTriangleBuffer.back().cdf = emittersCDFIntegral;
+
+    for (EmitterTriangle& t : emitterTriangleBuffer)
+    {
+        t.cdf /= emittersCDFIntegral;
+    }
+
+#if (VALIDATE_SAMPLING_FUNCTION)
+    if (_emitterTriangleCount > 0)
+    {
+        NSLog(@"Total CDF: %.3f, total area: %.3f", emittersCDFIntegral, totalLightScaledArea);
+
+        auto sampleEmitterTriangle = [&emitterTriangleBuffer](float xi) {
+            uint l = 0;
+            uint r = uint(emitterTriangleBuffer.size() - 1);
+
+            bool continueSearch = true;
+            do
+            {
+                uint m = (l + r) / 2;
+                float c = emitterTriangleBuffer[m + 1].cdf;
+                uint setRight = uint32_t(c > xi);
+                uint setLeft = uint32_t(c < xi);
+                r -= setRight * (r - m);
+                l += setLeft * ((m + 1) - l);
+                continueSearch = (l < r) && (setRight + setLeft > 0);
+            } while (continueSearch);
+            return l;
+        };
+
+        std::map<uint32_t, std::pair<float, float>> sampledIndices;
+        std::map<uint32_t, uint32_t> sampledCount;
+        for (uint32_t i = 0; i < 1000000; ++i)
+        {
+            float xi = float(rand()) / float(RAND_MAX);
+            uint t = sampleEmitterTriangle(xi);
+            if (sampledIndices.count(t) == 0)
+            {
+                sampledIndices[t] = { xi, xi };
+            }
+            else
+            {
+                sampledIndices[t].first = std::min(sampledIndices[t].first, xi);
+                sampledIndices[t].second = std::max(sampledIndices[t].second, xi);
+            }
+            sampledCount[t] += 1;
+        }
+        assert(sampledIndices.size() + 1 == emitterTriangleBuffer.size());
+
+        NSLog(@"----------------");
+
+        for (const auto& p : sampledIndices)
+        {
+            NSLog(@"[%2u] CDF: %.4f, xi: [%.4f ... %.4f], size: %.4f, sampled: %u", p.first, emitterTriangleBuffer[p.first].cdf,
+                  p.second.first, p.second.second, p.second.second - p.second.first, sampledCount[p.first]);
+        }
+    }
+#endif
 
     for (uint32_t i = 0; i < indexBuffer.size(); ++i)
         indexBuffer[i] = i;

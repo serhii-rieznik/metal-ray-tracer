@@ -12,14 +12,14 @@
 using namespace metal;
 
 kernel void accumulateImage(texture2d<float, access::read_write> image [[texture(0)]],
-                            device Ray* rays [[buffer(0)]],
+                            device const Ray* rays [[buffer(0)]],
                             constant ApplicationData& appData [[buffer(1)]],
                             uint2 coordinates [[thread_position_in_grid]],
                             uint2 size [[threads_per_grid]])
 {
     uint rayIndex = coordinates.x + coordinates.y * size.x;
-    Ray currentRay = rays[rayIndex];
-    if (currentRay.completed)
+    device const Ray& currentRay = rays[rayIndex];
+    if (currentRay.completed && (currentRay.generation < MAX_SAMPLES))
     {
         float4 outputColor = float4(rays[rayIndex].radiance, 1.0);
 

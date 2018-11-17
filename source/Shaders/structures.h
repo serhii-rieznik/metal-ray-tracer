@@ -37,17 +37,17 @@ struct Material
 
 struct Triangle
 {
-    float emitterPdf = 0.0f;
-    float area = 0.0f;
     uint materialIndex = 0;
+    float area = 0.0f;
+    float discretePdf = 0.0f;
 };
 
 struct EmitterTriangle
 {
     float area = 0.0f;
+    float discretePdf = 0.0f;
     float scaledArea = 0.0f;
     float cdf = 0.0f;
-    float pdf = 0.0f;
     uint globalIndex = 0;
     Vertex v0;
     Vertex v1;
@@ -61,9 +61,10 @@ struct Ray
     packed_float3 radiance = {};
     uint bounces = 0;
     packed_float3 throughput = {};
-    float misPdf = 0.0f;
     uint completed = 0;
+    float misPdf = 0.0f;
     uint generation = 0;
+    uint sampledLightTriangle = uint(-1);
 };
 
 struct LightSamplingRay
@@ -103,11 +104,11 @@ struct RandomSample
 struct LightSample
 {
     packed_float3 value = { };
-    float pdf = 0.0f;
+    float samplePdf = 0.0f;
     packed_float3 direction = { };
+    float emitterPdf = 0.0f;
     uint primitiveIndex = 0;
-    packed_float3 position = { };
-    bool valid = false;
+    uint valid = 0;
 };
 
 struct FresnelSample

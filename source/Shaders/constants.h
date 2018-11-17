@@ -30,14 +30,14 @@
 #define NOISE_BLOCK_SIZE            128
 
 #define MAX_RUN_TIME_IN_SECONDS     (60 * 60 * 24) // one day
-#define MAX_SAMPLES                 0xffffffff
-#define MAX_PATH_LENGTH             0xffffffff
+#define MAX_SAMPLES                 (0x7fffffff)
+#define MAX_PATH_LENGTH             (0x7fffffff)
 
 #define COMPARE_DISABLED            0
 #define COMPARE_TO_REFERENCE        1
 #define COMPARE_TO_GRAY             2
 #define COMPARE_MODE                COMPARE_DISABLED
-#define COMPARE_SCALE               2.0f
+#define COMPARE_SCALE               3.0f
 
 #define CONTENT_SCALE               2
 
@@ -62,6 +62,11 @@
 #define SCENE_SPHERE                    11
 #define SCENE_PBS_SPHERES               12
 
-#define SCENE                           SCENE_CORNELL_BOX_SPHERES
+#define SCENE_FURNACE_LIGHT_SAMPLING    20
+
+#define SCENE_GLASS_SPHERE              30
+#define SCENE_GLASS_SPHERE_BOX          31
+
+#define SCENE                           SCENE_VEACH_MIS
 
 #define SCENE_CORNELL_BOX_MAX           SCENE_CORNELL_BOX_SMALL_LIGHT

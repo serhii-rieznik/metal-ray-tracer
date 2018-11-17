@@ -63,7 +63,7 @@ inline float3 barycentric(float2 smp)
     return float3(1.0f - r1, r1 * (1.0f - r2), r1 * r2);
 }
 
-inline float lightSamplingPdf(float3 n, float3 l, float area)
+inline float directSamplingPdf(float3 n, float3 l, float area)
 {
     float distanceSquared = dot(l, l);
     float cosTheta = -dot(n, l) / sqrt(distanceSquared);
@@ -74,21 +74,22 @@ inline LightSample sampleLight(float3 origin, float3 normal, device const Emitte
     uint emitterTrianglesCount, device const RandomSample& randomSample)
 {
     LightSample lightSample = {};
-    device const EmitterTriangle& emitterTriangle =
+    
+    device const EmitterTriangle& emitter  =
         sampleEmitterTriangle(emitterTriangles, emitterTrianglesCount, randomSample.emitterSample);
 
     float3 lightTriangleBarycentric = barycentric(randomSample.barycentricSample);
-    Vertex lightVertex = interpolate(emitterTriangle.v0, emitterTriangle.v1, emitterTriangle.v2, lightTriangleBarycentric);
+    Vertex lightVertex = interpolate(emitter.v0, emitter.v1, emitter.v2, lightTriangleBarycentric);
     float3 wO = lightVertex.v - origin;
 
-    lightSample.position = lightVertex.v;
     lightSample.direction = normalize(wO);
-    lightSample.pdf = emitterTriangle.pdf * lightSamplingPdf(lightVertex.n, wO, emitterTriangle.area);
-    lightSample.value = emitterTriangle.emissive / lightSample.pdf;
-    lightSample.primitiveIndex = emitterTriangle.globalIndex;
+    lightSample.samplePdf = emitter.discretePdf * directSamplingPdf(lightVertex.n, wO, emitter.area);
+    lightSample.primitiveIndex = emitter.globalIndex;
 
-    lightSample.pdf = isinf(lightSample.pdf) ? 0.0f : lightSample.pdf;
-    lightSample.valid = (lightSample.pdf > 0.0f);
+    lightSample.valid = (lightSample.samplePdf > 0.0f) &&
+        (dot(wO, float3(lightVertex.n)) < 0.0f) && (dot(wO, normal) > 0.0f);
+
+    lightSample.value = lightSample.valid ? (emitter.emissive / lightSample.samplePdf) : 0.0f;
 
     return lightSample;
 }
@@ -134,28 +135,29 @@ inline float powerHeuristic(float fPdf, float gPdf)
 {
     float f2 = sqr(fPdf);
     float g2 = sqr(gPdf);
-    return saturate(f2 / (f2 + g2));
+    return f2 / (f2 + g2);
 }
 
-inline float ggxNormalDistribution(float alphaSquared, float cosTheta)
+inline float ggxNormalDistribution(float alphaSquared, float3 n, float3 m)
 {
+    float cosTheta = dot(n, m);
     float cosThetaSquared = sqr(cosTheta);
     float denom = cosThetaSquared * (alphaSquared - 1.0f) + 1.0f;
     return float(cosTheta > 0.0f) * INVERSE_PI * alphaSquared / (denom * denom);
 }
 
-inline float ggxVisibility(float alphaSquared, float cosTheta)
+inline float ggxVisibility(float alphaSquared, float3 w, float3 n, float3 m)
 {
-    float cosThetaSquared = sqr(cosTheta);
+    float MdotW = dot(m, w);
+    float NdotW = dot(n, w);
+    float cosThetaSquared = sqr(MdotW);
     float tanThetaSquared = (1.0f - cosThetaSquared) / cosThetaSquared;
-    return 2.0f / (1.0f + sqrt(1.0f + alphaSquared * tanThetaSquared));
+    return (MdotW / NdotW > 0.0f) ? (2.0f / (1.0f + sqrt(1.0f + alphaSquared * tanThetaSquared))) : 0.0f;
 }
 
-inline float ggxVisibilityTerm(float alphaSquared, float3 wI, float3 wO, float3 m)
+inline float ggxVisibilityTerm(float alphaSquared, float3 wI, float3 wO, float3 n, float3 m)
 {
-    float MdotI = dot(m, wI);
-    float MdotO = dot(m, wO);
-    return ggxVisibility(alphaSquared, MdotI) * ggxVisibility(alphaSquared, MdotO);
+    return ggxVisibility(alphaSquared, wI, n, m) * ggxVisibility(alphaSquared, wO, n, m);
 }
 
 inline float FresnelConductor(float3 i, float3 m, float etaI, float etaO)
@@ -197,83 +199,4 @@ inline float remapRoughness(float r, float NdotI)
 {
     float alpha = (1.2f - 0.2f * sqrt(abs(NdotI))) * r;
     return alpha * alpha;
-}
-
-inline bool evaluateDiffuseReflection(device const Material& material, float3 n, float3 m, float3 wI, float3 wO,
-    thread packed_float3& bsdf, thread float& pdf, thread packed_float3& weight)
-{
-    float NdotO = dot(n, wO);
-    float scale = float(NdotO > 0.0f);
-    {
-        bsdf = scale * material.diffuse * INVERSE_PI * NdotO;
-        pdf = scale * INVERSE_PI * NdotO;
-        weight = scale * material.diffuse;
-    }
-    return (scale > 0.0f);
-}
-
-inline bool evaluateRoughDiffuseReflection(device const Material& material, float3 n, float3 m, float3 wI, float3 wO,
-    thread packed_float3& bsdf, thread float& pdf, thread packed_float3& weight)
-{
-    float NdotO = dot(n, wO);
-    float MdotO = dot(m, wO);
-    float MdotI = -dot(m, wI);
-    float fV = pow(1.0f - MdotI, 5.0f);
-    float fL = pow(1.0f - MdotO, 5.0f);
-    float scale = float(NdotO > 0.0f) * float(MdotO > 0.0f) * float(MdotI > 0.0f);
-    {
-        bsdf = scale * material.diffuse * INVERSE_PI * NdotO * (1.0f - 0.5f * fL) * (1.0f - 0.5f * fV);
-        pdf = scale * INVERSE_PI * NdotO;
-        weight = scale * material.diffuse * (1.0f - 0.5f * fL) * (1.0f - 0.5f * fV);
-    }
-    return (scale > 0.0f);
-}
-
-inline bool evaluateMicrofacetReflection(device const Material& material, float3 n, float3 m, float3 wI, float3 wO,
-    thread const FresnelSample& F, thread packed_float3& bsdf, thread float& pdf, thread packed_float3& weight)
-{
-    float NdotO = dot(n, wO);
-    float NdotM = dot(n, m);
-    float MdotO = dot(m, wO);
-    float NdotI = -dot(n, wI);
-    float alpha = remapRoughness(material.roughness, NdotI);
-    float D = ggxNormalDistribution(alpha, NdotM);
-    float G = ggxVisibilityTerm(alpha, wI, wO, n);
-    float J = 1.0f / (4.0 * MdotO);
-    float scale = float(NdotO > 0.0f) * float(NdotI > 0.0f);
-    {
-        bsdf = material.specular * (scale * F.value * D * G / (4.0 * NdotI));
-        pdf = scale * D * NdotM * J;
-        weight = material.specular * (scale * F.value * G * MdotO / (NdotM * NdotI));
-    }
-    return (NdotO > 0.0f) && (NdotI > 0.0f);
-}
-
-inline bool evaluateMicrofacetTransmission(device const Material& material, float3 n, float3 m, float3 wI, float3 wO,
-    thread const FresnelSample& F, thread packed_float3& bsdf, thread float& pdf, thread packed_float3& weight)
-{
-    float NdotI = -dot(n, wI);
-    float NdotO = dot(n, wO);
-    float NdotM = dot(n, m);
-
-    if ((F.value >= 1.0f) || (NdotI * NdotO >= 0.0f))
-        return false;
-
-    float alpha = remapRoughness(material.roughness, NdotI);
-
-    float3 h = normalize(wO * F.etaO - wI * F.etaI);
-    float HdotI = abs(dot(h, wI));
-    float HdotO = abs(dot(h, wO));
-    float D = ggxNormalDistribution(alpha, NdotM);
-    float G = ggxVisibilityTerm(alpha, wI, wO, n);
-    float J = HdotO / sqr(F.etaI * HdotI + F.etaO * HdotO);
-
-    bsdf = material.transmittance *
-        (1.0f - F.value) * D * G * HdotI * HdotO / (NdotI * sqr(F.etaI * HdotI + F.etaO * HdotO));
-
-    pdf = D * NdotM * J;
-
-    weight = material.transmittance * (1.0f - F.value) * G * HdotI / (NdotI * NdotM);
-
-    return (pdf > 0.0f);
 }

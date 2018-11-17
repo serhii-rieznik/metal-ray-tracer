@@ -27,7 +27,6 @@ kernel void generateLightSamplingRays(device const Intersection* intersections [
                                       uint2 size [[threads_per_grid]])
 {
     uint rayIndex = coordinates.x + coordinates.y * size.x;
-    device const Ray& currentRay = rays[rayIndex];
     device const Intersection& i = intersections[rayIndex];
     device const Triangle& triangle = triangles[i.primitiveIndex];
     device const Material& material = materials[triangle.materialIndex];
@@ -52,24 +51,28 @@ kernel void generateLightSamplingRays(device const Intersection* intersections [
     LightSample lightSample = sampleLight(currentVertex.v, currentVertex.n, emitterTriangles,
         appData.emitterTrianglesCount, randomSample);
 
+    device Ray& currentRay = rays[rayIndex];
+    currentRay.sampledLightTriangle = lightSample.primitiveIndex;
+
     SampledMaterial materialSample = evaluateMaterial(material, currentVertex.n, currentRay.base.direction,
         lightSample.direction, randomSample);
 
-#if (IS_MODE == IS_MODE_MIS)
-    float weight = powerHeuristic(lightSample.pdf, materialSample.pdf);
-#elif (IS_MODE == IS_MODE_LIGHT)
-    float weight = 1.0f;
-#elif (IS_MODE == IS_MODE_BSDF)
-    float weight = 0.0f;
-#endif
+    float weights[3] = {
+        powerHeuristic(lightSample.samplePdf, materialSample.pdf), // IS_MODE_MIS
+        1.0f, // IS_MODE_LIGHT
+        0.0f // IS_MODE_BSDF
+    };
 
     device LightSamplingRay& lightSamplingRay = lightSamplingRays[rayIndex];
+
     lightSamplingRay.base.origin = currentVertex.v + lightSample.direction * DISTANCE_EPSILON;
     lightSamplingRay.base.direction = lightSample.direction;
     lightSamplingRay.base.minDistance = DISTANCE_EPSILON;
-    lightSamplingRay.base.maxDistance = (materialSample.valid && lightSample.valid) ? INFINITY : -1.0;
-    lightSamplingRay.targetPrimitiveIndex = (materialSample.valid && lightSample.valid) ? lightSample.primitiveIndex : uint(-2);
-    lightSamplingRay.throughput = currentRay.throughput * lightSample.value * materialSample.bsdf * weight;
+    lightSamplingRay.base.maxDistance = INFINITY;
+    lightSamplingRay.targetPrimitiveIndex = lightSample.primitiveIndex;
+
+    lightSamplingRay.throughput = (materialSample.valid && lightSample.valid) ?
+        (materialSample.bsdf * lightSample.value * weights[IS_MODE]) : 0.0f;
 }
 
 kernel void lightSamplingHandler(device const LightSamplingIntersection* intersections [[buffer(0)]],
@@ -83,7 +86,7 @@ kernel void lightSamplingHandler(device const LightSamplingIntersection* interse
     {
         if (rays[rayIndex].bounces + 1 < MAX_PATH_LENGTH)
         {
-            rays[rayIndex].radiance += lightSamplingRays[rayIndex].throughput;
+            rays[rayIndex].radiance += rays[rayIndex].throughput * lightSamplingRays[rayIndex].throughput;
         }
     }
 }

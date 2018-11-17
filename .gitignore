@@ -1,2 +1,5 @@
 Metal ray-tracer.xcodeproj/project.xcworkspace/xcuserdata/s_reznik.xcuserdatad
 *.mip
+media/reference-pbrt/*.exr
+media/reference/*.exr
+media/*.exr

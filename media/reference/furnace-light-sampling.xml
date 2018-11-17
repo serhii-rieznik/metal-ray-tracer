@@ -37,7 +37,7 @@
 	<sensor type="perspective">
 		<float name="farClip" value="1241.42"/>
 		<float name="focusDistance" value="448.609"/>
-		<float name="fov" value="34.5159"/>
+		<float name="fov" value="35"/>
 		<string name="fovAxis" value="x"/>
 		<float name="nearClip" value="2.41421"/>
 		<transform name="toWorld">
