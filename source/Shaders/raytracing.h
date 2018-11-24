@@ -86,8 +86,8 @@ inline LightSample sampleLight(float3 origin, float3 normal, device const Emitte
     lightSample.samplePdf = emitter.discretePdf * directSamplingPdf(lightVertex.n, wO, emitter.area);
     lightSample.primitiveIndex = emitter.globalIndex;
 
-    lightSample.valid = (lightSample.samplePdf > 0.0f) &&
-        (dot(wO, float3(lightVertex.n)) < 0.0f) && (dot(wO, normal) > 0.0f);
+    lightSample.valid = (dot(normal, wO) > 0.0f) && (dot(float3(lightVertex.n), wO) < 0.0f) && (lightSample.samplePdf > 0.0f);
+        // (lightSample.samplePdf > 0.0f) && (dot(wO, float3(lightVertex.n)) < 0.0f) && (dot(wO, normal) > 0.0f);
 
     lightSample.value = lightSample.valid ? (emitter.emissive / lightSample.samplePdf) : 0.0f;
 
@@ -143,16 +143,22 @@ inline float ggxNormalDistribution(float alphaSquared, float3 n, float3 m)
     float cosTheta = dot(n, m);
     float cosThetaSquared = sqr(cosTheta);
     float denom = cosThetaSquared * (alphaSquared - 1.0f) + 1.0f;
-    return float(cosTheta > 0.0f) * INVERSE_PI * alphaSquared / (denom * denom);
+    return float(cosTheta > 0.0f) ? (alphaSquared / (PI * denom * denom)) : 0.0f;
 }
 
 inline float ggxVisibility(float alphaSquared, float3 w, float3 n, float3 m)
 {
-    float MdotW = dot(m, w);
     float NdotW = dot(n, w);
-    float cosThetaSquared = sqr(MdotW);
+    float MdotW = dot(m, w);
+    if (MdotW * NdotW <= 0.0f)
+        return 0.0f;
+
+    float cosThetaSquared = NdotW * NdotW;
     float tanThetaSquared = (1.0f - cosThetaSquared) / cosThetaSquared;
-    return (MdotW / NdotW > 0.0f) ? (2.0f / (1.0f + sqrt(1.0f + alphaSquared * tanThetaSquared))) : 0.0f;
+    if (tanThetaSquared == 0.0f)
+        return 1.0f;
+
+    return 2.0f / (1.0f + sqrt(1.0f + alphaSquared * tanThetaSquared));
 }
 
 inline float ggxVisibilityTerm(float alphaSquared, float3 wI, float3 wO, float3 n, float3 m)
@@ -160,24 +166,29 @@ inline float ggxVisibilityTerm(float alphaSquared, float3 wI, float3 wO, float3 
     return ggxVisibility(alphaSquared, wI, n, m) * ggxVisibility(alphaSquared, wO, n, m);
 }
 
-inline float FresnelConductor(float3 i, float3 m, float etaI, float etaO)
+inline float fresnelConductor(float3 i, float3 m, float etaI, float etaO)
 {
     return 1.0f;
 }
 
-inline float fresnelDielectric(float3 i, float3 m, float etaI, float etaO)
+inline float fresnelDielectric(float3 i, float3 m, float eta)
 {
     float result = 1.0f;
     float cosThetaI = abs(dot(i, m));
-    float sinThetaOSquared = sqr(etaI / etaO) * (1.0f - cosThetaI * cosThetaI);
+    float sinThetaOSquared = (eta * eta) * (1.0f - cosThetaI * cosThetaI);
     if (sinThetaOSquared <= 1.0)
     {
         float cosThetaO = sqrt(saturate(1.0f - sinThetaOSquared));
-        float Rs = (etaI * cosThetaI - etaO * cosThetaO) / (etaI * cosThetaI + etaO * cosThetaO);
-        float Rp = (etaO * cosThetaI - etaI * cosThetaI) / (etaO * cosThetaI + etaI * cosThetaI);
+        float Rs = (cosThetaI - eta * cosThetaO) / (cosThetaI + eta * cosThetaO);
+        float Rp = (eta * cosThetaI - cosThetaO) / (eta * cosThetaI + cosThetaO);
         result = 0.5f * (Rs * Rs + Rp * Rp);
     }
     return result;
+}
+
+inline float fresnelDielectric(float3 i, float3 m, float etaI, float etaO)
+{
+    return fresnelDielectric(i, m, etaI / etaO);
 }
 
 inline float2 directionToEquirectangularCoordinates(float3 d)

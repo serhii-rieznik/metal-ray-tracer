@@ -14,6 +14,6 @@
 
 namespace TextureProvider {
 
-id<MTLTexture> loadFile(const std::string&, id<MTLDevice>);
+id<MTLTexture> loadFile(const char*, id<MTLDevice>);
 
 }

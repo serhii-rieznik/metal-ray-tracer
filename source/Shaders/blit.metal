@@ -7,7 +7,7 @@
 //
 
 #include <metal_stdlib>
-#include "constants.h"
+#include "structures.h"
 
 using namespace metal;
 
@@ -32,30 +32,27 @@ vertex BlitVertexOut blitVertex(uint vertexIndex [[vertex_id]])
     return out;
 }
 
-fragment float4 blitFragment(BlitVertexOut in [[stage_in]]
-                             , texture2d<float> image [[texture(0)]]
-#                            if (COMPARE_TO_REFERENCE)
-                             , texture2d<float> reference [[texture(1)]]
-#                            endif
+fragment float4 blitFragment(BlitVertexOut in [[stage_in]],
+                             constant ApplicationData& appData [[buffer(0)]],
+                             texture2d<float> image [[texture(0)]],
+                             texture2d<float> reference [[texture(1)]]
                              )
 {
     constexpr sampler defaultSampler(coord::normalized, filter::nearest);
     float4 color = image.sample(defaultSampler, in.coords);
 
-#if (COMPARE_MODE != COMPARE_DISABLED)
+    if (appData.comparisonMode != COMPARE_DISABLED)
     {
-#   if (COMPARE_MODE == COMPARE_TO_REFERENCE)
-        float4 referenceColor = reference.sample(defaultSampler, float2(in.coords.x, 1.0f - in.coords.y));
-#   elif (COMPARE_MODE == COMPARE_TO_GRAY)
-        float4 referenceColor = 0.5f;
-#   endif
+        float4 referenceImageColor = reference.sample(defaultSampler, float2(in.coords.x, 1.0f - in.coords.y));
+        float4 neutralColor = 0.5f;
+
+        float4 referenceColor = (appData.comparisonMode == COMPARE_TO_REFERENCE) ? referenceImageColor : neutralColor;
+
         float colorLum = dot(color, float4(1.0f / 3.0f, 1.0f / 3.0f, 1.0f / 3.0f, 0.0f));
         float referenceLum = dot(referenceColor, float4(1.0f / 3.0f, 1.0f / 3.0f, 1.0f / 3.0f, 0.0f));
-        float diff = (colorLum - referenceLum) * COMPARE_SCALE;
+        float diff = (colorLum - referenceLum);
         color = (diff > 0.0f) ? float4(0.0f, diff, 0.0f, 1.0f) : float4(-diff, 0.0f, 0.0f, 1.0f);
-        color *= COMPARE_SCALE;
     }
-#endif
 
     return color;
 }

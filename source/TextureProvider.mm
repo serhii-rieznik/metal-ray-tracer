@@ -12,8 +12,11 @@
 namespace TextureProvider
 {
 
-id<MTLTexture> loadFile(const std::string& fileName, id<MTLDevice> device)
+id<MTLTexture> loadFile(const char* fileName, id<MTLDevice> device)
 {
+    if ((fileName == nullptr) || (strlen(fileName) == 0))
+        return nil;
+
     union
     {
         char* error = nullptr;
@@ -24,12 +27,22 @@ id<MTLTexture> loadFile(const std::string& fileName, id<MTLDevice> device)
     int width = 0;
     int height = 0;
 
-    int loadResult = LoadEXR(&rgbaData, &width, &height, fileName.c_str(), &constError);
+    const char* fileNamePtr = fileName;
+    if (strncmp(fileNamePtr, "file://", 7) == 0)
+    {
+        fileNamePtr += 7;
+    }
+    else if (strncmp(fileNamePtr, "file:", 5) == 0)
+    {
+        fileNamePtr += 5;
+    }
+
+    int loadResult = LoadEXR(&rgbaData, &width, &height, fileNamePtr, &constError);
     if (loadResult != TINYEXR_SUCCESS)
     {
         if (error != nullptr)
         {
-            NSLog(@"Failed to load EXR file: %s", fileName.c_str());
+            NSLog(@"Failed to load EXR file: %s", fileName);
             NSLog(@"Error: %s", error);
             free(error);
             return nil;

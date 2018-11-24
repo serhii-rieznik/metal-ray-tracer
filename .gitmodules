@@ -7,3 +7,6 @@
 [submodule "external/tinyexr"]
 	path = external/tinyexr
 	url = https://github.com/syoyo/tinyexr.git
+[submodule "references"]
+	path = references
+	url = https://github.com/sergeyreznik/raytracing-references.git

@@ -12,5 +12,8 @@
 
 -(nonnull instancetype)initWithMetalKitView:(nonnull MTKView *)view;
 
+- (void)initializeRayTracingWithFile:(nonnull NSString*)fileName;
+- (void)setComparisonMode:(uint32_t)mode;
+
 @end
 

@@ -14,77 +14,44 @@
 using namespace metal;
 
 kernel void generateRays(device Ray* rays [[buffer(0)]],
-                         device vector_float4* noise [[buffer(1)]],
+                         device const RandomSample* noise [[buffer(1)]],
                          constant ApplicationData& appData [[buffer(2)]],
                          uint2 coordinates [[thread_position_in_grid]],
                          uint2 size [[threads_per_grid]])
 {
-#if (SCENE <= SCENE_CORNELL_BOX_MAX)
-    float3 up = float3(0.0f, 1.0f, 0.0f);
-    const float3 origin = float3(0.0f, 1.0f, 2.35f);
-    const float3 target = float3(0.0f, 1.0f, 0.0f);
-    const float fov = 90.0f * PI / 180.0f;
-#elif (SCENE == SCENE_VEACH_MIS)
-    float3 up = float3(0.0f, 0.952424f, -0.304776f);
-    const float3 origin = float3(0.0f, 2.0f, 15.0f);
-    const float3 target = float3(0.0f, 1.69522f, 14.0476f);
-    const float fov = 36.7774f * PI / 180.0f;
-#elif (SCENE == SCENE_SPHERE)
-    float3 up = float3(0.0f, 1.0, 0.0);
-    const float3 origin = float3(0.0f, 0.0f, 100.0f);
-    const float3 target = float3(0.0f, 0.0f, 0.0);
-    const float fov = 50.0f * PI / 180.0f;
-#elif (SCENE == SCENE_PBS_SPHERES)
-    float3 up = float3(0.0f, 1.0, 0.0);
-    const float3 origin = float3(0.0f, 75.0f, -175.0f);
-    const float3 target = float3(0.0f, 10.0f, 0.0f);
-    const float fov = (47.5 + 0.125) * PI / 180.0f;
-#elif (SCENE == SCENE_FURNACE_LIGHT_SAMPLING)
-    float3 up = float3(0.0f, 1.0, 0.0);
-    const float3 origin = float3(0.0f, 0.0f, 75.0f);
-    const float3 target = float3(0.0f, 0.0f, 0.0f);
-    const float fov = 35.0 * PI / 180.0f;
-#elif ((SCENE == SCENE_GLASS_SPHERE) || (SCENE == SCENE_GLASS_SPHERE_BOX))
-    float3 up = float3(0.0f, 1.0, 0.0);
-    const float3 origin = float3(0.0f, 50.0f, -150.0f);
-    const float3 target = float3(0.0f, 25.0f, 0.0f);
-    const float fov = 45.0 * PI / 180.0f;
-#else
-#   error No scene is defined
-#endif
-
     uint rayIndex = coordinates.x + coordinates.y * size.x;
-    Ray r = rays[rayIndex];
-    uint comp = r.completed;
-    uint fi = appData.frameIndex;
-    if ((fi == 0) || (comp != 0))
+    device Ray& r = rays[rayIndex];
+    if ((appData.frameIndex == 0) || (r.completed != 0))
     {
-        float3 direction = normalize(target - origin);
+        float3 up = float3(0.0f, 1.0f, 0.0f);
+        float3 direction = normalize(appData.camera.target - appData.camera.origin);
         float3 side = cross(direction, up);
         up = cross(side, direction);
-        float fovScale = tan(fov / 2.0f);
+        float fovScale = tan(appData.camera.fov / 2.0f);
 
-        uint randomSampleIndex = (coordinates.x % NOISE_BLOCK_SIZE) + NOISE_BLOCK_SIZE * (coordinates.y % NOISE_BLOCK_SIZE);
-        device const float4& randomSample = noise[randomSampleIndex];
+        uint randomSampleIndex = (coordinates.x % NOISE_BLOCK_SIZE) + (coordinates.y % NOISE_BLOCK_SIZE) * NOISE_BLOCK_SIZE;
+        device const RandomSample& randomSample = noise[randomSampleIndex];
 
         float aspect = float(size.y) / float(size.x);
         float2 uv = float2(coordinates) / float2(size - 1) * 2.0f - 1.0f;
-        float2 rnd = (randomSample.xy * 2.0 - 1.0) / float2(size);
-        float ax = fovScale * (uv.x + rnd.x);
-        float ay = fovScale * (uv.y + rnd.y) * aspect;
+
+        float2 r1 = randomSample.pixelSample;
+        float2 rnd = (r1 * 2.0f - 1.0f) / float2(size);
+        float ax = fovScale * (uv.x) + rnd.x;
+        float ay = fovScale * (uv.y) * aspect + rnd.y;
         float az = 1.0f;
 
-        r.base.origin = origin;
+        r.base.origin = appData.camera.origin;
         r.base.direction = normalize(ax * side + ay * up + az * direction);
         r.base.minDistance = DISTANCE_EPSILON;
         r.base.maxDistance = INFINITY;
         r.radiance = 0.0f;
+        r.bounces = 0;
         r.throughput = 1.0f;
         r.misPdf = 1.0f;
-        r.bounces = 0;
+        r.eta = 1.0f;
         r.generation = (appData.frameIndex == 0) ? 0 : (r.generation + 1);
         r.completed = 0;
-        rays[rayIndex] = r;
     }
 }
 
@@ -111,9 +78,7 @@ kernel void handleIntersections(texture2d<float> environment [[texture(0)]],
 
     if (i.distance < 0.0f)
     {
-        currentRay.radiance += currentRay.throughput *
-            (appData.environmentColor + sampleEnvironment(environment, currentRay.base.direction));
-
+        currentRay.radiance += currentRay.throughput * (appData.environmentColor + sampleEnvironment(environment, currentRay.base.direction));
         currentRay.base.maxDistance = -1.0;
         currentRay.throughput = 0.0;
         currentRay.completed = 1;
@@ -132,20 +97,18 @@ kernel void handleIntersections(texture2d<float> environment [[texture(0)]],
     
     Vertex currentVertex = interpolate(a, b, c, i.coordinates);
 
-    // if (currentRay.bounces == 0)
-    if ((currentRay.bounces < MAX_PATH_LENGTH) && (dot(material.emissive, material.emissive) > 0.0))
+    if ((currentRay.completed == 0) && (dot(material.emissive, material.emissive) > 0.0))
     {
         float3 direction = currentVertex.v - currentRay.base.origin;
         float samplePdf = triangle.discretePdf * directSamplingPdf(currentVertex.n, direction, triangle.area);
 
         float weights[3] = {
-            powerHeuristic(currentRay.misPdf, samplePdf), // IS_MODE_MIS
+            MIS_ENABLE_BSDF_SAMPLING ? powerHeuristic(currentRay.misPdf, samplePdf) : 0.0f, // IS_MODE_MIS
             0.0f, // IS_MODE_LIGHT
             1.0f, // IS_MODE_BSDF
         };
 
         float weight = float(currentRay.bounces == 0) ? 1.0f : weights[IS_MODE];
-
         weight *= float(dot(currentRay.base.direction, currentVertex.n) < 0.0f);
         currentRay.radiance += material.emissive * currentRay.throughput * weight;
     }
@@ -153,20 +116,30 @@ kernel void handleIntersections(texture2d<float> environment [[texture(0)]],
     // generate next bounce
     {
         SampledMaterial materialSample = sampleMaterial(material, currentVertex.n, currentRay.base.direction, randomSample);
-        
-        currentRay.base.origin = currentVertex.v + materialSample.direction * DISTANCE_EPSILON;
-        currentRay.base.direction = materialSample.direction;
-        currentRay.throughput *= materialSample.weight;
-        currentRay.misPdf = materialSample.pdf;
-        currentRay.bounces += 1;
-        currentRay.completed = (materialSample.valid == 0) || (currentRay.bounces >= MAX_PATH_LENGTH);
+
+        if (materialSample.valid)
+        {
+            currentRay.base.origin = currentVertex.v + materialSample.direction * DISTANCE_EPSILON;
+            currentRay.base.direction = materialSample.direction;
+            currentRay.throughput *= materialSample.weight;
+            currentRay.misPdf = materialSample.pdf;
+            currentRay.bounces += 1;
+            currentRay.eta *= materialSample.eta;
+        }
+        else
+        {
+            currentRay.base.maxDistance = -1.0f;
+            currentRay.throughput = 0.0f;
+            currentRay.misPdf = 0.0f;
+        }
+        currentRay.completed = uint(materialSample.valid == 0) + uint(currentRay.bounces >= MAX_PATH_LENGTH);
     }
 
 #if (ENABLE_RUSSIAN_ROULETTE)
     if (currentRay.bounces >= 5)
     {
         float m = max(currentRay.throughput.x, max(currentRay.throughput.y, currentRay.throughput.z));
-        float q = min(0.95f, m);
+        float q = min(m * sqr(currentRay.eta), 0.95f);
         if (randomSample.rrSample >= q)
         {
             currentRay.completed = 1;

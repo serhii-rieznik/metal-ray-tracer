@@ -32,23 +32,42 @@ private:
     id<MTLDevice> _device;
 };
 
-void GeometryProvider::loadFile(const std::string& fileName, id<MTLDevice> device)
+GeometryProvider::GeometryProvider(const char* fileName, id<MTLDevice> device)
 {
+    if ((fileName == nullptr) || (strlen(fileName) == 0))
+        return;
+
+    NSLog(@"Loading .obj file `%s`...", fileName);
+    
     tinyobj::attrib_t attrib;
     std::vector<tinyobj::shape_t> shapes;
     std::vector<tinyobj::material_t> materials;
     std::string errors;
     std::string warnings;
+
     std::string baseDir = fileName;
     size_t slash = baseDir.find_last_of('/');
     if (slash != std::string::npos)
         baseDir.erase(slash);
 
-    if (!tinyobj::LoadObj(&attrib, &shapes, &materials, &warnings, &errors, fileName.c_str(), baseDir.c_str()))
+    const char* fileNamePtr = fileName;
+    const char* baseDirPtr = baseDir.c_str();
+    if (strncmp(fileNamePtr, "file://", 7) == 0)
     {
-        NSLog(@"Failed to load .obj file `%s`", fileName.c_str());
-        NSLog(@"Warnings: %s", warnings.c_str());
-        NSLog(@"Errors: %s", errors.c_str());
+        fileNamePtr += 7;
+        baseDirPtr += 7;
+    }
+    else if (strncmp(fileNamePtr, "file:", 5) == 0)
+    {
+        fileNamePtr += 5;
+        baseDirPtr += 5;
+    }
+
+    if (!tinyobj::LoadObj(&attrib, &shapes, &materials, &warnings, &errors, fileNamePtr, baseDirPtr))
+    {
+        NSLog(@"Failed to load .obj file `%s`", fileName);
+        NSLog(@"Warnings:\n%s", warnings.c_str());
+        NSLog(@"Errors:\n%s", errors.c_str());
 
         Vertex vertices[3] = {
             { { 0.25f, 0.25f, 0.0f }, {}, {} },
@@ -60,6 +79,11 @@ void GeometryProvider::loadFile(const std::string& fileName, id<MTLDevice> devic
         _vertexBuffer = [device newBufferWithBytes:vertices length:sizeof(vertices) options:MTLResourceStorageModeManaged];
         _indexBuffer = [device newBufferWithBytes:indices length:sizeof(indices) options:MTLResourceStorageModeManaged];
         return;
+    }
+
+    if (!warnings.empty())
+    {
+        NSLog(@"Warnings:\n%s", warnings.c_str());
     }
 
     std::vector<Material> materialBuffer;
@@ -103,10 +127,20 @@ void GeometryProvider::loadFile(const std::string& fileName, id<MTLDevice> devic
         }
     }
 
+    bool useDefaultMaterial = materialBuffer.empty();
+    if (useDefaultMaterial)
+    {
+        materialBuffer.emplace_back();
+        _environment.uniformColor = { 0.3f, 0.4f, 0.5f };
+    }
+
     std::vector<uint32_t> indexBuffer;
     std::vector<Vertex> vertexBuffer;
     std::vector<Triangle> triangleBuffer;
     std::vector<EmitterTriangle> emitterTriangleBuffer;
+
+    _boundsMin = { std::numeric_limits<float>::max(), std::numeric_limits<float>::max(), std::numeric_limits<float>::max() };
+    _boundsMax = -_boundsMin;
 
     uint32_t globalTriangleIndex = 0;
     float totalLightArea = 0.0f;
@@ -145,6 +179,10 @@ void GeometryProvider::loadFile(const std::string& fileName, id<MTLDevice> devic
                     vertex.t.x = attrib.texcoords[2 * i.texcoord_index + 0];
                     vertex.t.y = attrib.texcoords[2 * i.texcoord_index + 1];
                 }
+
+                _boundsMin = simd_min(_boundsMin, vertex.v);
+                _boundsMax = simd_max(_boundsMax, vertex.v);
+
                 ++index;
             }
 
@@ -152,13 +190,13 @@ void GeometryProvider::loadFile(const std::string& fileName, id<MTLDevice> devic
             const Vertex& v1 = vertexBuffer[vertexBuffer.size() - 2];
             const Vertex& v2 = vertexBuffer[vertexBuffer.size() - 1];
 
-            const Material& material = materialBuffer[shape.mesh.material_ids[f]];
+            const Material& material = useDefaultMaterial ? materialBuffer.front() : materialBuffer[shape.mesh.material_ids[f]];
             float emissiveScale = simd_dot(material.emissive, simd_float3{0.2126f, 0.7152f, 0.0722f});
 
             float area = 0.5f * simd_length(simd_cross(v2.v - v0.v, v1.v - v0.v));
             float scaledArea = area * emissiveScale;
 
-            triangleBuffer[triangleBufferOffset].materialIndex = shape.mesh.material_ids[f];
+            triangleBuffer[triangleBufferOffset].materialIndex = useDefaultMaterial ? 0 : shape.mesh.material_ids[f];
             triangleBuffer[triangleBufferOffset].area = area;
 
             if (simd_length(material.emissive) > 0.0f)
@@ -287,7 +325,6 @@ const char* GeometryProvider::materialTypeToString(uint32_t t)
         CASE(MATERIAL_CONDUCTOR);
         CASE(MATERIAL_PLASTIC);
         CASE(MATERIAL_DIELECTRIC);
-        CASE(MATERIAL_EMITTER);
         default:
             return "unknown material, defaulted to diffuse";
     }

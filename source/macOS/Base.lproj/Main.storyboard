@@ -11,13 +11,43 @@
                 <application id="hnw-xV-0zn" sceneMemberID="viewController">
                     <menu key="mainMenu" title="Main Menu" systemMenu="main" id="AYu-sK-qS6">
                         <items>
-                            <menuItem title="Metal ray-tracer" id="1Xt-HY-uBw">
+                            <menuItem title="MetalRayTracer" id="1Xt-HY-uBw">
                                 <modifierMask key="keyEquivalentModifierMask"/>
-                                <menu key="submenu" title="Metal ray-tracer" systemMenu="apple" id="uQy-DD-JDr">
+                                <menu key="submenu" title="MetalRayTracer" systemMenu="apple" id="uQy-DD-JDr">
                                     <items>
-                                        <menuItem title="Quit Metal ray-tracer" keyEquivalent="q" id="4sb-4s-VLi">
+                                        <menuItem title="Quit MetalRayTracer" keyEquivalent="q" id="4sb-4s-VLi">
                                             <connections>
                                                 <action selector="terminate:" target="Ady-hI-5gd" id="Te7-pn-YzF"/>
+                                            </connections>
+                                        </menuItem>
+                                    </items>
+                                </menu>
+                            </menuItem>
+                            <menuItem title="File" id="aCk-35-0mY">
+                                <modifierMask key="keyEquivalentModifierMask"/>
+                                <menu key="submenu" title="File" id="F1o-xe-L8a">
+                                    <items>
+                                        <menuItem title="Open file..." keyEquivalent="o" id="9Db-3u-Ukm">
+                                            <connections>
+                                                <action selector="openFile:" target="Ady-hI-5gd" id="SgP-sf-Jl2"/>
+                                            </connections>
+                                        </menuItem>
+                                        <menuItem title="Display final image" keyEquivalent="0" id="5AB-0d-mLn">
+                                            <modifierMask key="keyEquivalentModifierMask"/>
+                                            <connections>
+                                                <action selector="displayFinalImage:" target="Ady-hI-5gd" id="3eI-zp-mqM"/>
+                                            </connections>
+                                        </menuItem>
+                                        <menuItem title="Compare with the reference" keyEquivalent="1" id="UmW-mw-bhR">
+                                            <modifierMask key="keyEquivalentModifierMask"/>
+                                            <connections>
+                                                <action selector="compareToReference:" target="Ady-hI-5gd" id="UT9-aC-gVk"/>
+                                            </connections>
+                                        </menuItem>
+                                        <menuItem title="Compare with the neutral color" keyEquivalent="2" id="fbG-zw-tMM">
+                                            <modifierMask key="keyEquivalentModifierMask"/>
+                                            <connections>
+                                                <action selector="compareToNeutralColor:" target="Ady-hI-5gd" id="HtR-yj-IKf"/>
                                             </connections>
                                         </menuItem>
                                     </items>
@@ -39,7 +69,7 @@
         <scene sceneID="R2V-B0-nI4">
             <objects>
                 <windowController id="B8D-0N-5wS" sceneMemberID="viewController">
-                    <window key="window" title="Metal ray-tracer" allowsToolTipsWhenApplicationIsInactive="NO" autorecalculatesKeyViewLoop="NO" releasedWhenClosed="NO" animationBehavior="default" id="IQv-IB-iLA">
+                    <window key="window" title="MetalRayTracer" allowsToolTipsWhenApplicationIsInactive="NO" autorecalculatesKeyViewLoop="NO" releasedWhenClosed="NO" animationBehavior="default" id="IQv-IB-iLA">
                         <windowStyleMask key="styleMask" titled="YES" closable="YES" miniaturizable="YES" resizable="YES"/>
                         <windowPositionMask key="initialPositionMask" leftStrut="YES" rightStrut="YES" topStrut="YES" bottomStrut="YES"/>
                         <rect key="contentRect" x="196" y="240" width="800" height="800"/>
@@ -56,18 +86,18 @@
             </objects>
             <point key="canvasLocation" x="129" y="338"/>
         </scene>
-        <!--Game View Controller-->
+        <!--Render View Controller-->
         <scene sceneID="hIz-AP-VOD">
             <objects>
-                <viewController id="XfG-lQ-9wD" customClass="GameViewController" sceneMemberID="viewController">
-                    <view key="view" wantsLayer="YES" id="m2S-Jp-Qdl" customClass="MTKView">
+                <viewController id="XfG-lQ-9wD" customClass="RenderViewController" sceneMemberID="viewController">
+                    <view key="view" wantsLayer="YES" id="m2S-Jp-Qdl" customClass="RenderView">
                         <rect key="frame" x="0.0" y="0.0" width="800" height="800"/>
                         <autoresizingMask key="autoresizingMask"/>
                     </view>
                 </viewController>
                 <customObject id="rPt-NT-nkU" userLabel="First Responder" customClass="NSResponder" sceneMemberID="firstResponder"/>
             </objects>
-            <point key="canvasLocation" x="75" y="817"/>
+            <point key="canvasLocation" x="41" y="389"/>
         </scene>
     </scenes>
 </document>

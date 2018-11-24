@@ -1,0 +1,501 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 50;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		6E27FBDA21A9F0FB005108B3 /* RenderView.m in Sources */ = {isa = PBXBuildFile; fileRef = 6E27FBD921A9F0FB005108B3 /* RenderView.m */; };
+		6E6DF16E21503D6700089863 /* GeometryProvider.mm in Sources */ = {isa = PBXBuildFile; fileRef = 6E6DF16C21503D6700089863 /* GeometryProvider.mm */; };
+		6E6DF32221503E3700089863 /* tiny_obj_loader.cc in Sources */ = {isa = PBXBuildFile; fileRef = 6E6DF1D721503E3600089863 /* tiny_obj_loader.cc */; };
+		6E6DF34821503E3700089863 /* imgui_widgets.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6E6DF21421503E3600089863 /* imgui_widgets.cpp */; };
+		6E6DF34C21503E3700089863 /* imgui.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6E6DF21A21503E3700089863 /* imgui.cpp */; };
+		6E6DF3B421503E3700089863 /* imgui_demo.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6E6DF2C321503E3700089863 /* imgui_demo.cpp */; };
+		6E6DF3B521503E3700089863 /* imgui_draw.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6E6DF2C421503E3700089863 /* imgui_draw.cpp */; };
+		6E6DF3BF2158287500089863 /* image-processing.metal in Sources */ = {isa = PBXBuildFile; fileRef = 6E6DF3BE2158287400089863 /* image-processing.metal */; settings = {COMPILER_FLAGS = "-gline-tables-only -MO"; }; };
+		6E799AA721790EEE00775537 /* tinyexr.cc in Sources */ = {isa = PBXBuildFile; fileRef = 6E799A0521790EEE00775537 /* tinyexr.cc */; };
+		6E799B0C217913B800775537 /* TextureProvider.mm in Sources */ = {isa = PBXBuildFile; fileRef = 6E799B0A217913B800775537 /* TextureProvider.mm */; };
+		6E9F765F2193ABED00E5DD21 /* light-sampling.metal in Sources */ = {isa = PBXBuildFile; fileRef = 6E9F765E2193ABED00E5DD21 /* light-sampling.metal */; };
+		6EC16A8F2199726B0001E755 /* media in Resources */ = {isa = PBXBuildFile; fileRef = 6EC16A8E2199726B0001E755 /* media */; };
+		6EC4F6C5214D90C5003A48EA /* AppDelegate.mm in Sources */ = {isa = PBXBuildFile; fileRef = 6EC4F6C4214D90C5003A48EA /* AppDelegate.mm */; };
+		6EC4F6C8214D90C5003A48EA /* Renderer.mm in Sources */ = {isa = PBXBuildFile; fileRef = 6EC4F6C7214D90C5003A48EA /* Renderer.mm */; };
+		6EC4F6CB214D90C5003A48EA /* RenderViewController.mm in Sources */ = {isa = PBXBuildFile; fileRef = 6EC4F6CA214D90C5003A48EA /* RenderViewController.mm */; };
+		6EC4F6D0214D90C6003A48EA /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 6EC4F6CF214D90C6003A48EA /* Assets.xcassets */; };
+		6EC4F6D3214D90C6003A48EA /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 6EC4F6D1214D90C6003A48EA /* Main.storyboard */; };
+		6EC4F6D6214D90C6003A48EA /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 6EC4F6D5214D90C6003A48EA /* main.m */; };
+		6EC853E1214DA33F005418DF /* blit.metal in Sources */ = {isa = PBXBuildFile; fileRef = 6EC853E0214DA33F005418DF /* blit.metal */; };
+		6EC853E5214DB343005418DF /* MetalPerformanceShaders.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 6EC853E4214DB343005418DF /* MetalPerformanceShaders.framework */; };
+		6EC853E7214DB803005418DF /* base-ray-tracing.metal in Sources */ = {isa = PBXBuildFile; fileRef = 6EC853E6214DB803005418DF /* base-ray-tracing.metal */; settings = {COMPILER_FLAGS = "-gline-tables-only -MO"; }; };
+/* End PBXBuildFile section */
+
+/* Begin PBXFileReference section */
+		6E27FBD821A9F0FB005108B3 /* RenderView.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = RenderView.h; sourceTree = "<group>"; };
+		6E27FBD921A9F0FB005108B3 /* RenderView.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = RenderView.m; sourceTree = "<group>"; };
+		6E5644B721A3551F0096B866 /* diffuse.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = diffuse.h; sourceTree = "<group>"; };
+		6E5644B821A356B00096B866 /* conductor.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = conductor.h; sourceTree = "<group>"; };
+		6E5644BA21A35E390096B866 /* plastic.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = plastic.h; sourceTree = "<group>"; };
+		6E5644BB21A364400096B866 /* dielectric.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = dielectric.h; sourceTree = "<group>"; };
+		6E6DF16C21503D6700089863 /* GeometryProvider.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = GeometryProvider.mm; sourceTree = "<group>"; };
+		6E6DF16D21503D6700089863 /* GeometryProvider.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = GeometryProvider.h; sourceTree = "<group>"; };
+		6E6DF1D721503E3600089863 /* tiny_obj_loader.cc */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = tiny_obj_loader.cc; sourceTree = "<group>"; };
+		6E6DF1FA21503E3600089863 /* tiny_obj_loader.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = tiny_obj_loader.h; sourceTree = "<group>"; };
+		6E6DF21121503E3600089863 /* imgui.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = imgui.h; sourceTree = "<group>"; };
+		6E6DF21221503E3600089863 /* imstb_textedit.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = imstb_textedit.h; sourceTree = "<group>"; };
+		6E6DF21321503E3600089863 /* imconfig.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = imconfig.h; sourceTree = "<group>"; };
+		6E6DF21421503E3600089863 /* imgui_widgets.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = imgui_widgets.cpp; sourceTree = "<group>"; };
+		6E6DF21521503E3600089863 /* imstb_truetype.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = imstb_truetype.h; sourceTree = "<group>"; };
+		6E6DF21A21503E3700089863 /* imgui.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = imgui.cpp; sourceTree = "<group>"; };
+		6E6DF2BB21503E3700089863 /* imgui_internal.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = imgui_internal.h; sourceTree = "<group>"; };
+		6E6DF2C021503E3700089863 /* imstb_rectpack.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = imstb_rectpack.h; sourceTree = "<group>"; };
+		6E6DF2C321503E3700089863 /* imgui_demo.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = imgui_demo.cpp; sourceTree = "<group>"; };
+		6E6DF2C421503E3700089863 /* imgui_draw.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = imgui_draw.cpp; sourceTree = "<group>"; };
+		6E6DF3BD21581E6B00089863 /* constants.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = constants.h; sourceTree = "<group>"; };
+		6E6DF3BE2158287400089863 /* image-processing.metal */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.metal; path = "image-processing.metal"; sourceTree = "<group>"; };
+		6E707E8921640BF200DB84BB /* materials.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = materials.h; sourceTree = "<group>"; };
+		6E799A0521790EEE00775537 /* tinyexr.cc */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = tinyexr.cc; sourceTree = "<group>"; };
+		6E799A9C21790EEE00775537 /* tinyexr.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = tinyexr.h; sourceTree = "<group>"; };
+		6E799B0A217913B800775537 /* TextureProvider.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = TextureProvider.mm; sourceTree = "<group>"; };
+		6E799B0B217913B800775537 /* TextureProvider.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TextureProvider.h; sourceTree = "<group>"; };
+		6E825D462159679F00B4419B /* raytracing.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = raytracing.h; sourceTree = "<group>"; };
+		6E9F765E2193ABED00E5DD21 /* light-sampling.metal */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.metal; path = "light-sampling.metal"; sourceTree = "<group>"; };
+		6EC16A8E2199726B0001E755 /* media */ = {isa = PBXFileReference; lastKnownFileType = folder; path = media; sourceTree = "<group>"; };
+		6EC4F6C0214D90C5003A48EA /* MetalRayTracer.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = MetalRayTracer.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		6EC4F6C3214D90C5003A48EA /* AppDelegate.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = AppDelegate.h; sourceTree = "<group>"; };
+		6EC4F6C4214D90C5003A48EA /* AppDelegate.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = AppDelegate.mm; sourceTree = "<group>"; };
+		6EC4F6C6214D90C5003A48EA /* Renderer.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = Renderer.h; sourceTree = "<group>"; };
+		6EC4F6C7214D90C5003A48EA /* Renderer.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = Renderer.mm; sourceTree = "<group>"; };
+		6EC4F6C9214D90C5003A48EA /* RenderViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = RenderViewController.h; sourceTree = "<group>"; };
+		6EC4F6CA214D90C5003A48EA /* RenderViewController.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = RenderViewController.mm; sourceTree = "<group>"; };
+		6EC4F6CF214D90C6003A48EA /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		6EC4F6D2214D90C6003A48EA /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/Main.storyboard; sourceTree = "<group>"; };
+		6EC4F6D4214D90C6003A48EA /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		6EC4F6D5214D90C6003A48EA /* main.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = main.m; sourceTree = "<group>"; };
+		6EC4F6D7214D90C6003A48EA /* Metal_ray_tracer.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Metal_ray_tracer.entitlements; sourceTree = "<group>"; };
+		6EC853E0214DA33F005418DF /* blit.metal */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.metal; path = blit.metal; sourceTree = "<group>"; };
+		6EC853E4214DB343005418DF /* MetalPerformanceShaders.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = MetalPerformanceShaders.framework; path = System/Library/Frameworks/MetalPerformanceShaders.framework; sourceTree = SDKROOT; };
+		6EC853E6214DB803005418DF /* base-ray-tracing.metal */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.metal; path = "base-ray-tracing.metal"; sourceTree = "<group>"; };
+		6EC853E8214DB810005418DF /* structures.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = structures.h; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		6EC4F6BD214D90C5003A48EA /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				6EC853E5214DB343005418DF /* MetalPerformanceShaders.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		6E6DF17021503E3600089863 /* external */ = {
+			isa = PBXGroup;
+			children = (
+				6E7999FA21790EEE00775537 /* tinyexr */,
+				6E6DF17121503E3600089863 /* tinyobjloader */,
+				6E6DF1FC21503E3600089863 /* imgui */,
+			);
+			path = external;
+			sourceTree = "<group>";
+		};
+		6E6DF17121503E3600089863 /* tinyobjloader */ = {
+			isa = PBXGroup;
+			children = (
+				6E6DF1D721503E3600089863 /* tiny_obj_loader.cc */,
+				6E6DF1FA21503E3600089863 /* tiny_obj_loader.h */,
+			);
+			path = tinyobjloader;
+			sourceTree = "<group>";
+		};
+		6E6DF1FC21503E3600089863 /* imgui */ = {
+			isa = PBXGroup;
+			children = (
+				6E6DF21121503E3600089863 /* imgui.h */,
+				6E6DF21221503E3600089863 /* imstb_textedit.h */,
+				6E6DF21321503E3600089863 /* imconfig.h */,
+				6E6DF21421503E3600089863 /* imgui_widgets.cpp */,
+				6E6DF21521503E3600089863 /* imstb_truetype.h */,
+				6E6DF21A21503E3700089863 /* imgui.cpp */,
+				6E6DF2BB21503E3700089863 /* imgui_internal.h */,
+				6E6DF2C021503E3700089863 /* imstb_rectpack.h */,
+				6E6DF2C321503E3700089863 /* imgui_demo.cpp */,
+				6E6DF2C421503E3700089863 /* imgui_draw.cpp */,
+			);
+			path = imgui;
+			sourceTree = "<group>";
+		};
+		6E7999FA21790EEE00775537 /* tinyexr */ = {
+			isa = PBXGroup;
+			children = (
+				6E799A0521790EEE00775537 /* tinyexr.cc */,
+				6E799A9C21790EEE00775537 /* tinyexr.h */,
+			);
+			path = tinyexr;
+			sourceTree = "<group>";
+		};
+		6EC4F6B7214D90C5003A48EA = {
+			isa = PBXGroup;
+			children = (
+				6EC16A8E2199726B0001E755 /* media */,
+				6E6DF17021503E3600089863 /* external */,
+				6EC4F6C2214D90C5003A48EA /* source */,
+				6EC4F6C1214D90C5003A48EA /* Products */,
+				6EC853E3214DB343005418DF /* Frameworks */,
+			);
+			sourceTree = "<group>";
+		};
+		6EC4F6C1214D90C5003A48EA /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				6EC4F6C0214D90C5003A48EA /* MetalRayTracer.app */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		6EC4F6C2214D90C5003A48EA /* source */ = {
+			isa = PBXGroup;
+			children = (
+				6EC853E2214DA5A3005418DF /* macOS */,
+				6EC853DD214DA332005418DF /* Shaders */,
+				6EC4F6C6214D90C5003A48EA /* Renderer.h */,
+				6EC4F6C7214D90C5003A48EA /* Renderer.mm */,
+				6E799B0B217913B800775537 /* TextureProvider.h */,
+				6E799B0A217913B800775537 /* TextureProvider.mm */,
+				6E6DF16C21503D6700089863 /* GeometryProvider.mm */,
+				6E6DF16D21503D6700089863 /* GeometryProvider.h */,
+			);
+			path = source;
+			sourceTree = "<group>";
+		};
+		6EC853DD214DA332005418DF /* Shaders */ = {
+			isa = PBXGroup;
+			children = (
+				6E5644B721A3551F0096B866 /* diffuse.h */,
+				6E5644B821A356B00096B866 /* conductor.h */,
+				6E5644BA21A35E390096B866 /* plastic.h */,
+				6E5644BB21A364400096B866 /* dielectric.h */,
+				6E707E8921640BF200DB84BB /* materials.h */,
+				6E6DF3BD21581E6B00089863 /* constants.h */,
+				6EC853E8214DB810005418DF /* structures.h */,
+				6E825D462159679F00B4419B /* raytracing.h */,
+				6EC853E6214DB803005418DF /* base-ray-tracing.metal */,
+				6E9F765E2193ABED00E5DD21 /* light-sampling.metal */,
+				6E6DF3BE2158287400089863 /* image-processing.metal */,
+				6EC853E0214DA33F005418DF /* blit.metal */,
+			);
+			path = Shaders;
+			sourceTree = "<group>";
+		};
+		6EC853E2214DA5A3005418DF /* macOS */ = {
+			isa = PBXGroup;
+			children = (
+				6EC4F6D7214D90C6003A48EA /* Metal_ray_tracer.entitlements */,
+				6EC4F6CF214D90C6003A48EA /* Assets.xcassets */,
+				6EC4F6D1214D90C6003A48EA /* Main.storyboard */,
+				6EC4F6D4214D90C6003A48EA /* Info.plist */,
+				6EC4F6D5214D90C6003A48EA /* main.m */,
+				6EC4F6C3214D90C5003A48EA /* AppDelegate.h */,
+				6EC4F6C4214D90C5003A48EA /* AppDelegate.mm */,
+				6EC4F6C9214D90C5003A48EA /* RenderViewController.h */,
+				6EC4F6CA214D90C5003A48EA /* RenderViewController.mm */,
+				6E27FBD821A9F0FB005108B3 /* RenderView.h */,
+				6E27FBD921A9F0FB005108B3 /* RenderView.m */,
+			);
+			path = macOS;
+			sourceTree = "<group>";
+		};
+		6EC853E3214DB343005418DF /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				6EC853E4214DB343005418DF /* MetalPerformanceShaders.framework */,
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		6EC4F6BF214D90C5003A48EA /* MetalRayTracer */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 6EC4F6DA214D90C6003A48EA /* Build configuration list for PBXNativeTarget "MetalRayTracer" */;
+			buildPhases = (
+				6EC4F6BC214D90C5003A48EA /* Sources */,
+				6EC4F6BD214D90C5003A48EA /* Frameworks */,
+				6EC4F6BE214D90C5003A48EA /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = MetalRayTracer;
+			productName = "Metal ray-tracer";
+			productReference = 6EC4F6C0214D90C5003A48EA /* MetalRayTracer.app */;
+			productType = "com.apple.product-type.application";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		6EC4F6B8214D90C5003A48EA /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				LastUpgradeCheck = 1000;
+				ORGANIZATIONNAME = "Serhii Rieznik";
+				TargetAttributes = {
+					6EC4F6BF214D90C5003A48EA = {
+						CreatedOnToolsVersion = 10.0;
+					};
+				};
+			};
+			buildConfigurationList = 6EC4F6BB214D90C5003A48EA /* Build configuration list for PBXProject "MetalRayTracer" */;
+			compatibilityVersion = "Xcode 9.3";
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+				Base,
+			);
+			mainGroup = 6EC4F6B7214D90C5003A48EA;
+			productRefGroup = 6EC4F6C1214D90C5003A48EA /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				6EC4F6BF214D90C5003A48EA /* MetalRayTracer */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		6EC4F6BE214D90C5003A48EA /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				6EC16A8F2199726B0001E755 /* media in Resources */,
+				6EC4F6D0214D90C6003A48EA /* Assets.xcassets in Resources */,
+				6EC4F6D3214D90C6003A48EA /* Main.storyboard in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		6EC4F6BC214D90C5003A48EA /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				6E799AA721790EEE00775537 /* tinyexr.cc in Sources */,
+				6E6DF34C21503E3700089863 /* imgui.cpp in Sources */,
+				6EC853E1214DA33F005418DF /* blit.metal in Sources */,
+				6EC4F6D6214D90C6003A48EA /* main.m in Sources */,
+				6E6DF32221503E3700089863 /* tiny_obj_loader.cc in Sources */,
+				6E9F765F2193ABED00E5DD21 /* light-sampling.metal in Sources */,
+				6EC4F6C8214D90C5003A48EA /* Renderer.mm in Sources */,
+				6E27FBDA21A9F0FB005108B3 /* RenderView.m in Sources */,
+				6EC4F6CB214D90C5003A48EA /* RenderViewController.mm in Sources */,
+				6E6DF3BF2158287500089863 /* image-processing.metal in Sources */,
+				6E6DF16E21503D6700089863 /* GeometryProvider.mm in Sources */,
+				6E6DF3B521503E3700089863 /* imgui_draw.cpp in Sources */,
+				6EC4F6C5214D90C5003A48EA /* AppDelegate.mm in Sources */,
+				6E799B0C217913B800775537 /* TextureProvider.mm in Sources */,
+				6EC853E7214DB803005418DF /* base-ray-tracing.metal in Sources */,
+				6E6DF34821503E3700089863 /* imgui_widgets.cpp in Sources */,
+				6E6DF3B421503E3700089863 /* imgui_demo.cpp in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXVariantGroup section */
+		6EC4F6D1214D90C6003A48EA /* Main.storyboard */ = {
+			isa = PBXVariantGroup;
+			children = (
+				6EC4F6D2214D90C6003A48EA /* Base */,
+			);
+			name = Main.storyboard;
+			sourceTree = "<group>";
+		};
+/* End PBXVariantGroup section */
+
+/* Begin XCBuildConfiguration section */
+		6EC4F6D8214D90C6003A48EA /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				CODE_SIGN_IDENTITY = "-";
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 10.14;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				SDKROOT = macosx;
+			};
+			name = Debug;
+		};
+		6EC4F6D9214D90C6003A48EA /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				CODE_SIGN_IDENTITY = "-";
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 10.14;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				SDKROOT = macosx;
+			};
+			name = Release;
+		};
+		6EC4F6DB214D90C6003A48EA /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_ENTITLEMENTS = source/macOS/Metal_ray_tracer.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				COMBINE_HIDPI_IMAGES = YES;
+				INFOPLIST_FILE = "$(SRCROOT)/source/macOS/Info.plist";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
+				LIBRARY_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(PROJECT_DIR)/external/imgui/examples/libs/glfw/lib-vc2010-64",
+					"$(PROJECT_DIR)/external/imgui/examples/libs/glfw/lib-vc2010-32",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = "serhii.rieznik.metal-ray-tracer";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+			};
+			name = Debug;
+		};
+		6EC4F6DC214D90C6003A48EA /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_ENTITLEMENTS = source/macOS/Metal_ray_tracer.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				COMBINE_HIDPI_IMAGES = YES;
+				INFOPLIST_FILE = "$(SRCROOT)/source/macOS/Info.plist";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
+				LIBRARY_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(PROJECT_DIR)/external/imgui/examples/libs/glfw/lib-vc2010-64",
+					"$(PROJECT_DIR)/external/imgui/examples/libs/glfw/lib-vc2010-32",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = "serhii.rieznik.metal-ray-tracer";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		6EC4F6BB214D90C5003A48EA /* Build configuration list for PBXProject "MetalRayTracer" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				6EC4F6D8214D90C6003A48EA /* Debug */,
+				6EC4F6D9214D90C6003A48EA /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		6EC4F6DA214D90C6003A48EA /* Build configuration list for PBXNativeTarget "MetalRayTracer" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				6EC4F6DB214D90C6003A48EA /* Debug */,
+				6EC4F6DC214D90C6003A48EA /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = 6EC4F6B8214D90C5003A48EA /* Project object */;
+}

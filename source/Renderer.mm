@@ -15,6 +15,13 @@
 #import <map>
 
 static const NSUInteger MaxFrames = 3;
+static NSString* kLastOpenedScene = @"last.opened.scene";
+static NSString* kGeometry = @"geometry";
+static NSString* kReferenceImage = @"reference-image";
+static NSString* kCamera = @"camera";
+static NSString* kCameraOrigin = @"origin";
+static NSString* kCameraTarget = @"target";
+static NSString* kCameraFOV = @"fov";
 
 @interface Renderer()
 
@@ -23,7 +30,6 @@ static const NSUInteger MaxFrames = 3;
 - (void)dispatchComputeShader:(id<MTLComputePipelineState>)pipelineState withinCommandBuffer:(id<MTLCommandBuffer>)commandBuffer
                    setupBlock:(void(^)(id<MTLComputeCommandEncoder>))setupBlock;
 
-- (void)initializeRayTracing;
 - (void)updateBuffers;
 
 @end
@@ -55,13 +61,17 @@ static const NSUInteger MaxFrames = 3;
     MPSRayIntersector* _lightIntersector;
 
     GeometryProvider _geometryProvider;
+    Camera _camera;
+
     MTLSize _outputImageSize;
     uint32_t _rayCount;
     uint32_t _frameContinuousIndex;
+    uint32_t _comparisonMode;
     CFTimeInterval _startupTime;
     CFTimeInterval _lastFrameTime;
     CFTimeInterval _lastFrameDuration;
-    bool _hasEmitters;
+    bool _raytracingPaused;
+    bool _restartTracing;
 }
 
 static std::mt19937 randomGenerator;
@@ -105,9 +115,18 @@ static std::uniform_real_distribution<float> uniformFloatDistribution(0.0f, 1.0f
             _noise[i] = [_device newBufferWithLength:noiseBufferLength options:MTLResourceStorageModeManaged];
             _appData[i] = [_device newBufferWithLength:sizeof(ApplicationData) options:MTLResourceStorageModeShared];
         }
-        [self initializeRayTracing];
+
+        NSString* lastOpenedScene = [[NSUserDefaults standardUserDefaults] stringForKey:kLastOpenedScene];
+
+        if (lastOpenedScene == nil)
+        {
+            lastOpenedScene = [[NSBundle mainBundle] pathForResource:@"media/cornellbox" ofType:@"json"];
+        }
+
+        [self initializeRayTracingWithFile:lastOpenedScene];
 
         _startupTime = CACurrentMediaTime();
+        _restartTracing = true;
     }
 
     return self;
@@ -120,24 +139,26 @@ static std::uniform_real_distribution<float> uniformFloatDistribution(0.0f, 1.0f
 
 - (void)drawInMTKView:(nonnull MTKView *)view
 {
-    dispatch_semaphore_wait(_frameSemaphore, DISPATCH_TIME_FOREVER);
-
-    bool cap = false;
-
-    if (_frameContinuousIndex > 110000)
-    {
-        [[MTLCaptureManager sharedCaptureManager] startCaptureWithDevice:_device];
-        cap = true;
-    }
+    dispatch_time_t timeout = dispatch_time(DISPATCH_TIME_NOW, 1e+9);
+    if (_raytracingPaused || (dispatch_semaphore_wait(_frameSemaphore, timeout) != 0))
+        return;
 
     id<MTLCommandBuffer> commandBuffer = [_commandQueue commandBuffer];
-
-    __block dispatch_semaphore_t block_sema = _frameSemaphore;
     [commandBuffer addCompletedHandler:^(id<MTLCommandBuffer> buffer) {
-        dispatch_semaphore_signal(block_sema);
+        dispatch_semaphore_signal(self->_frameSemaphore);
     }];
 
-    if (_lastFrameTime < CFTimeInterval(MAX_RUN_TIME_IN_SECONDS))
+    if (_restartTracing)
+    {
+        _startupTime = CACurrentMediaTime();
+        _frameContinuousIndex = 0;
+
+        for (uint32_t i = 0; i < MaxFrames; ++i)
+            [self updateBuffers];
+
+        _restartTracing = false;
+    }
+    else if (_lastFrameTime < CFTimeInterval(MAX_RUN_TIME_IN_SECONDS))
     {
         [self updateBuffers];
 
@@ -158,7 +179,7 @@ static std::uniform_real_distribution<float> uniformFloatDistribution(0.0f, 1.0f
                                                   rayCount:_rayCount accelerationStructure:_accelerationStructure];
 
 #   if ((MAX_PATH_LENGTH > 1) && (IS_MODE != IS_MODE_BSDF))
-        if (_hasEmitters)
+        if (_geometryProvider.emitterTriangleCount() > 0)
         {
             // Generate light sampling rays
             [self dispatchComputeShader:_lightSamplingGenerator withinCommandBuffer:commandBuffer
@@ -189,11 +210,12 @@ static std::uniform_real_distribution<float> uniformFloatDistribution(0.0f, 1.0f
 
             // Handle light sampling intersections
             [self dispatchComputeShader:_lightSamplingHandler withinCommandBuffer:commandBuffer
-                             setupBlock:^(id<MTLComputeCommandEncoder> commandEncoder) {
-                                 [commandEncoder setBuffer:self->_lightSamplingIntersectionBuffer offset:0 atIndex:0];
-                                 [commandEncoder setBuffer:self->_lightSamplingRayBuffer offset:0 atIndex:1];
-                                 [commandEncoder setBuffer:self->_rayBuffer offset:0 atIndex:2];
-                             }];
+                             setupBlock:^(id<MTLComputeCommandEncoder> commandEncoder)
+             {
+                 [commandEncoder setBuffer:self->_lightSamplingIntersectionBuffer offset:0 atIndex:0];
+                 [commandEncoder setBuffer:self->_lightSamplingRayBuffer offset:0 atIndex:1];
+                 [commandEncoder setBuffer:self->_rayBuffer offset:0 atIndex:2];
+             }];
         }
 #   endif
 
@@ -212,20 +234,22 @@ static std::uniform_real_distribution<float> uniformFloatDistribution(0.0f, 1.0f
              [commandEncoder setBuffer:self->_rayBuffer offset:0 atIndex:7];
              [commandEncoder setBuffer:self->_appData[[self frameIndex]] offset:0 atIndex:8];
          }];
-        
+
         /*
          * Accumulate image
          */
         [self dispatchComputeShader:_accumulation withinCommandBuffer:commandBuffer
-                         setupBlock:^(id<MTLComputeCommandEncoder> commandEncoder) {
-                             [commandEncoder setBuffer:self->_rayBuffer offset:0 atIndex:0];
-                             [commandEncoder setBuffer:self->_appData[[self frameIndex]] offset:0 atIndex:1];
-                             [commandEncoder setTexture:self->_outputImage atIndex:0];
-                         }];
+                         setupBlock:^(id<MTLComputeCommandEncoder> commandEncoder)
+         {
+             [commandEncoder setBuffer:self->_rayBuffer offset:0 atIndex:0];
+             [commandEncoder setBuffer:self->_appData[[self frameIndex]] offset:0 atIndex:1];
+             [commandEncoder setTexture:self->_outputImage atIndex:0];
+         }];
 
         if (_frameContinuousIndex % MaxFrames == 0)
         {
             id<MTLRenderCommandEncoder> blitEncoder = [commandBuffer renderCommandEncoderWithDescriptor:view.currentRenderPassDescriptor];
+            [blitEncoder setFragmentBuffer:self->_appData[[self frameIndex]] offset:0 atIndex:0];
             [blitEncoder setRenderPipelineState:_blitPipelineState];
             [blitEncoder setFragmentTexture:_outputImage atIndex:0];
             [blitEncoder setFragmentTexture:_referenceImage atIndex:1];
@@ -235,22 +259,17 @@ static std::uniform_real_distribution<float> uniformFloatDistribution(0.0f, 1.0f
             [commandBuffer presentDrawable:view.currentDrawable];
 
             [[NSApp mainWindow] setTitle:[NSString stringWithFormat:@"Frame: %u (%.2fms. last frame, %.2fs. elapsed)",
-                _frameContinuousIndex, _lastFrameDuration * 1000.0f, _lastFrameTime]];
+                                          _frameContinuousIndex, _lastFrameDuration * 1000.0f, _lastFrameTime]];
         }
+
+        ++_frameContinuousIndex;
     }
 
     [commandBuffer commit];
-
-    if (cap)
-    {
-        [[MTLCaptureManager sharedCaptureManager] stopCapture];
-    }
 }
 
 - (void)mtkView:(nonnull MTKView *)view drawableSizeWillChange:(CGSize)inSize
 {
-    _frameContinuousIndex = 0;
-
     _outputImageSize.width = inSize.width / CONTENT_SCALE;
     _outputImageSize.height = inSize.height / CONTENT_SCALE;
     _outputImageSize.depth = 1.0f;
@@ -272,6 +291,8 @@ static std::uniform_real_distribution<float> uniformFloatDistribution(0.0f, 1.0f
     _intersectionBuffer = [_device newBufferWithLength:sizeof(Intersection) * _rayCount options:MTLResourceStorageModePrivate];
     _lightSamplingIntersectionBuffer = [_device newBufferWithLength:sizeof(LightSamplingIntersection) * _rayCount
                                                             options:MTLResourceStorageModePrivate];
+
+    _restartTracing = true;
 }
 
 /*
@@ -298,58 +319,74 @@ static std::uniform_real_distribution<float> uniformFloatDistribution(0.0f, 1.0f
     id<MTLComputeCommandEncoder> commandEncoder = [commandBuffer computeCommandEncoder];
     setupBlock(commandEncoder);
     [commandEncoder setComputePipelineState:pipelineState];
-    [commandEncoder dispatchThreads:_outputImageSize threadsPerThreadgroup:MTLSizeMake(8, 8, 1)];
+    [commandEncoder dispatchThreads:_outputImageSize threadsPerThreadgroup:MTLSizeMake(16, 4, 1)];
     [commandEncoder endEncoding];
 }
 
--(void)initializeRayTracing
+- (void)initializeRayTracingWithFile:(NSString*)fileName
 {
-    const std::map<uint32_t, std::pair<NSString*, NSString*>> sceneNames =
-    {
-        { SCENE_VEACH_MIS, { @"media/veach_mis", @"media/reference/veach_mis" } },
-        { SCENE_SPHERE, { @"media/sphere", @"media/reference/sphere" } },
-        { SCENE_PBS_SPHERES, { @"media/spheres", @"media/reference/spheres" } },
-        { SCENE_CORNELL_BOX_DIFFUSE, { @"media/cornellbox-diffuse", @"media/reference-pbrt/cornellbox-diffuse" } },
-        { SCENE_CORNELL_BOX_CONDUCTOR, { @"media/cornellbox-conductor", @"media/reference-pbrt/cornellbox-conductor" } },
-        { SCENE_CORNELL_BOX_PLASTIC, { @"media/cornellbox-plastic", @"media/reference-pbrt/cornellbox-plastic" } },
-        { SCENE_CORNELL_BOX_DIELECTRIC, { @"media/cornellbox-dielectric", @"media/reference-pbrt/cornellbox-dielectric" } },
-        { SCENE_CORNELL_BOX_SPHERES, { @"media/cornellbox-water-spheres", @"media/reference-pbrt/cornellbox-water-spheres" } },
-        { SCENE_CORNELL_BOX_SMALL_LIGHT, { @"media/cornellbox-small-light", @"media/reference/cornellbox-small-light" } },
-        { SCENE_FURNACE_LIGHT_SAMPLING, { @"media/furnace-light-sampling", @"media/reference/furnace-light-sampling" } },
-        { SCENE_GLASS_SPHERE, { @"media/glass-sphere", @"media/reference/glass-sphere" } },
-        { SCENE_GLASS_SPHERE_BOX, { @"media/glass-sphere-with-box", @"media/reference/glass-sphere-with-box" } },
-    };
+    _raytracingPaused = true;
+    _restartTracing = true;
 
-    uint32_t sceneId = SCENE;
+    bool hasCustomCamera = false;
+    NSString* geometryFile = fileName;
+    NSString* referenceFile = nil;
+    if ([[fileName pathExtension] isEqualToString:@"json"])
     {
-        NSURL* modelUrl = [[NSBundle mainBundle] URLForResource:sceneNames.at(sceneId).first withExtension:@"obj"];
-        const char* fileName = [modelUrl fileSystemRepresentation];
-        _geometryProvider.loadFile(fileName, _device);
-    }
+        NSError* error = nil;
+        NSData* jsonData = [NSData dataWithContentsOfFile:fileName];
+        NSDictionary* options = [NSJSONSerialization JSONObjectWithData:jsonData options:0 error:&error];
 
-#if (COMPARE_TO_REFERENCE)
-    NSURL* referenceUrl = [[NSBundle mainBundle] URLForResource:sceneNames.at(sceneId).second withExtension:@"exr"];
-    if (referenceUrl != nil)
-    {
-        const char* fileName = [referenceUrl fileSystemRepresentation];
-        _referenceImage = TextureProvider::loadFile(fileName, _device);
-    }
-#endif
-
-    if (_geometryProvider.environment().textureName.empty() == false)
-    {
-        NSString* textureName = [NSString stringWithFormat:@"media/%s", _geometryProvider.environment().textureName.c_str()];
-        textureName = [textureName stringByDeletingPathExtension];
-        NSURL* assetUrl = [[NSBundle mainBundle] URLForResource:textureName withExtension:@"exr"];
-        if (assetUrl != nil)
+        if (error)
         {
-            const char* fileName = [assetUrl fileSystemRepresentation];
-            _environmentMap = TextureProvider::loadFile(fileName, _device);
+            NSLog(@"%@", error);
+            return;
+        }
+
+        geometryFile = [options objectForKey:kGeometry];
+        referenceFile = [options objectForKey:kReferenceImage];
+        if (NSDictionary* camera = [options objectForKey:kCamera])
+        {
+            NSArray* origin = [camera objectForKey:kCameraOrigin];
+            NSArray* target = [camera objectForKey:kCameraTarget];
+            _camera.fov = [[camera objectForKey:kCameraFOV] floatValue] * M_PI / 180.0f;
+            _camera.origin.x = [[origin objectAtIndex:0] floatValue];
+            _camera.origin.y = [[origin objectAtIndex:1] floatValue];
+            _camera.origin.z = [[origin objectAtIndex:2] floatValue];
+            _camera.target.x = [[target objectAtIndex:0] floatValue];
+            _camera.target.y = [[target objectAtIndex:1] floatValue];
+            _camera.target.z = [[target objectAtIndex:2] floatValue];
+            hasCustomCamera = true;
         }
     }
 
-    _hasEmitters = _geometryProvider.emitterTriangleCount() > 0;
-    
+    if ([[geometryFile pathComponents] count] == 1)
+    {
+        NSString* folder = [fileName stringByDeletingLastPathComponent];
+        geometryFile = [NSString stringWithFormat:@"%@/%@", folder, geometryFile];
+    }
+
+    _geometryProvider = GeometryProvider([geometryFile fileSystemRepresentation], _device);
+
+    if (_geometryProvider.triangleCount() == 0)
+        return;
+
+    if ([[referenceFile pathComponents] count] == 1)
+    {
+        NSString* folder = [fileName stringByDeletingLastPathComponent];
+        referenceFile = [NSString stringWithFormat:@"%@/%@", folder, referenceFile];
+    }
+
+    _referenceImage = TextureProvider::loadFile([referenceFile fileSystemRepresentation], _device);
+
+    _environmentMap = nil;
+    if (_geometryProvider.environment().textureName.empty() == false)
+    {
+        NSString* textureName = [NSString stringWithFormat:@"%s", _geometryProvider.environment().textureName.c_str()];
+        textureName = [[geometryFile stringByDeletingLastPathComponent] stringByAppendingPathComponent:textureName];
+        _environmentMap = TextureProvider::loadFile([textureName fileSystemRepresentation], _device);
+    }
+
     _accelerationStructure = [[MPSTriangleAccelerationStructure alloc] initWithDevice:_device];
     [_accelerationStructure setVertexBuffer:_geometryProvider.vertexBuffer()];
     [_accelerationStructure setVertexStride:sizeof(Vertex)];
@@ -371,13 +408,29 @@ static std::uniform_real_distribution<float> uniformFloatDistribution(0.0f, 1.0f
     [_lightIntersector setIntersectionDataType:MPSIntersectionDataTypeDistancePrimitiveIndex];
     [_lightIntersector setIntersectionStride:sizeof(LightSamplingIntersection)];
     [_lightIntersector setCullMode:MTLCullModeNone];
+
+    [[NSUserDefaults standardUserDefaults] setObject:fileName forKey:kLastOpenedScene];
+    [[NSUserDefaults standardUserDefaults] synchronize];
+
+    if (hasCustomCamera == false)
+    {
+        packed_float3 bmin = _geometryProvider.boundsMin();
+        packed_float3 bmax = _geometryProvider.boundsMax();
+        packed_float3 maxv = simd_max(simd_abs(bmin), simd_abs(bmax));
+        _camera.target = (bmin + bmax) * 0.5f;
+        _camera.origin = { _camera.target.x, _camera.target.y, 2.0f * maxv.z };
+    }
+    _raytracingPaused = false;
 }
 
 - (void)updateBuffers
 {
-    RandomSample* ptr = reinterpret_cast<RandomSample*>([_noise[[self frameIndex]] contents]);
+    id<MTLBuffer> noiseBuffer = _noise[[self frameIndex]];
+    RandomSample* ptr = reinterpret_cast<RandomSample*>([noiseBuffer contents]);
     for (NSUInteger i = 0; i < (NOISE_BLOCK_SIZE * NOISE_BLOCK_SIZE); ++i)
     {
+        ptr->pixelSample.x = uniformFloatDistribution(randomGenerator);
+        ptr->pixelSample.y = uniformFloatDistribution(randomGenerator);
         ptr->barycentricSample.x = uniformFloatDistribution(randomGenerator);
         ptr->barycentricSample.y = uniformFloatDistribution(randomGenerator);
         ptr->emitterBsdfSample.x = uniformFloatDistribution(randomGenerator);
@@ -389,19 +442,25 @@ static std::uniform_real_distribution<float> uniformFloatDistribution(0.0f, 1.0f
         ptr->rrSample = uniformFloatDistribution(randomGenerator);
         ++ptr;
     }
-    [_noise[[self frameIndex]] didModifyRange:NSMakeRange(0, [_noise[[self frameIndex]] length])];
+    [_noise[[self frameIndex]] didModifyRange:NSMakeRange(0, [noiseBuffer length])];
 
     CFTimeInterval frameTime = CACurrentMediaTime() - _startupTime;
     _lastFrameDuration = frameTime - _lastFrameTime;
     _lastFrameTime = frameTime;
 
-    ApplicationData* appData = reinterpret_cast<ApplicationData*>([_appData[[self frameIndex]] contents]);
+    id<MTLBuffer> buffer = _appData[[self frameIndex]];
+    ApplicationData* appData = reinterpret_cast<ApplicationData*>([buffer contents]);
     appData->environmentColor = _geometryProvider.environment().uniformColor;
-    appData->frameIndex = _frameContinuousIndex;
     appData->emitterTrianglesCount = _geometryProvider.emitterTriangleCount();
+    appData->frameIndex = _frameContinuousIndex;
     appData->time = frameTime;
+    appData->comparisonMode = _comparisonMode;
+    appData->camera = _camera;
+}
 
-    ++_frameContinuousIndex;
+- (void)setComparisonMode:(uint32_t)mode
+{
+    _comparisonMode = mode;
 }
 
 @end

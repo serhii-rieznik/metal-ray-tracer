@@ -1,0 +1,127 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<!--
+
+	Automatically converted from Wavefront OBJ
+
+-->
+<scene version="0.5.0">
+	<integrator type="path"/>
+
+	<bsdf type="diffuse" id="white_material">
+		<rgb name="reflectance" value="1 1 1"/>
+	</bsdf>
+
+	<bsdf type="diffuse" id="leftWall_material">
+		<rgb name="reflectance" value="1 0 0"/>
+	</bsdf>
+
+	<bsdf type="diffuse" id="rightWall_material">
+		<rgb name="reflectance" value="0 1 0"/>
+	</bsdf>
+
+	<bsdf type="diffuse" id="floor_material">
+		<rgb name="reflectance" value="1 1 1"/>
+	</bsdf>
+
+	<bsdf type="diffuse" id="ceiling_material">
+		<rgb name="reflectance" value="1 1 1"/>
+	</bsdf>
+
+	<bsdf type="diffuse" id="frontWall_material">
+		<rgb name="reflectance" value="1 1 1"/>
+	</bsdf>
+
+	<bsdf type="diffuse" id="shortBox_material">
+		<rgb name="reflectance" value="1 1 1"/>
+	</bsdf>
+
+	<bsdf type="diffuse" id="tallBox_material">
+		<rgb name="reflectance" value="1 1 1"/>
+	</bsdf>
+
+	<bsdf type="diffuse" id="light_material">
+		<rgb name="reflectance" value="0 0 0"/>
+	</bsdf>
+
+	<shape type="serialized" id="ceiling_Mesh_mesh">
+		<string name="filename" value="cornellbox.serialized"/>
+		<integer name="shapeIndex" value="0"/>
+
+		<ref name="bsdf" id="ceiling_material"/>
+	</shape>
+
+	<shape type="serialized" id="floor_Mesh_mesh">
+		<string name="filename" value="cornellbox.serialized"/>
+		<integer name="shapeIndex" value="1"/>
+
+		<ref name="bsdf" id="floor_material"/>
+	</shape>
+
+	<shape type="serialized" id="frontWall_Mesh_mesh">
+		<string name="filename" value="cornellbox.serialized"/>
+		<integer name="shapeIndex" value="2"/>
+
+		<ref name="bsdf" id="frontWall_material"/>
+	</shape>
+
+	<shape type="serialized" id="leftWall_Mesh_mesh">
+		<string name="filename" value="cornellbox.serialized"/>
+		<integer name="shapeIndex" value="3"/>
+
+		<ref name="bsdf" id="leftWall_material"/>
+	</shape>
+
+	<shape type="serialized" id="light_Mesh_mesh">
+		<string name="filename" value="cornellbox.serialized"/>
+		<integer name="shapeIndex" value="4"/>
+
+		<emitter type="area">
+			<rgb name="radiance" value="5 4 3"/>
+		</emitter>
+	</shape>
+
+	<shape type="serialized" id="rightWall_Mesh_mesh">
+		<string name="filename" value="cornellbox.serialized"/>
+		<integer name="shapeIndex" value="5"/>
+
+		<ref name="bsdf" id="rightWall_material"/>
+	</shape>
+
+	<shape type="serialized" id="shortBox_Mesh_mesh">
+		<string name="filename" value="cornellbox.serialized"/>
+		<integer name="shapeIndex" value="6"/>
+
+		<ref name="bsdf" id="shortBox_material"/>
+	</shape>
+
+	<shape type="serialized" id="tallBox_Mesh_mesh">
+		<string name="filename" value="cornellbox.serialized"/>
+		<integer name="shapeIndex" value="7"/>
+
+		<ref name="bsdf" id="tallBox_material"/>
+	</shape>
+
+	<sensor type="perspective">
+		<float name="farClip" value="100"/>
+		<float name="focusDistance" value="3"/>
+		<float name="fov" value="90"/>
+		<string name="fovAxis" value="x"/>
+		<float name="nearClip" value="0.1"/>
+		<transform name="toWorld">
+
+			<lookat target="0, 1, 1.35" origin="0, 1, 2.35" up="0, 1, 0"/>
+		</transform>
+
+		<sampler type="independent">
+			<integer name="sampleCount" value="256"/>
+		</sampler>
+
+		<film type="hdrfilm">
+			<integer name="height" value="800"/>
+			<integer name="width" value="800"/>
+
+			<rfilter type="box"/>
+		</film>
+	</sensor>
+</scene>

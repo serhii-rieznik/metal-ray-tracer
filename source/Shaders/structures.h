@@ -11,11 +11,6 @@
 #include <MetalPerformanceShaders/MetalPerformanceShaders.h>
 #include "constants.h"
 
-#if !defined(__METAL_VERSION__)
-using packed_float3 = MPSPackedFloat3;
-using uint = uint32_t;
-#endif
-
 struct Vertex
 {
     packed_float3 v = {};
@@ -25,13 +20,13 @@ struct Vertex
 
 struct Material
 {
-    packed_float3 diffuse = {};
+    packed_float3 diffuse = { 1.0f, 1.0f, 1.0f };
     uint type = MATERIAL_DIFFUSE;
-    packed_float3 specular = {};
-    float roughness = 0.0f;
-    packed_float3 transmittance = {};
+    packed_float3 specular = { 1.0f, 1.0f, 1.0f };
+    float roughness = 1.0f;
+    packed_float3 transmittance = { 1.0f, 1.0f, 1.0f };
     float extIOR = 1.0f;
-    packed_float3 emissive = {};
+    packed_float3 emissive = { 0.0f, 0.0f, 0.0f };
     float intIOR = 1.5f;
 };
 
@@ -61,10 +56,10 @@ struct Ray
     packed_float3 radiance = {};
     uint bounces = 0;
     packed_float3 throughput = {};
-    uint completed = 0;
     float misPdf = 0.0f;
+    float eta = 1.0f;
+    uint completed = 0;
     uint generation = 0;
-    uint sampledLightTriangle = uint(-1);
 };
 
 struct LightSamplingRay
@@ -72,6 +67,14 @@ struct LightSamplingRay
     MPSRayOriginMinDistanceDirectionMaxDistance base = {};
     uint targetPrimitiveIndex = 0;
     packed_float3 throughput = {};
+    packed_float3 n = {};
+};
+
+struct Camera
+{
+    packed_float3 origin;
+    float fov = 90.0f;
+    packed_float3 target;
 };
 
 struct ApplicationData
@@ -80,6 +83,8 @@ struct ApplicationData
     float time = 0.0f;
     uint frameIndex = 0;
     uint emitterTrianglesCount = 0;
+    uint comparisonMode = COMPARE_DISABLED;
+    Camera camera;
 };
 
 struct SampledMaterial
@@ -89,10 +94,12 @@ struct SampledMaterial
     packed_float3 bsdf = 0.0f;
     uint valid = 0;
     packed_float3 weight = 0.0f;
+    float eta = 1.0f;
 };
 
 struct RandomSample
 {
+    packed_float2 pixelSample = { };
     packed_float2 barycentricSample = { };
     packed_float2 bsdfSample = { };
     packed_float2 emitterBsdfSample = { };
@@ -109,13 +116,6 @@ struct LightSample
     float emitterPdf = 0.0f;
     uint primitiveIndex = 0;
     uint valid = 0;
-};
-
-struct FresnelSample
-{
-    float value = 0.0f;
-    float etaI = 0.0f;
-    float etaO = 0.0f;
 };
 
 using Intersection = MPSIntersectionDistancePrimitiveIndexCoordinates;
