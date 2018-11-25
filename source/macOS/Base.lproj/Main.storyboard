@@ -32,6 +32,7 @@
                                                 <action selector="openFile:" target="Ady-hI-5gd" id="SgP-sf-Jl2"/>
                                             </connections>
                                         </menuItem>
+                                        <menuItem isSeparatorItem="YES" id="UuO-OM-p2f"/>
                                         <menuItem title="Display final image" keyEquivalent="0" id="5AB-0d-mLn">
                                             <modifierMask key="keyEquivalentModifierMask"/>
                                             <connections>
@@ -48,6 +49,12 @@
                                             <modifierMask key="keyEquivalentModifierMask"/>
                                             <connections>
                                                 <action selector="compareToNeutralColor:" target="Ady-hI-5gd" id="HtR-yj-IKf"/>
+                                            </connections>
+                                        </menuItem>
+                                        <menuItem isSeparatorItem="YES" id="T7v-Cx-yPw"/>
+                                        <menuItem title="Restart" keyEquivalent="r" id="Gix-ys-jDq">
+                                            <connections>
+                                                <action selector="restartRaytracing:" target="Ady-hI-5gd" id="ILj-Rg-KqM"/>
                                             </connections>
                                         </menuItem>
                                     </items>

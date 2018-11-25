@@ -13,6 +13,8 @@
 -(nonnull instancetype)initWithMetalKitView:(nonnull MTKView *)view;
 
 - (void)initializeRayTracingWithFile:(nonnull NSString*)fileName;
+- (void)initializeRayTracingWithRecent;
+
 - (void)setComparisonMode:(uint32_t)mode;
 
 @end

@@ -83,4 +83,9 @@
     [_renderer setComparisonMode:COMPARE_TO_GRAY];
 }
 
+- (IBAction)restartRaytracing:(id)sender
+{
+    [_renderer initializeRayTracingWithRecent];
+}
+
 @end

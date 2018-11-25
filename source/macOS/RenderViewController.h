@@ -15,5 +15,6 @@
 - (IBAction)displayFinalImage:(id)sender;
 - (IBAction)compareToReference:(id)sender;
 - (IBAction)compareToNeutralColor:(id)sender;
+- (IBAction)restartRaytracing:(id)sender;
 
 @end

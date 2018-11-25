@@ -104,8 +104,14 @@ GeometryProvider::GeometryProvider(const char* fileName, id<MTLDevice> device)
         material.emissive.y = mtl.emission[1];
         material.emissive.z = mtl.emission[2];
         material.type = mtl.illum;
-        material.roughness = mtl.roughness;
         material.intIOR = mtl.ior;
+
+        if ((mtl.roughness == 0.0f) && (mtl.shininess > 0.0f))
+        {
+            material.roughness = (2.0f / (2.0f + mtl.shininess));
+            NSLog(@"Shininess remapped to roughness: %.3f -> %.3f", mtl.shininess, material.roughness);
+        }
+        material.roughness = std::max(mtl.roughness, 0.005f);
 
         if (mtl.unknown_parameter.count("Ne") > 0.0f)
         {

@@ -116,17 +116,7 @@ static std::uniform_real_distribution<float> uniformFloatDistribution(0.0f, 1.0f
             _appData[i] = [_device newBufferWithLength:sizeof(ApplicationData) options:MTLResourceStorageModeShared];
         }
 
-        NSString* lastOpenedScene = [[NSUserDefaults standardUserDefaults] stringForKey:kLastOpenedScene];
-
-        if (lastOpenedScene == nil)
-        {
-            lastOpenedScene = [[NSBundle mainBundle] pathForResource:@"media/cornellbox" ofType:@"json"];
-        }
-
-        [self initializeRayTracingWithFile:lastOpenedScene];
-
-        _startupTime = CACurrentMediaTime();
-        _restartTracing = true;
+        [self initializeRayTracingWithRecent];
     }
 
     return self;
@@ -321,6 +311,18 @@ static std::uniform_real_distribution<float> uniformFloatDistribution(0.0f, 1.0f
     [commandEncoder setComputePipelineState:pipelineState];
     [commandEncoder dispatchThreads:_outputImageSize threadsPerThreadgroup:MTLSizeMake(16, 4, 1)];
     [commandEncoder endEncoding];
+}
+
+- (void)initializeRayTracingWithRecent
+{
+    NSString* lastOpenedScene = [[NSUserDefaults standardUserDefaults] stringForKey:kLastOpenedScene];
+
+    if (lastOpenedScene == nil)
+    {
+        lastOpenedScene = [[NSBundle mainBundle] pathForResource:@"media/cornellbox" ofType:@"json"];
+    }
+
+    [self initializeRayTracingWithFile:lastOpenedScene];
 }
 
 - (void)initializeRayTracingWithFile:(NSString*)fileName
