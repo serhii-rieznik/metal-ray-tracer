@@ -23,7 +23,7 @@ kernel void generateRays(device Ray* rays [[buffer(0)]],
     device Ray& r = rays[rayIndex];
     if ((appData.frameIndex == 0) || (r.completed != 0))
     {
-        float3 up = float3(0.0f, 1.0f, 0.0f);
+        float3 up = appData.camera.up;
         float3 direction = normalize(appData.camera.target - appData.camera.origin);
         float3 side = cross(direction, up);
         up = cross(side, direction);

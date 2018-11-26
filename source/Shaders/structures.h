@@ -75,6 +75,7 @@ struct Camera
     packed_float3 origin;
     float fov = 90.0f;
     packed_float3 target;
+    packed_float3 up;
 };
 
 struct ApplicationData

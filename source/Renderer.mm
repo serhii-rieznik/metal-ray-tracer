@@ -21,6 +21,7 @@ static NSString* kReferenceImage = @"reference-image";
 static NSString* kCamera = @"camera";
 static NSString* kCameraOrigin = @"origin";
 static NSString* kCameraTarget = @"target";
+static NSString* kCameraUp = @"up";
 static NSString* kCameraFOV = @"fov";
 
 @interface Renderer()
@@ -341,7 +342,7 @@ static std::uniform_real_distribution<float> uniformFloatDistribution(0.0f, 1.0f
 
         if (error)
         {
-            NSLog(@"%@", error);
+            NSLog(@"Failed to load scene from JSON:\n%@", error);
             return;
         }
 
@@ -350,15 +351,34 @@ static std::uniform_real_distribution<float> uniformFloatDistribution(0.0f, 1.0f
         if (NSDictionary* camera = [options objectForKey:kCamera])
         {
             NSArray* origin = [camera objectForKey:kCameraOrigin];
-            NSArray* target = [camera objectForKey:kCameraTarget];
+            if (origin != nil)
+            {
             _camera.fov = [[camera objectForKey:kCameraFOV] floatValue] * M_PI / 180.0f;
             _camera.origin.x = [[origin objectAtIndex:0] floatValue];
             _camera.origin.y = [[origin objectAtIndex:1] floatValue];
             _camera.origin.z = [[origin objectAtIndex:2] floatValue];
+                hasCustomCamera = true;
+            }
+
+            NSArray* target = [camera objectForKey:kCameraTarget];
+            if (target != nil)
+            {
             _camera.target.x = [[target objectAtIndex:0] floatValue];
             _camera.target.y = [[target objectAtIndex:1] floatValue];
             _camera.target.z = [[target objectAtIndex:2] floatValue];
-            hasCustomCamera = true;
+            }
+
+            NSArray* up = [camera objectForKey:kCameraUp];
+            if (up != nil)
+            {
+                _camera.up.x = [[up objectAtIndex:0] floatValue];
+                _camera.up.y = [[up objectAtIndex:1] floatValue];
+                _camera.up.z = [[up objectAtIndex:2] floatValue];
+            }
+            else
+            {
+                _camera.up = { 0.0f, 1.0f, 0.0f };
+            }
         }
     }
 
