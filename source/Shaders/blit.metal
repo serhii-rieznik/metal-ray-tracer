@@ -48,9 +48,9 @@ fragment float4 blitFragment(BlitVertexOut in [[stage_in]],
 
         float4 referenceColor = (appData.comparisonMode == COMPARE_TO_REFERENCE) ? referenceImageColor : neutralColor;
 
-        float colorLum = dot(color, float4(1.0f / 3.0f, 1.0f / 3.0f, 1.0f / 3.0f, 0.0f));
-        float referenceLum = dot(referenceColor, float4(1.0f / 3.0f, 1.0f / 3.0f, 1.0f / 3.0f, 0.0f));
-        float diff = (colorLum - referenceLum);
+        float colorLum = dot(color.xyz, 1.0f / 3.0f);
+        float referenceLum = dot(referenceColor.xyz, 1.0f / 3.0f);
+        float diff = (colorLum - referenceLum) * COMPARE_SCALE;
         color = (diff > 0.0f) ? float4(0.0f, diff, 0.0f, 1.0f) : float4(-diff, 0.0f, 0.0f, 1.0f);
     }
 
