@@ -13,12 +13,12 @@
 namespace dielectric
 {
 
-inline SampledMaterial evaluate(device const Material& material, float3 nX, float3 wI, float3 wO)
+inline SampledMaterial evaluate(device const Material& material, float3 nO, float3 wI, float3 wO)
 {
     SampledMaterial result = { wO };
 
-    bool enteringMaterial = dot(nX, wI) < 0.0f;
-    float3 n = enteringMaterial ? nX : -nX;
+    bool enteringMaterial = dot(nO, wI) < 0.0f;
+    float3 n = enteringMaterial ? nO : -nO;
 
     float NdotI = -dot(n, wI);
     float NdotO = dot(n, wO);
@@ -66,10 +66,10 @@ inline SampledMaterial evaluate(device const Material& material, float3 nX, floa
     return result;
 }
 
-inline SampledMaterial sample(device const Material& material, float3 nX, float3 wI, device const RandomSample& randomSample)
+inline SampledMaterial sample(device const Material& material, float3 nO, float3 wI, device const RandomSample& randomSample)
 {
-    bool enteringMaterial = dot(nX, wI) < 0.0f;
-    float3 n = enteringMaterial ? nX : -nX;
+    bool enteringMaterial = dot(nO, wI) < 0.0f;
+    float3 n = enteringMaterial ? nO : -nO;
     float a = remapRoughness(material.roughness, dot(n, wI));
     float3 m = sampleGGXDistribution(n, randomSample.bsdfSample, a);
 
@@ -122,7 +122,7 @@ inline SampledMaterial sample(device const Material& material, float3 nX, float3
         if (dot(n, wO) * dot(n, wI) >= 0.0f) return {};
     }
 
-    return evaluate(material, nX, wI, wO);
+    return evaluate(material, nO, wI, wO);
 }
 
 }

@@ -54,4 +54,4 @@ using uint = uint32_t;
 #define COMPARE_TO_REFERENCE            1
 #define COMPARE_TO_GRAY                 2
 #define COMPARE_MODE                    COMPARE_DISABLED
-#define COMPARE_SCALE                   10.0f
+#define COMPARE_SCALE                   1.0f

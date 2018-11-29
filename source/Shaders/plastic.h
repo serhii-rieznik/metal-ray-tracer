@@ -16,9 +16,9 @@ namespace plastic
 inline SampledMaterial evaluate(device const Material& material, float3 nO, float3 wI, float3 wO)
 {
     SampledMaterial result = { wO };
-    float NdotO = dot(nO, wO);
     float NdotI = -dot(nO, wI);
-    result.valid = uint(NdotO * NdotI > 0.0f) * (NdotO > 0.0f) * (NdotI > 0.0f);
+    float NdotO = dot(nO, wO);
+    result.valid = uint(NdotO * NdotI > 0.0f) * uint(NdotO > 0.0f) * uint(NdotI > 0.0f);
     if (result.valid)
     {
         float3 m = normalize(wO - wI);
@@ -31,8 +31,14 @@ inline SampledMaterial evaluate(device const Material& material, float3 nO, floa
         float G = ggxVisibilityTerm(a, wI, wO, nO, m);
         float J = 1.0f / (4.0 * MdotO);
         
-        result.bsdf = material.specular * (F * D * G / (4.0 * NdotI)) + material.diffuse * INVERSE_PI * NdotO * (1.0f - F);
-        result.pdf = D * NdotM * J * F + INVERSE_PI * NdotO * (1.0f - F);
+        result.bsdf =
+            material.diffuse * INVERSE_PI * NdotO +
+            material.specular * (F * D * G / (4.0 * NdotI));
+
+        result.pdf =
+            INVERSE_PI * NdotO * (1.0f - F) +
+            D * NdotM * J * F;
+
         result.weight = result.bsdf / result.pdf;
         result.eta = 1.0f;
     }
@@ -52,8 +58,9 @@ inline SampledMaterial sample(device const Material& material, float3 nO, float3
     }
     else
     {
-        wO = sampleCosineWeightedHemisphere(m, randomSample.bsdfSample);
+        wO = sampleCosineWeightedHemisphere(nO, randomSample.bsdfSample);
     }
+
     return evaluate(material, nO, wI, wO);
 }
 
