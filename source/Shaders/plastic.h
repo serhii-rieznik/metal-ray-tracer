@@ -32,7 +32,7 @@ inline SampledMaterial evaluate(device const Material& material, float3 nO, floa
         float J = 1.0f / (4.0 * MdotO);
         
         result.bsdf =
-            material.diffuse * INVERSE_PI * NdotO +
+            material.diffuse * INVERSE_PI * NdotO * (1.0f - F) +
             material.specular * (F * D * G / (4.0 * NdotI));
 
         result.pdf =
@@ -52,13 +52,13 @@ inline SampledMaterial sample(device const Material& material, float3 nO, float3
     float F = fresnelDielectric(wI, m, material.extIOR, material.intIOR);
 
     float3 wO = {};
-    if (randomSample.componentSample < F)
+    if (randomSample.componentSample > F)
     {
-        wO = reflect(wI, m);
+        wO = sampleCosineWeightedHemisphere(nO, randomSample.bsdfSample);
     }
     else
     {
-        wO = sampleCosineWeightedHemisphere(nO, randomSample.bsdfSample);
+        wO = reflect(wI, m);
     }
 
     return evaluate(material, nO, wI, wO);

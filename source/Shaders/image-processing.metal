@@ -18,10 +18,7 @@ kernel void accumulateImage(texture2d<float, access::read_write> image [[texture
                             uint2 size [[threads_per_grid]])
 {
     if (appData.frameIndex == 0)
-    {
         image.write(0.0f, coordinates);
-        return;
-    }
 
     uint rayIndex = coordinates.x + coordinates.y * size.x;
     device const Ray& currentRay = rays[rayIndex];
