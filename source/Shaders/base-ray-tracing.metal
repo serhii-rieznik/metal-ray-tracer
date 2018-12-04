@@ -138,8 +138,7 @@ kernel void handleIntersections(texture2d<float> environment [[texture(0)]],
 #if (ENABLE_RUSSIAN_ROULETTE)
     if (currentRay.bounces >= 5)
     {
-        float m = max(currentRay.throughput.x, max(currentRay.throughput.y, currentRay.throughput.z));
-        float q = min(m * sqr(currentRay.eta), 0.95f);
+        float q = min(0.95f, max(currentRay.throughput.x, max(currentRay.throughput.y, currentRay.throughput.z)));
         if (randomSample.rrSample >= q)
         {
             currentRay.completed = 1;
