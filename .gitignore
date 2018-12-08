@@ -3,3 +3,4 @@ Metal ray-tracer.xcodeproj/project.xcworkspace/xcuserdata/s_reznik.xcuserdatad
 media/reference-pbrt/*.exr
 media/reference/*.exr
 media/*.exr
+spectral/x64/
