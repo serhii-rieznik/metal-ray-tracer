@@ -43,14 +43,14 @@ void Context::draw(HDC dc)
         }
         
         SampledSpectrum spectrum = 
-            SampledSpectrum::fromBlackbodyWithTemperature(temperature);
+            SampledSpectrum::fromBlackbodyWithTemperature(temperature, true);
             // SampledSpectrum::fromSamples(wl, val, wvCount);
         Float3 rgb = spectrum.toRGB();
 
         SampledSpectrum fromRGB = SampledSpectrum::fromRGB(RGBToSpectrumClass::Illuminant, rgb);
         rgb = fromRGB.toRGB();
 
-        float mx = std::max(rgb[0], std::max(rgb[1], rgb[2]));
+        float mx = 1.0f; // std::max(rgb[0], std::max(rgb[1], rgb[2]));
 
         rgb[0] = std::max(0.0f, std::min(1.0f, rgb[0] / mx));
         rgb[1] = std::max(0.0f, std::min(1.0f, rgb[1] / mx));

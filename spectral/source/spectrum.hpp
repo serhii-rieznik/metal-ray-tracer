@@ -98,7 +98,7 @@ public:
 
     static SampledSpectrum fromSamples(const float wavelengths[], const float values[], uint32_t count);
     static SampledSpectrum fromRGB(RGBToSpectrumClass, Float3);
-    static SampledSpectrum fromBlackbodyWithTemperature(float t);
+    static SampledSpectrum fromBlackbodyWithTemperature(float t, bool normalized);
 
 public:
     Float3 toXYZ() const;
@@ -215,10 +215,17 @@ inline SampledSpectrum SampledSpectrum::fromRGB(RGBToSpectrumClass cls, Float3 r
     return result;
 }
 
-inline SampledSpectrum SampledSpectrum::fromBlackbodyWithTemperature(float temperature)
+inline SampledSpectrum SampledSpectrum::fromBlackbodyWithTemperature(float temperature, bool normalized)
 {
     static const float K1 = 1.1910427585e+19f; // 2 * h * c^2 / 10^-35
     static const float K2 = 1.4387751602e+5f; // h * c / k * 10^-7
+
+    float leMax = 1.0f;
+    if (normalized)
+    {
+        float wMax = (2.8977721e-3f / temperature) * 1.0e+7;
+        leMax = K1 / (std::pow(wMax, 5.0f) * (std::exp(K2 / (wMax * temperature)) - 1.0f));
+    }
 
     SampledSpectrum result;
     for (uint32_t i = 0; i < SampleCount; ++i)
@@ -226,6 +233,7 @@ inline SampledSpectrum SampledSpectrum::fromBlackbodyWithTemperature(float tempe
         float t = float(i) / float(SampleCount - 1);
         float w = (float(WavelengthBegin) * (1.0f - t) + float(WavelengthEnd) * t) / 100.0f;
         result.samples[i] = K1 / (std::pow(w, 5.0f) * (std::exp(K2 / (w * temperature)) - 1.0f));
+        result.samples[i] /= leMax;
     }
     return result;
 }
