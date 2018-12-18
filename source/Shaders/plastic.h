@@ -15,9 +15,11 @@ namespace plastic
 
 inline SampledMaterial evaluate(device const Material& material, float3 nO, float3 wI, float3 wO)
 {
-    SampledMaterial result = { wO };
     float NdotI = -dot(nO, wI);
     float NdotO = dot(nO, wO);
+    
+    SampledMaterial result = { };
+    result.direction = wO;
     result.valid = uint(NdotO * NdotI > 0.0f) * uint(NdotO > 0.0f) * uint(NdotI > 0.0f);
     if (result.valid)
     {
@@ -32,15 +34,14 @@ inline SampledMaterial evaluate(device const Material& material, float3 nO, floa
         float J = 1.0f / (4.0 * MdotO);
         
         result.bsdf =
-            material.diffuse * INVERSE_PI * NdotO * (1.0f - F) +
+            material.diffuse * (INVERSE_PI * NdotO * (1.0f - F)) +
             material.specular * (F * D * G / (4.0 * NdotI));
 
         result.pdf =
             INVERSE_PI * NdotO * (1.0f - F) +
             D * NdotM * J * F;
 
-        result.weight = result.bsdf / result.pdf;
-        result.eta = 1.0f;
+        result.weight = result.bsdf * (1.0f / result.pdf);
     }
     return result;
 }

@@ -24,7 +24,8 @@ kernel void accumulateImage(texture2d<float, access::read_write> image [[texture
     device const Ray& currentRay = rays[rayIndex];
     if (currentRay.completed && (currentRay.generation < MAX_SAMPLES))
     {
-        float4 outputColor = float4(rays[rayIndex].radiance, 1.0);
+        float4 outputColor = float4(rays[rayIndex].radiance.samples[0], rays[rayIndex].radiance.samples[1],
+            rays[rayIndex].radiance.samples[2], 1.0);
 
         if (any(isnan(outputColor)))
             outputColor = float4(1000.0f, 0.0f, 1000.0, 1.0f);

@@ -91,18 +91,10 @@ GeometryProvider::GeometryProvider(const char* fileName, id<MTLDevice> device)
     {
         materialBuffer.emplace_back();
         Material& material = materialBuffer.back();
-        material.diffuse.x = mtl.diffuse[0];
-        material.diffuse.y = mtl.diffuse[1];
-        material.diffuse.z = mtl.diffuse[2];
-        material.specular.x = mtl.specular[0];
-        material.specular.y = mtl.specular[1];
-        material.specular.z = mtl.specular[2];
-        material.transmittance.x = mtl.transmittance[0];
-        material.transmittance.y = mtl.transmittance[1];
-        material.transmittance.z = mtl.transmittance[2];
-        material.emissive.x = mtl.emission[0];
-        material.emissive.y = mtl.emission[1];
-        material.emissive.z = mtl.emission[2];
+        material.diffuse = GPUSpectrumFromRGB(mtl.diffuse);
+        material.specular = GPUSpectrumFromRGB(mtl.specular);
+        material.transmittance = GPUSpectrumFromRGB(mtl.transmittance);
+        material.emissive = GPUSpectrumFromRGB(mtl.emission);
         material.type = mtl.illum;
         material.intIOR = mtl.ior;
 
@@ -197,7 +189,7 @@ GeometryProvider::GeometryProvider(const char* fileName, id<MTLDevice> device)
             const Vertex& v2 = vertexBuffer[vertexBuffer.size() - 1];
 
             const Material& material = useDefaultMaterial ? materialBuffer.front() : materialBuffer[shape.mesh.material_ids[f]];
-            float emissiveScale = simd_dot(material.emissive, simd_float3{0.2126f, 0.7152f, 0.0722f});
+            float emissiveScale = GPUSpectrumLuminance(material.emissive);
 
             float area = 0.5f * simd_length(simd_cross(v2.v - v0.v, v1.v - v0.v));
             float scaledArea = area * emissiveScale;
@@ -205,7 +197,7 @@ GeometryProvider::GeometryProvider(const char* fileName, id<MTLDevice> device)
             triangleBuffer[triangleBufferOffset].materialIndex = useDefaultMaterial ? 0 : shape.mesh.material_ids[f];
             triangleBuffer[triangleBufferOffset].area = area;
 
-            if (simd_length(material.emissive) > 0.0f)
+            if (GPUSpectrumMax(material.emissive) > 0.0f)
             {
                 emitterTriangleBuffer.emplace_back();
                 emitterTriangleBuffer.back().area = area;

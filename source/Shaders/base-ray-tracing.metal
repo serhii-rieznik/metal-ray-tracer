@@ -45,11 +45,10 @@ kernel void generateRays(device Ray* rays [[buffer(0)]],
         r.base.direction = normalize(ax * side + ay * up + az * direction);
         r.base.minDistance = DISTANCE_EPSILON;
         r.base.maxDistance = INFINITY;
-        r.radiance = 0.0f;
+        r.radiance = GPUSpectrumConst(0.0f);
         r.bounces = 0;
-        r.throughput = 1.0f;
+        r.throughput = GPUSpectrumConst(1.0f);
         r.misPdf = 1.0f;
-        r.eta = 1.0f;
         r.generation = (appData.frameIndex == 0) ? 0 : (r.generation + 1);
         r.completed = 0;
     }
@@ -78,9 +77,11 @@ kernel void handleIntersections(texture2d<float> environment [[texture(0)]],
 
     if (i.distance < 0.0f)
     {
-        currentRay.radiance += currentRay.throughput * (appData.environmentColor + sampleEnvironment(environment, currentRay.base.direction));
+        GPUSpectrum envColor = appData.environmentColor;
+        currentRay.radiance = currentRay.radiance +
+            currentRay.throughput * (envColor + sampleEnvironment(environment, currentRay.base.direction));
         currentRay.base.maxDistance = -1.0;
-        currentRay.throughput = 0.0;
+        currentRay.throughput = GPUSpectrumConst(0.0);
         currentRay.completed = 1;
         return;
     }
@@ -97,7 +98,7 @@ kernel void handleIntersections(texture2d<float> environment [[texture(0)]],
     
     Vertex currentVertex = interpolate(a, b, c, i.coordinates);
 
-    if ((currentRay.completed == 0) && (dot(material.emissive, material.emissive) > 0.0))
+    if ((currentRay.completed == 0) && (GPUSpectrumMax(material.emissive) > 0.0))
     {
         float3 direction = currentVertex.v - currentRay.base.origin;
         float samplePdf = triangle.discretePdf * directSamplingPdf(currentVertex.n, direction, triangle.area);
@@ -110,7 +111,7 @@ kernel void handleIntersections(texture2d<float> environment [[texture(0)]],
 
         float weight = float(currentRay.bounces == 0) ? 1.0f : weights[IS_MODE];
         weight *= float(dot(currentRay.base.direction, currentVertex.n) < 0.0f);
-        currentRay.radiance += material.emissive * currentRay.throughput * weight;
+        currentRay.radiance = currentRay.radiance + material.emissive * currentRay.throughput * weight;
     }
 
     // generate next bounce
@@ -121,15 +122,14 @@ kernel void handleIntersections(texture2d<float> environment [[texture(0)]],
         {
             currentRay.base.origin = currentVertex.v + materialSample.direction * DISTANCE_EPSILON;
             currentRay.base.direction = materialSample.direction;
-            currentRay.throughput *= materialSample.weight;
+            currentRay.throughput = currentRay.throughput * materialSample.weight;
             currentRay.misPdf = materialSample.pdf;
             currentRay.bounces += 1;
-            currentRay.eta *= materialSample.eta;
         }
         else
         {
             currentRay.base.maxDistance = -1.0f;
-            currentRay.throughput = 0.0f;
+            currentRay.throughput = GPUSpectrumConst(0.0f);
             currentRay.misPdf = 0.0f;
         }
         currentRay.completed = uint(materialSample.valid == 0) + uint(currentRay.bounces >= MAX_PATH_LENGTH);
@@ -138,14 +138,14 @@ kernel void handleIntersections(texture2d<float> environment [[texture(0)]],
 #if (ENABLE_RUSSIAN_ROULETTE)
     if (currentRay.bounces >= 5)
     {
-        float q = min(0.95f, max(currentRay.throughput.x, max(currentRay.throughput.y, currentRay.throughput.z)));
-        if (randomSample.rrSample >= q)
+        float q = min(0.95f, GPUSpectrumMax(currentRay.throughput));
+        if (randomSample.rrSample < q)
         {
-            currentRay.completed = 1;
+            currentRay.throughput = currentRay.throughput * (1.0f / q);
         }
         else
         {
-            currentRay.throughput *= 1.0f / q;
+            currentRay.completed = 1;
         }
     }
 #endif

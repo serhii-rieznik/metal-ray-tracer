@@ -15,7 +15,8 @@ namespace dielectric
 
 inline SampledMaterial evaluate(device const Material& material, float3 nO, float3 wI, float3 wO)
 {
-    SampledMaterial result = { wO };
+    SampledMaterial result = { };
+    result.direction = wO;
 
     bool enteringMaterial = dot(nO, wI) < 0.0f;
     float3 n = enteringMaterial ? nO : -nO;
@@ -45,7 +46,6 @@ inline SampledMaterial evaluate(device const Material& material, float3 nO, floa
         result.bsdf = material.specular * (D * G * F / (4.0f * NdotI));
         result.pdf = F * J;
         result.weight = material.specular;
-        result.eta = 1.0f;
     }
     else
     {
@@ -56,12 +56,11 @@ inline SampledMaterial evaluate(device const Material& material, float3 nO, floa
         result.pdf = (1.0f - F) * J;
 
         result.weight = material.transmittance;
-        result.eta = eta;
     }
 
     result.pdf *= D * NdotM;
-    result.weight *= abs(G * MdotI / (NdotI * NdotM));
-    result.valid = uint(dot(result.bsdf, result.bsdf) > 0.0f) * uint(result.pdf > 0.0f);
+    result.weight = result.weight * abs(G * MdotI / (NdotI * NdotM));
+    result.valid = uint(GPUSpectrumMax(result.bsdf) > 0.0f) * uint(result.pdf > 0.0f);
 
     return result;
 }

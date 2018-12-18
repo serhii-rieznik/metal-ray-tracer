@@ -85,11 +85,8 @@ inline LightSample sampleLight(float3 origin, float3 normal, device const Emitte
     lightSample.direction = normalize(wO);
     lightSample.samplePdf = emitter.discretePdf * directSamplingPdf(lightVertex.n, wO, emitter.area);
     lightSample.primitiveIndex = emitter.globalIndex;
-
     lightSample.valid = (dot(normal, wO) > 0.0f) && (dot(float3(lightVertex.n), wO) < 0.0f) && (lightSample.samplePdf > 0.0f);
-        // (lightSample.samplePdf > 0.0f) && (dot(wO, float3(lightVertex.n)) < 0.0f) && (dot(wO, normal) > 0.0f);
-
-    lightSample.value = lightSample.valid ? (emitter.emissive / lightSample.samplePdf) : 0.0f;
+    lightSample.value = lightSample.valid ? (emitter.emissive * (1.0f / lightSample.samplePdf)) : GPUSpectrumConst(0.0f);
 
     return lightSample;
 }
@@ -199,11 +196,12 @@ inline float2 directionToEquirectangularCoordinates(float3 d)
     return float2(-u, v);
 }
 
-inline float3 sampleEnvironment(texture2d<float> environment, float3 d)
+inline GPUSpectrum sampleEnvironment(texture2d<float> environment, float3 d)
 {
     constexpr sampler environmentSampler = sampler(s_address::repeat, t_address::clamp_to_edge, filter::linear);
     float2 uv = directionToEquirectangularCoordinates(d);
-    return environment.sample(environmentSampler, uv).xyz;
+    float3 smp = environment.sample(environmentSampler, uv).xyz;
+    return GPUSpectrumFromRGB(smp.x, smp.y, smp.z);
 }
 
 inline float remapRoughness(float r, float NdotI)

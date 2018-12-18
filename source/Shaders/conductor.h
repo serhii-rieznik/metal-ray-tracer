@@ -15,9 +15,11 @@ namespace conductor
 
 inline SampledMaterial evaluate(device const Material& material, float3 nO, float3 wI, float3 wO)
 {
-    SampledMaterial result = { wO };
     float NdotO = dot(nO, wO);
     float NdotI = -dot(nO, wI);
+
+    SampledMaterial result = { };
+    result.direction = wO;
     result.valid = uint(NdotO * NdotI > 0.0f) * (NdotO > 0.0f) * (NdotI > 0.0f);
     if (result.valid)
     {
@@ -33,7 +35,6 @@ inline SampledMaterial evaluate(device const Material& material, float3 nO, floa
         result.bsdf = material.specular * (F * D * G / (4.0 * NdotI));
         result.pdf = D * NdotM * J;
         result.weight = material.specular * (F * G * MdotO / (NdotM * NdotI));
-        result.eta = 1.0f;
     }
     return result;
 }

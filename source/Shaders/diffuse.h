@@ -15,7 +15,8 @@ namespace diffuse
 
 inline SampledMaterial evaluate(device const Material& material, float3 nO, float3 wI, float3 wO)
 {
-    SampledMaterial result = { wO };
+    SampledMaterial result = { };
+    result.direction = wO;
     float NdotO = dot(nO, wO);
     float NdotI = -dot(nO, wI);
     result.valid = uint(NdotO * NdotI > 0.0f) * (NdotO > 0.0f) * (NdotI > 0.0f);
@@ -24,7 +25,6 @@ inline SampledMaterial evaluate(device const Material& material, float3 nO, floa
         result.bsdf = material.diffuse * (INVERSE_PI * NdotO);
         result.pdf = INVERSE_PI * NdotO;
         result.weight = material.diffuse;
-        result.eta = 1.0f;
     }
     return result;
 }

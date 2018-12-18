@@ -100,7 +100,8 @@ kernel void lightSamplingHandler(device const LightSamplingIntersection* interse
     {
         if (rays[rayIndex].bounces + 1 < MAX_PATH_LENGTH)
         {
-            rays[rayIndex].radiance += rays[rayIndex].throughput * lightSamplingRays[rayIndex].throughput;
+            rays[rayIndex].radiance = rays[rayIndex].radiance +
+                rays[rayIndex].throughput * lightSamplingRays[rayIndex].throughput;
         }
     }
 #endif

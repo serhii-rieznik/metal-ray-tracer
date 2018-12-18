@@ -10,6 +10,7 @@
 
 #include <MetalPerformanceShaders/MetalPerformanceShaders.h>
 #include "constants.h"
+#include "gpu-spectrum.h"
 
 struct Vertex
 {
@@ -20,13 +21,13 @@ struct Vertex
 
 struct Material
 {
-    packed_float3 diffuse = { 1.0f, 1.0f, 1.0f };
+    GPUSpectrum diffuse = GPUSpectrumFromRGB(1.0f, 1.0f, 1.0f);
+    GPUSpectrum specular = GPUSpectrumFromRGB(1.0f, 1.0f, 1.0f);
+    GPUSpectrum transmittance = GPUSpectrumFromRGB(1.0f, 1.0f, 1.0f);
+    GPUSpectrum emissive = GPUSpectrumFromRGB(0.0f, 0.0f, 0.0f);
     uint type = MATERIAL_DIFFUSE;
-    packed_float3 specular = { 1.0f, 1.0f, 1.0f };
     float roughness = 1.0f;
-    packed_float3 transmittance = { 1.0f, 1.0f, 1.0f };
     float extIOR = 1.0f;
-    packed_float3 emissive = { 0.0f, 0.0f, 0.0f };
     float intIOR = 1.5f;
 };
 
@@ -47,17 +48,16 @@ struct EmitterTriangle
     Vertex v0;
     Vertex v1;
     Vertex v2;
-    packed_float3 emissive = {};
+    GPUSpectrum emissive = {};
 };
 
 struct Ray
 {
     MPSRayOriginMinDistanceDirectionMaxDistance base = {};
-    packed_float3 radiance = {};
-    uint bounces = 0;
-    packed_float3 throughput = {};
+    GPUSpectrum radiance = {};
+    GPUSpectrum throughput = {};
     float misPdf = 0.0f;
-    float eta = 1.0f;
+    uint bounces = 0;
     uint completed = 0;
     uint generation = 0;
 };
@@ -65,9 +65,9 @@ struct Ray
 struct LightSamplingRay
 {
     MPSRayOriginMinDistanceDirectionMaxDistance base = {};
-    uint targetPrimitiveIndex = 0;
-    packed_float3 throughput = {};
+    GPUSpectrum throughput = {};
     packed_float3 n = {};
+    uint targetPrimitiveIndex = 0;
 };
 
 struct Camera
@@ -80,7 +80,7 @@ struct Camera
 
 struct ApplicationData
 {
-    packed_float3 environmentColor = {};
+    GPUSpectrum environmentColor;
     float time = 0.0f;
     uint frameIndex = 0;
     uint emitterTrianglesCount = 0;
@@ -90,12 +90,11 @@ struct ApplicationData
 
 struct SampledMaterial
 {
+    GPUSpectrum bsdf;
+    GPUSpectrum weight;
     packed_float3 direction = {};
     float pdf = 0.0f;
-    packed_float3 bsdf = 0.0f;
     uint valid = 0;
-    packed_float3 weight = 0.0f;
-    float eta = 1.0f;
 };
 
 struct RandomSample
@@ -111,7 +110,7 @@ struct RandomSample
 
 struct LightSample
 {
-    packed_float3 value = { };
+    GPUSpectrum value = { };
     float samplePdf = 0.0f;
     packed_float3 direction = { };
     float emitterPdf = 0.0f;

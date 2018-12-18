@@ -8,6 +8,7 @@
 
 /* Begin PBXBuildFile section */
 		6E27FBDA21A9F0FB005108B3 /* RenderView.m in Sources */ = {isa = PBXBuildFile; fileRef = 6E27FBD921A9F0FB005108B3 /* RenderView.m */; };
+		6E42272021C9920F00AD0771 /* Spectrum.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6E42271E21C9920F00AD0771 /* Spectrum.cpp */; };
 		6E6DF16E21503D6700089863 /* GeometryProvider.mm in Sources */ = {isa = PBXBuildFile; fileRef = 6E6DF16C21503D6700089863 /* GeometryProvider.mm */; };
 		6E6DF32221503E3700089863 /* tiny_obj_loader.cc in Sources */ = {isa = PBXBuildFile; fileRef = 6E6DF1D721503E3600089863 /* tiny_obj_loader.cc */; };
 		6E6DF34821503E3700089863 /* imgui_widgets.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6E6DF21421503E3600089863 /* imgui_widgets.cpp */; };
@@ -33,6 +34,9 @@
 /* Begin PBXFileReference section */
 		6E27FBD821A9F0FB005108B3 /* RenderView.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = RenderView.h; sourceTree = "<group>"; };
 		6E27FBD921A9F0FB005108B3 /* RenderView.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = RenderView.m; sourceTree = "<group>"; };
+		6E42271D21C9917000AD0771 /* gpu-spectrum.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "gpu-spectrum.h"; sourceTree = "<group>"; };
+		6E42271E21C9920F00AD0771 /* Spectrum.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Spectrum.cpp; sourceTree = "<group>"; };
+		6E42271F21C9920F00AD0771 /* Spectrum.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = Spectrum.hpp; sourceTree = "<group>"; };
 		6E5644B721A3551F0096B866 /* diffuse.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = diffuse.h; sourceTree = "<group>"; };
 		6E5644B821A356B00096B866 /* conductor.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = conductor.h; sourceTree = "<group>"; };
 		6E5644BA21A35E390096B866 /* plastic.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = plastic.h; sourceTree = "<group>"; };
@@ -162,6 +166,8 @@
 				6EC853DD214DA332005418DF /* Shaders */,
 				6EC4F6C6214D90C5003A48EA /* Renderer.h */,
 				6EC4F6C7214D90C5003A48EA /* Renderer.mm */,
+				6E42271E21C9920F00AD0771 /* Spectrum.cpp */,
+				6E42271F21C9920F00AD0771 /* Spectrum.hpp */,
 				6E799B0B217913B800775537 /* TextureProvider.h */,
 				6E799B0A217913B800775537 /* TextureProvider.mm */,
 				6E6DF16C21503D6700089863 /* GeometryProvider.mm */,
@@ -173,6 +179,7 @@
 		6EC853DD214DA332005418DF /* Shaders */ = {
 			isa = PBXGroup;
 			children = (
+				6E42271D21C9917000AD0771 /* gpu-spectrum.h */,
 				6E5644B721A3551F0096B866 /* diffuse.h */,
 				6E5644B821A356B00096B866 /* conductor.h */,
 				6E5644BA21A35E390096B866 /* plastic.h */,
@@ -299,6 +306,7 @@
 				6E6DF3B521503E3700089863 /* imgui_draw.cpp in Sources */,
 				6EC4F6C5214D90C5003A48EA /* AppDelegate.mm in Sources */,
 				6E799B0C217913B800775537 /* TextureProvider.mm in Sources */,
+				6E42272021C9920F00AD0771 /* Spectrum.cpp in Sources */,
 				6EC853E7214DB803005418DF /* base-ray-tracing.metal in Sources */,
 				6E6DF34821503E3700089863 /* imgui_widgets.cpp in Sources */,
 				6E6DF3B421503E3700089863 /* imgui_demo.cpp in Sources */,
