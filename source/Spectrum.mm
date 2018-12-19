@@ -1,4 +1,4 @@
-#include "Spectrum.hpp"
+#include "Spectrum.h"
 
 namespace CIE {
 extern const float wavelengths[sampleCount] = {

@@ -7,6 +7,7 @@
 //
 
 #include "GeometryProvider.h"
+#include "Spectrum.h"
 #include "../external/tinyobjloader/tiny_obj_loader.h"
 
 #define VALIDATE_SAMPLING_FUNCTION 0
@@ -14,23 +15,6 @@
 #if (VALIDATE_SAMPLING_FUNCTION)
 #   include <set>
 #endif
-
-class BufferConstructor
-{
-public:
-    BufferConstructor(id<MTLDevice> device) :
-    _device(device) { }
-
-    template <class T>
-    id<MTLBuffer> operator()(const std::vector<T>& data, NSString* tag) {
-        id<MTLBuffer> buffer = [_device newBufferWithBytes:data.data() length:sizeof(T) * data.size()
-                                                   options:MTLResourceStorageModeManaged];
-        [buffer setLabel:tag];
-        return buffer;
-    };
-private:
-    id<MTLDevice> _device;
-};
 
 GeometryProvider::GeometryProvider(const char* fileName, id<MTLDevice> device)
 {
@@ -91,10 +75,17 @@ GeometryProvider::GeometryProvider(const char* fileName, id<MTLDevice> device)
     {
         materialBuffer.emplace_back();
         Material& material = materialBuffer.back();
-        material.diffuse = GPUSpectrumFromRGB(mtl.diffuse);
-        material.specular = GPUSpectrumFromRGB(mtl.specular);
-        material.transmittance = GPUSpectrumFromRGB(mtl.transmittance);
-        material.emissive = GPUSpectrumFromRGB(mtl.emission);
+        material.diffuse = SampledSpectrum::fromRGB(RGBToSpectrumClass::Reflectance, mtl.diffuse).toGPUSpectrum();
+        material.specular = SampledSpectrum::fromRGB(RGBToSpectrumClass::Reflectance, mtl.specular).toGPUSpectrum();
+        material.transmittance = SampledSpectrum::fromRGB(RGBToSpectrumClass::Reflectance, mtl.transmittance).toGPUSpectrum();
+        material.emissive = SampledSpectrum::fromRGB(RGBToSpectrumClass::Illuminant, mtl.emission).toGPUSpectrum();
+
+        if (GPUSpectrumMax(material.emissive) > 0.0f)
+        {
+            material.emissive = SampledSpectrum::fromBlackbodyWithTemperature(6500.0f, false).toGPUSpectrum();
+            material.emissive = material.emissive * 1.0e-4f;
+        }
+
         material.type = mtl.illum;
         material.intIOR = mtl.ior;
 
@@ -189,7 +180,7 @@ GeometryProvider::GeometryProvider(const char* fileName, id<MTLDevice> device)
             const Vertex& v2 = vertexBuffer[vertexBuffer.size() - 1];
 
             const Material& material = useDefaultMaterial ? materialBuffer.front() : materialBuffer[shape.mesh.material_ids[f]];
-            float emissiveScale = GPUSpectrumLuminance(material.emissive);
+            float emissiveScale = SampledSpectrum::fromGPUSpectrum(material.emissive).toLuminance();
 
             float area = 0.5f * simd_length(simd_cross(v2.v - v0.v, v1.v - v0.v));
             float scaledArea = area * emissiveScale;

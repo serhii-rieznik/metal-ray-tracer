@@ -8,6 +8,7 @@
 
 #import <MetalPerformanceShaders/MetalPerformanceShaders.h>
 #import "Renderer.h"
+#import "Spectrum.h"
 #import "GeometryProvider.h"
 #import "TextureProvider.h"
 #import "Shaders/structures.h"
@@ -56,6 +57,7 @@ static NSString* kCameraFOV = @"fov";
     id<MTLComputePipelineState> _accumulation;
     id<MTLBuffer> _noise[MaxFrames];
     id<MTLBuffer> _appData[MaxFrames];
+    id<MTLBuffer> _xyzBuffer;
 
     MPSTriangleAccelerationStructure* _accelerationStructure;
     MPSRayIntersector* _rayIntersector;
@@ -80,6 +82,7 @@ static std::uniform_real_distribution<float> uniformFloatDistribution(0.0f, 1.0f
 
 -(nonnull instancetype)initWithMetalKitView:(nonnull MTKView*)view
 {
+    SampledSpectrum::initialize();
     randomGenerator.seed(std::random_device()());
 
     self = [super init];
@@ -116,6 +119,16 @@ static std::uniform_real_distribution<float> uniformFloatDistribution(0.0f, 1.0f
             _noise[i] = [_device newBufferWithLength:noiseBufferLength options:MTLResourceStorageModeManaged];
             _appData[i] = [_device newBufferWithLength:sizeof(ApplicationData) options:MTLResourceStorageModeShared];
         }
+
+        std::vector<packed_float3> xyzData(SpectrumSampleCount);
+        for (uint32_t i = 0; i < SpectrumSampleCount; ++i)
+        {
+            xyzData[i].x = SampledSpectrum::X()[i];
+            xyzData[i].y = SampledSpectrum::Y()[i];
+            xyzData[i].z = SampledSpectrum::Z()[i];
+        }
+        BufferConstructor makeBuffer(_device);
+        _xyzBuffer = makeBuffer(xyzData, @"XYZ");
 
         [self initializeRayTracingWithRecent];
     }
@@ -234,10 +247,11 @@ static std::uniform_real_distribution<float> uniformFloatDistribution(0.0f, 1.0f
          {
              [commandEncoder setBuffer:self->_rayBuffer offset:0 atIndex:0];
              [commandEncoder setBuffer:self->_appData[[self frameIndex]] offset:0 atIndex:1];
+             [commandEncoder setBuffer:self->_xyzBuffer offset:0 atIndex:2];
              [commandEncoder setTexture:self->_outputImage atIndex:0];
          }];
 
-        if (_frameContinuousIndex % MaxFrames == 0)
+        // if (_frameContinuousIndex % MaxFrames == 0)
         {
             id<MTLRenderCommandEncoder> blitEncoder = [commandBuffer renderCommandEncoderWithDescriptor:view.currentRenderPassDescriptor];
             [blitEncoder setFragmentBuffer:self->_appData[[self frameIndex]] offset:0 atIndex:0];
@@ -472,7 +486,10 @@ static std::uniform_real_distribution<float> uniformFloatDistribution(0.0f, 1.0f
 
     id<MTLBuffer> buffer = _appData[[self frameIndex]];
     ApplicationData* appData = reinterpret_cast<ApplicationData*>([buffer contents]);
-    appData->environmentColor = GPUSpectrumFromRGB(_geometryProvider.environment().uniformColor.elements);
+
+    appData->environmentColor = SampledSpectrum::fromRGB(RGBToSpectrumClass::Illuminant,
+        _geometryProvider.environment().uniformColor.elements).toGPUSpectrum();
+
     appData->emitterTrianglesCount = _geometryProvider.emitterTriangleCount();
     appData->frameIndex = _frameContinuousIndex;
     appData->time = frameTime;

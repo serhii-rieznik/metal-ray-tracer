@@ -92,21 +92,24 @@ public:
     static void initialize();
 
     static SampledSpectrum fromSamples(const float wavelengths[], const float values[], uint32_t count);
-    static SampledSpectrum fromRGB(RGBToSpectrumClass, Float3);
+    static SampledSpectrum fromGPUSpectrum(const GPUSpectrum&);
+    static SampledSpectrum fromRGB(RGBToSpectrumClass, const float[3]);
     static SampledSpectrum fromBlackbodyWithTemperature(float t, bool normalized);
+
+    static const SampledSpectrum& X();
+    static const SampledSpectrum& Y();
+    static const SampledSpectrum& Z();
 
 public:
     Float3 toXYZ() const;
     Float3 toRGB() const;
+    float toLuminance() const;
+    GPUSpectrum toGPUSpectrum() const;
 
     void saturate(float lo, float hi);
 
 private:
     static float averageSamples(const float wavelengths[], const float values[], uint32_t count, float l0, float l1);
-
-    static const SampledSpectrum& X();
-    static const SampledSpectrum& Y();
-    static const SampledSpectrum& Z();
 
     static const SampledSpectrum& RGBToSpectrum(RGBToSpectrumClass, RGBToSpectrumComponent);
     static const float yIntegral();  
@@ -158,7 +161,7 @@ inline SampledSpectrum SampledSpectrum::fromSamples(const float wavelengths[], c
     return result;
 }
 
-inline SampledSpectrum SampledSpectrum::fromRGB(RGBToSpectrumClass cls, Float3 rgb)
+inline SampledSpectrum SampledSpectrum::fromRGB(RGBToSpectrumClass cls, const float rgb[3])
 {
     SampledSpectrum result = {};
     if ((rgb[0] < rgb[1]) && (rgb[0] < rgb[2]))
@@ -219,7 +222,7 @@ inline SampledSpectrum SampledSpectrum::fromBlackbodyWithTemperature(float tempe
     if (normalized)
     {
         float wMax = (2.8977721e-3f / temperature) * 1.0e+7;
-        leMax = K1 / (std::pow(wMax, 5.0f) * (std::exp(K2 / (wMax * temperature)) - 1.0f));
+        leMax = K1 / (std::pow(wMax, 5.0f) * (std::exp(K2 / (wMax * temperature)) - 1.0f) * 1.0e+9f);
     }
 
     SampledSpectrum result;
@@ -227,7 +230,7 @@ inline SampledSpectrum SampledSpectrum::fromBlackbodyWithTemperature(float tempe
     {
         float t = float(i) / float(SampleCount - 1);
         float w = (float(SpectrumWavelengthBegin) * (1.0f - t) + float(SpectrumWavelengthEnd) * t) / 100.0f;
-        result.samples[i] = K1 / (std::pow(w, 5.0f) * (std::exp(K2 / (w * temperature)) - 1.0f));
+        result.samples[i] = K1 / (std::pow(w, 5.0f) * (std::exp(K2 / (w * temperature)) - 1.0f) * 1.0e+9f);
         result.samples[i] /= leMax;
     }
     return result;
@@ -346,9 +349,9 @@ inline Float3 SampledSpectrum::toXYZ() const
     float x = 0.0f;
     float y = 0.0f;
     float z = 0.0f;
-    const SampledSpectrum sX = X();
-    const SampledSpectrum sY = Y();
-    const SampledSpectrum sZ = Z();
+    const SampledSpectrum& sX = X();
+    const SampledSpectrum& sY = Y();
+    const SampledSpectrum& sZ = Z();
     for (uint32_t i = 0; i < SampleCount; ++i)
     {
         x += sX.samples[i] * samples[i];
@@ -357,6 +360,18 @@ inline Float3 SampledSpectrum::toXYZ() const
     }
     float scale = (float(SpectrumWavelengthEnd) - float(SpectrumWavelengthBegin)) / (float(SampleCount) * yIntegral());
     return { x * scale, y * scale, z * scale };
+}
+
+inline float SampledSpectrum::toLuminance() const
+{
+    float y = 0.0f;
+
+    const SampledSpectrum& sY = Y();
+    for (uint32_t i = 0; i < SampleCount; ++i)
+        y += sY.samples[i] * samples[i];
+
+    float scale = (float(SpectrumWavelengthEnd) - float(SpectrumWavelengthBegin)) / (float(SampleCount) * yIntegral());
+    return y * scale;
 }
 
 inline Float3 SampledSpectrum::toRGB() const
@@ -373,4 +388,19 @@ inline void SampledSpectrum::saturate(float lo, float hi)
     for (float& s : samples)
         s = std::max(lo, std::min(hi, s));
 }
+
+inline SampledSpectrum SampledSpectrum::fromGPUSpectrum(const GPUSpectrum& spectrum)
+{
+    SampledSpectrum result;
+    memcpy(result.samples, spectrum.samples, sizeof(spectrum.samples));
+    return result;
+}
+
+inline GPUSpectrum SampledSpectrum::toGPUSpectrum() const
+{
+    GPUSpectrum result;
+    memcpy(result.samples, samples, sizeof(samples));
+    return result;
+}
+
 

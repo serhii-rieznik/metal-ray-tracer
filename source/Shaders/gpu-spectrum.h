@@ -8,11 +8,14 @@
 
 #pragma once
 
+#include "constants.h"
+
 #if !defined(__METAL_VERSION__)
-using uint = uint32_t;
 #define device volatile
 #define thread
 #endif
+
+#define SpectrumYIntegral 106.856895f
 
 enum : uint
 {
@@ -25,26 +28,6 @@ struct GPUSpectrum
 {
     float samples[SpectrumSampleCount] = {};
 };
-
-inline GPUSpectrum GPUSpectrumFromRGB(float r, float g, float b)
-{
-    return { { r, g, b } };
-}
-
-inline GPUSpectrum GPUSpectrumFromRGB(float rgb[3])
-{
-    return GPUSpectrumFromRGB(rgb[0], rgb[1], rgb[2]);
-}
-
-inline GPUSpectrum GPUSpectrumFromRGB(const float rgb[3])
-{
-    return GPUSpectrumFromRGB(rgb[0], rgb[1], rgb[2]);
-}
-
-inline float GPUSpectrumLuminance(GPUSpectrum s)
-{
-    return s.samples[0] * 0.2126f + s.samples[1] * 0.7152f + s.samples[2] * 0.0722f;
-}
 
 inline GPUSpectrum GPUSpectrumConst(float t)
 {
@@ -149,6 +132,32 @@ inline GPUSpectrum operator + (const thread GPUSpectrum& spectrum, const thread 
         result.samples[i] += t.samples[i];
     return result;
 }
+
+inline float4 GPUSpectrumToXYZ(device const GPUSpectrum& spectrum, device const packed_float3* xyz)
+{
+    float3 result = { };
+    for (uint i = 0; i < SpectrumSampleCount; ++i)
+    {
+        result.x += spectrum.samples[i] * xyz[i].x;
+        result.y += spectrum.samples[i] * xyz[i].y;
+        result.z += spectrum.samples[i] * xyz[i].z;
+    }
+
+    float scale = (float(SpectrumWavelengthEnd - SpectrumWavelengthBegin)) / (float(SpectrumSampleCount) * SpectrumYIntegral);
+    return { result.x * scale, result.y * scale, result.z * scale, 1.0f };
+}
+
+inline float4 XYZtoRGB(float4 xyz)
+{
+    float r =  3.240479f * xyz[0] - 1.537150f * xyz[1] - 0.498535f * xyz[2];
+    float g = -0.969256f * xyz[0] + 1.875991f * xyz[1] + 0.041556f * xyz[2];
+    float b =  0.055648f * xyz[0] - 0.204043f * xyz[1] + 1.057311f * xyz[2];
+    r = (r < 0.0f ? 0.0f : r);
+    g = (g < 0.0f ? 0.0f : g);
+    b = (b < 0.0f ? 0.0f : b);
+    return { r, g, b, 1.0f };
+}
+
 
 #if !defined(__METAL_VERSION__)
 #undef device

@@ -198,10 +198,12 @@ inline float2 directionToEquirectangularCoordinates(float3 d)
 
 inline GPUSpectrum sampleEnvironment(texture2d<float> environment, float3 d)
 {
+    /*
     constexpr sampler environmentSampler = sampler(s_address::repeat, t_address::clamp_to_edge, filter::linear);
     float2 uv = directionToEquirectangularCoordinates(d);
     float3 smp = environment.sample(environmentSampler, uv).xyz;
-    return GPUSpectrumFromRGB(smp.x, smp.y, smp.z);
+    */
+    return GPUSpectrumConst(0.0f);
 }
 
 inline float remapRoughness(float r, float NdotI)

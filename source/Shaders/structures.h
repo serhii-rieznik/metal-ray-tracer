@@ -9,7 +9,6 @@
 #pragma once
 
 #include <MetalPerformanceShaders/MetalPerformanceShaders.h>
-#include "constants.h"
 #include "gpu-spectrum.h"
 
 struct Vertex
@@ -21,10 +20,10 @@ struct Vertex
 
 struct Material
 {
-    GPUSpectrum diffuse = GPUSpectrumFromRGB(1.0f, 1.0f, 1.0f);
-    GPUSpectrum specular = GPUSpectrumFromRGB(1.0f, 1.0f, 1.0f);
-    GPUSpectrum transmittance = GPUSpectrumFromRGB(1.0f, 1.0f, 1.0f);
-    GPUSpectrum emissive = GPUSpectrumFromRGB(0.0f, 0.0f, 0.0f);
+    GPUSpectrum diffuse;
+    GPUSpectrum specular;
+    GPUSpectrum transmittance;
+    GPUSpectrum emissive;
     uint type = MATERIAL_DIFFUSE;
     float roughness = 1.0f;
     float extIOR = 1.0f;

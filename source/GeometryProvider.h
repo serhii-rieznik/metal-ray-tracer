@@ -18,6 +18,23 @@ struct Environment
     std::string textureName;
 };
 
+class BufferConstructor
+{
+public:
+    BufferConstructor(id<MTLDevice> device)
+        : _device(device) { }
+
+    template <class T>
+    id<MTLBuffer> operator()(const std::vector<T>& data, NSString* tag) {
+        id<MTLBuffer> buffer = [_device newBufferWithBytes:data.data() length:sizeof(T) * data.size()
+            options:MTLResourceStorageModeManaged];
+        [buffer setLabel:tag];
+        return buffer;
+    };
+private:
+    id<MTLDevice> _device;
+};
+
 class GeometryProvider
 {
 public:

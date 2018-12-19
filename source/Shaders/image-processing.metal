@@ -14,6 +14,7 @@ using namespace metal;
 kernel void accumulateImage(texture2d<float, access::read_write> image [[texture(0)]],
                             device const Ray* rays [[buffer(0)]],
                             constant ApplicationData& appData [[buffer(1)]],
+                            device const packed_float3* xyz [[buffer(2)]],
                             uint2 coordinates [[thread_position_in_grid]],
                             uint2 size [[threads_per_grid]])
 {
@@ -24,8 +25,8 @@ kernel void accumulateImage(texture2d<float, access::read_write> image [[texture
     device const Ray& currentRay = rays[rayIndex];
     if (currentRay.completed && (currentRay.generation < MAX_SAMPLES))
     {
-        float4 outputColor = float4(rays[rayIndex].radiance.samples[0], rays[rayIndex].radiance.samples[1],
-            rays[rayIndex].radiance.samples[2], 1.0);
+        float4 outputColorXYZ = GPUSpectrumToXYZ(currentRay.radiance, xyz);
+        float4 outputColor = XYZtoRGB(outputColorXYZ);
 
         if (any(isnan(outputColor)))
             outputColor = float4(1000.0f, 0.0f, 1000.0, 1.0f);
