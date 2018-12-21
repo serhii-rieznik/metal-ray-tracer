@@ -25,7 +25,9 @@ inline SampledMaterial evaluate(device const Material& material, float3 nO, floa
     float NdotO = dot(n, wO);
     bool reflection = NdotO * NdotI > 0.0f;
 
-    float eta = enteringMaterial ? (material.extIOR / material.intIOR) : (material.intIOR / material.extIOR);
+    float eta = enteringMaterial ?
+        (material.extIOR.samples[0] / material.intIOR_eta.samples[0]) :
+        (material.intIOR_eta.samples[0] / material.extIOR.samples[0]);
 
     float3 m = normalize(reflection ? (wO - wI) : (wI * eta - wO));
     m *= (dot(n, m) < 0.0f) ? -1.0f : 1.0f;
@@ -72,11 +74,11 @@ inline SampledMaterial sample(device const Material& material, float3 nO, float3
     float a = remapRoughness(material.roughness, dot(n, wI));
     float3 m = sampleGGXDistribution(n, randomSample.bsdfSample, a);
 
-    float etaI = enteringMaterial ? material.extIOR : material.intIOR;
-    float etaO = enteringMaterial ? material.intIOR : material.extIOR;
-    float eta = etaI / etaO;
+    GPUSpectrum etaI = enteringMaterial ? material.extIOR : material.intIOR_eta;
+    GPUSpectrum etaO = enteringMaterial ? material.intIOR_eta : material.extIOR;
+    GPUSpectrum eta = etaI / etaO;
 
-    float F = fresnelDielectric(wI, m, eta);
+    float F = fresnelDielectric(wI, m, eta.samples[0]);
 
     float3 wO = { };
     if (randomSample.componentSample > F)
@@ -96,9 +98,9 @@ inline SampledMaterial sample(device const Material& material, float3 nO, float3
          *            + wO   |   wI /
          */
         float cosThetaI = dot(m, -wI);
-        float sinThetaOSquared = (eta * eta) * (1.0f - cosThetaI * cosThetaI);
+        float sinThetaOSquared = (eta.samples[0] * eta.samples[0]) * (1.0f - cosThetaI * cosThetaI);
         float cosThetaO = sqrt(saturate(1.0f - sinThetaOSquared));
-        wO = normalize(eta * wI + m * (eta * cosThetaI - cosThetaO));
+        wO = normalize(eta.samples[0] * wI + m * (eta.samples[0] * cosThetaI - cosThetaO));
 
         if (dot(n, wI) * dot(n, wO) <= 0.0f) return {};
     }

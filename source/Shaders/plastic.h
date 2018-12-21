@@ -28,7 +28,7 @@ inline SampledMaterial evaluate(device const Material& material, float3 nO, floa
         float MdotO = dot(m, wO);
 
         float a = material.roughness * material.roughness;
-        float F = fresnelDielectric(wI, m, material.extIOR, material.intIOR);
+        float F = fresnelDielectric(wI, m, material.extIOR.samples[0], material.intIOR_eta.samples[0]);
         float D = ggxNormalDistribution(a, nO, m);
         float G = ggxVisibilityTerm(a, wI, wO, nO, m);
         float J = 1.0f / (4.0 * MdotO);
@@ -50,7 +50,7 @@ inline SampledMaterial sample(device const Material& material, float3 nO, float3
 {
     float alphaSquared = material.roughness * material.roughness;
     float3 m = sampleGGXDistribution(nO, randomSample.bsdfSample, alphaSquared);
-    float F = fresnelDielectric(wI, m, material.extIOR, material.intIOR);
+    float F = fresnelDielectric(wI, m, material.extIOR.samples[0], material.intIOR_eta.samples[0]);
 
     float3 wO = {};
     if (randomSample.componentSample > F)

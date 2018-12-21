@@ -9,12 +9,13 @@
 #pragma once
 
 #include "Shaders/structures.h"
+#include "Spectrum.h"
 #include <vector>
 #include <string>
 
 struct Environment
 {
-    packed_float3 uniformColor;
+    GPUSpectrum uniformColor;
     std::string textureName;
 };
 
@@ -57,6 +58,7 @@ public:
 
 private:
     const char* materialTypeToString(uint32_t);
+    SampledSpectrum loadSampledSpectrum(const std::string& material, const std::string& ext);
 
 private:
     id<MTLBuffer> _indexBuffer = nil;

@@ -24,10 +24,11 @@ struct Material
     GPUSpectrum specular;
     GPUSpectrum transmittance;
     GPUSpectrum emissive;
+    GPUSpectrum extIOR;
+    GPUSpectrum intIOR_eta;
+    GPUSpectrum intIOR_k;
     uint type = MATERIAL_DIFFUSE;
     float roughness = 1.0f;
-    float extIOR = 1.0f;
-    float intIOR = 1.5f;
 };
 
 struct Triangle

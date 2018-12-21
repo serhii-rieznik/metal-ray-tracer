@@ -163,9 +163,30 @@ inline float ggxVisibilityTerm(float alphaSquared, float3 wI, float3 wO, float3 
     return ggxVisibility(alphaSquared, wI, n, m) * ggxVisibility(alphaSquared, wO, n, m);
 }
 
-inline float fresnelConductor(float3 i, float3 m, float etaI, float etaO)
+inline GPUSpectrum fresnelConductor(float3 i, float3 m, device const GPUSpectrum& etaI,
+    device const GPUSpectrum& etaO, device const GPUSpectrum& k)
 {
-    return 1.0f;
+    float cosThetaI = -dot(i, m);
+    GPUSpectrum eta = etaO / etaI;
+    GPUSpectrum etak = k / etaI;
+
+    float cosThetaI2 = cosThetaI * cosThetaI;
+    float sinThetaI2 = 1.0f - cosThetaI2;
+    GPUSpectrum eta2 = eta * eta;
+    GPUSpectrum etak2 = etak * etak;
+
+    GPUSpectrum t0 = eta2 - etak2 - sinThetaI2;
+    GPUSpectrum a2plusb2 = GPUSpectrumSqrt(t0 * t0 + eta2 * etak2 * 4.0f);
+    GPUSpectrum t1 = a2plusb2 + cosThetaI2;
+    GPUSpectrum a = GPUSpectrumSqrt((a2plusb2 + t0) * 0.5f);
+    GPUSpectrum t2 = a * cosThetaI * 2.0f;
+    GPUSpectrum Rs = (t1 - t2) / (t1 + t2);
+
+    GPUSpectrum t3 = a2plusb2 * cosThetaI2 + sinThetaI2 * sinThetaI2;
+    GPUSpectrum t4 = t2 * sinThetaI2;
+    GPUSpectrum Rp = Rs * (t3 - t4) / (t3 + t4);
+
+    return (Rp + Rs) * 0.5f;
 }
 
 inline float fresnelDielectric(float3 i, float3 m, float eta)

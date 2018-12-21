@@ -244,10 +244,10 @@ inline float SampledSpectrum::averageSamples(const float wavelengths[], const fl
         return values[0];
 
     if (lEnd <= wavelengths[0])
-        return values[0];
+        return 0.0f;
 
     if (lBegin >= wavelengths[count - 1])
-        return values[count - 1];
+        return 0.0f;
 
     float result = 0.0f;
     

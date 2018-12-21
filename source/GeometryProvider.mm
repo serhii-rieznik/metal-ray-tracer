@@ -9,6 +9,7 @@
 #include "GeometryProvider.h"
 #include "Spectrum.h"
 #include "../external/tinyobjloader/tiny_obj_loader.h"
+#include <fstream>
 
 #define VALIDATE_SAMPLING_FUNCTION 0
 
@@ -80,14 +81,40 @@ GeometryProvider::GeometryProvider(const char* fileName, id<MTLDevice> device)
         material.transmittance = SampledSpectrum::fromRGB(RGBToSpectrumClass::Reflectance, mtl.transmittance).toGPUSpectrum();
         material.emissive = SampledSpectrum::fromRGB(RGBToSpectrumClass::Illuminant, mtl.emission).toGPUSpectrum();
 
-        if (GPUSpectrumMax(material.emissive) > 0.0f)
+        if (mtl.unknown_parameter.count("blackbody_t") > 0.0f)
         {
-            material.emissive = SampledSpectrum::fromBlackbodyWithTemperature(6500.0f, false).toGPUSpectrum();
-            material.emissive = material.emissive * 1.0e-4f;
+            double temperature = std::atof(mtl.unknown_parameter.at("blackbody_t").c_str());
+            material.emissive = SampledSpectrum::fromBlackbodyWithTemperature(temperature, false).toGPUSpectrum();
         }
 
+        if (mtl.unknown_parameter.count("spectrum_Ke") > 0.0f)
+        {
+            std::string spd = mtl.unknown_parameter.at("spectrum_Ke");
+            material.emissive = loadSampledSpectrum("lights/" + spd, "spd").toGPUSpectrum();
+        }
+
+        if (mtl.unknown_parameter.count("scale_Ke") > 0.0f)
+        {
+            double scale = std::atof(mtl.unknown_parameter.at("scale_Ke").c_str());
+            material.emissive = material.emissive * float(scale);
+        }
+
+        /*
+        if (GPUSpectrumMax(material.emissive) > 0.0f)
+        {
+            mId = 2;
+            float temp[] = { 2700.0f, 4000.0f, 6500.0f, 12000.0f };
+            float scl[] = { 5.0e-2f, 1.0e-2f, 1.0e-3f, 1.0e-2f };
+            material.emissive = SampledSpectrum::fromBlackbodyWithTemperature(temp[mId], false).toGPUSpectrum();
+            material.emissive = material.emissive * scl[mId];
+            mId = (mId + 1) % 4;
+        }
+        */
+        
         material.type = mtl.illum;
-        material.intIOR = mtl.ior;
+        material.intIOR_eta = GPUSpectrumConst(mtl.ior);
+        material.intIOR_k = GPUSpectrumConst(0.0f);
+        material.extIOR = GPUSpectrumConst(1.0f);
 
         if ((mtl.roughness == 0.0f) && (mtl.shininess > 0.0f))
         {
@@ -99,15 +126,20 @@ GeometryProvider::GeometryProvider(const char* fileName, id<MTLDevice> device)
         if (mtl.unknown_parameter.count("Ne") > 0.0f)
         {
             double extIOR = std::atof(mtl.unknown_parameter.at("Ne").c_str());
-            material.extIOR = (extIOR < 1.0) ? 1.0f : float(extIOR);
+            material.extIOR = GPUSpectrumConst((extIOR < 1.0) ? 1.0f : float(extIOR));
+        }
+
+        if (mtl.unknown_parameter.count("spectrum_Ni") > 0)
+        {
+            std::string spd = mtl.unknown_parameter.at("spectrum_Ni");
+            material.intIOR_eta = loadSampledSpectrum(spd + ".eta", "spd").toGPUSpectrum();
+            material.intIOR_k = loadSampledSpectrum(spd + ".k", "spd").toGPUSpectrum();
         }
 
         if (mtl.name == "environment")
         {
             _environment.textureName = mtl.ambient_texname;
-            _environment.uniformColor.x = mtl.ambient[0];
-            _environment.uniformColor.y = mtl.ambient[1];
-            _environment.uniformColor.z = mtl.ambient[2];
+            _environment.uniformColor = material.emissive;
         }
         else
         {
@@ -303,6 +335,34 @@ GeometryProvider::GeometryProvider(const char* fileName, id<MTLDevice> device)
 
     NSLog(@".obj file loaded: %zu vertices, %zu normals, %zu tex coords, %u triangles, %zu materials", attrib.vertices.size(),
           attrib.normals.size(), attrib.texcoords.size(), _triangleCount, materials.size());
+}
+
+SampledSpectrum GeometryProvider::loadSampledSpectrum(const std::string& material, const std::string& ext)
+{
+    NSURL* url = [[NSBundle mainBundle] URLForResource:[NSString stringWithFormat:@"media/spectrum/%s", material.c_str()]
+        withExtension:[NSString stringWithUTF8String:ext.c_str()]];
+
+    std::vector<float> wavelengths;
+    std::vector<float> values;
+
+    NSString* path = [url path];
+    std::ifstream fIn([path cStringUsingEncoding:NSUTF8StringEncoding]);
+    while (fIn.good() && !fIn.eof())
+    {
+        std::string line;
+        std::getline(fIn, line);
+        if (line.empty() || (line[0] == '#'))
+            continue;
+
+        float wavelength = 0.0f;
+        float value = 0.0f;
+        sscanf(line.c_str(), "%f %f", &wavelength, &value);
+        NSLog(@"%f %f", wavelength, value);
+        wavelengths.emplace_back(wavelength);
+        values.emplace_back(value);
+    }
+
+    return SampledSpectrum::fromSamples(wavelengths.data(), values.data(), uint32_t(wavelengths.size()));
 }
 
 const char* GeometryProvider::materialTypeToString(uint32_t t)

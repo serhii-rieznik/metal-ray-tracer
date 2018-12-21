@@ -19,8 +19,8 @@
 
 enum : uint
 {
-    SpectrumWavelengthBegin = 360,
-    SpectrumWavelengthEnd = 830,
+    SpectrumWavelengthBegin = 400,
+    SpectrumWavelengthEnd = 700,
     SpectrumSampleCount = (SpectrumWavelengthEnd - SpectrumWavelengthBegin) / 10
 };
 
@@ -53,84 +53,52 @@ inline float GPUSpectrumMax(const thread GPUSpectrum& spectrum)
     return result;
 }
 
-inline GPUSpectrum operator * (const device GPUSpectrum& spectrum, float t)
-{
-    GPUSpectrum result;
-    for (uint i = 0; i < SpectrumSampleCount; ++i)
-        result.samples[i] = spectrum.samples[i] * t;
-    return result;
-}
-
-inline GPUSpectrum operator * (const thread GPUSpectrum& spectrum, float t)
-{
-    GPUSpectrum result;
-    for (uint i = 0; i < SpectrumSampleCount; ++i)
-        result.samples[i] = spectrum.samples[i] * t;
-    return result;
-}
-
-inline GPUSpectrum operator * (const device GPUSpectrum& spectrum, const device GPUSpectrum& t)
-{
-    GPUSpectrum result;
-    for (uint i = 0; i < SpectrumSampleCount; ++i)
-        result.samples[i] = spectrum.samples[i] * t.samples[i];
-    return result;
-}
-
-inline GPUSpectrum operator * (const device GPUSpectrum& spectrum, const thread GPUSpectrum& t)
-{
-    GPUSpectrum result;
-    for (uint i = 0; i < SpectrumSampleCount; ++i)
-        result.samples[i] = spectrum.samples[i] * t.samples[i];
-    return result;
-}
-
-inline GPUSpectrum operator * (const thread GPUSpectrum& spectrum, const device GPUSpectrum& t)
+inline GPUSpectrum GPUSpectrumSqrt(const thread GPUSpectrum& spectrum)
 {
     GPUSpectrum result = spectrum;
     for (uint i = 0; i < SpectrumSampleCount; ++i)
-        result.samples[i] *= t.samples[i];
+        result.samples[i] = result.samples[i] > 0.0f ? sqrt(result.samples[i]) : 0.0f;
     return result;
 }
 
-inline GPUSpectrum operator * (const thread GPUSpectrum& spectrum, const thread GPUSpectrum& t)
-{
-    GPUSpectrum result = spectrum;
-    for (uint i = 0; i < SpectrumSampleCount; ++i)
-        result.samples[i] *= t.samples[i];
-    return result;
+inline GPUSpectrum operator + (GPUSpectrum spectrum, float t) {
+    for (uint i = 0; i < SpectrumSampleCount; ++i) spectrum.samples[i] += t;
+    return spectrum;
 }
 
-inline GPUSpectrum operator + (const device GPUSpectrum& spectrum, const device GPUSpectrum& t)
-{
-    GPUSpectrum result;
-    for (uint i = 0; i < SpectrumSampleCount; ++i)
-        result.samples[i] = spectrum.samples[i] + t.samples[i];
-    return result;
+inline GPUSpectrum operator - (GPUSpectrum spectrum, float t) {
+    for (uint i = 0; i < SpectrumSampleCount; ++i) spectrum.samples[i] -= t;
+    return spectrum;
 }
 
-inline GPUSpectrum operator + (const device GPUSpectrum& spectrum, const thread GPUSpectrum& t)
-{
-    GPUSpectrum result;
-    for (uint i = 0; i < SpectrumSampleCount; ++i)
-        result.samples[i] = spectrum.samples[i] + t.samples[i];
-    return result;
+inline GPUSpectrum operator * (GPUSpectrum spectrum, float t) {
+    for (uint i = 0; i < SpectrumSampleCount; ++i) spectrum.samples[i] *= t;
+    return spectrum;
 }
 
-inline GPUSpectrum operator + (const thread GPUSpectrum& spectrum, const device GPUSpectrum& t)
-{
-    GPUSpectrum result = spectrum;
-    for (uint i = 0; i < SpectrumSampleCount; ++i)
-        result.samples[i] += t.samples[i];
-    return result;
+inline GPUSpectrum operator / (GPUSpectrum spectrum, float t) {
+    for (uint i = 0; i < SpectrumSampleCount; ++i) spectrum.samples[i] /= t;
+    return spectrum;
 }
 
-inline GPUSpectrum operator + (const thread GPUSpectrum& spectrum, const thread GPUSpectrum& t)
-{
-    GPUSpectrum result = spectrum;
-    for (uint i = 0; i < SpectrumSampleCount; ++i)
-        result.samples[i] += t.samples[i];
-    return result;
+inline GPUSpectrum operator + (GPUSpectrum spectrum, GPUSpectrum t) {
+    for (uint i = 0; i < SpectrumSampleCount; ++i) spectrum.samples[i] += t.samples[i];
+    return spectrum;
+}
+
+inline GPUSpectrum operator - (GPUSpectrum spectrum, GPUSpectrum t) {
+    for (uint i = 0; i < SpectrumSampleCount; ++i) spectrum.samples[i] -= t.samples[i];
+    return spectrum;
+}
+
+inline GPUSpectrum operator * (GPUSpectrum spectrum, GPUSpectrum t) {
+    for (uint i = 0; i < SpectrumSampleCount; ++i) spectrum.samples[i] *= t.samples[i];
+    return spectrum;
+}
+
+inline GPUSpectrum operator / (GPUSpectrum spectrum, GPUSpectrum t) {
+    for (uint i = 0; i < SpectrumSampleCount; ++i) spectrum.samples[i] /= t.samples[i];
+    return spectrum;
 }
 
 inline float4 GPUSpectrumToXYZ(device const GPUSpectrum& spectrum, device const packed_float3* xyz)
@@ -157,7 +125,6 @@ inline float4 XYZtoRGB(float4 xyz)
     b = (b < 0.0f ? 0.0f : b);
     return { r, g, b, 1.0f };
 }
-
 
 #if !defined(__METAL_VERSION__)
 #undef device

@@ -487,8 +487,7 @@ static std::uniform_real_distribution<float> uniformFloatDistribution(0.0f, 1.0f
     id<MTLBuffer> buffer = _appData[[self frameIndex]];
     ApplicationData* appData = reinterpret_cast<ApplicationData*>([buffer contents]);
 
-    appData->environmentColor = SampledSpectrum::fromRGB(RGBToSpectrumClass::Illuminant,
-        _geometryProvider.environment().uniformColor.elements).toGPUSpectrum();
+    appData->environmentColor = _geometryProvider.environment().uniformColor;
 
     appData->emitterTrianglesCount = _geometryProvider.emitterTriangleCount();
     appData->frameIndex = _frameContinuousIndex;

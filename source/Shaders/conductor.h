@@ -28,13 +28,14 @@ inline SampledMaterial evaluate(device const Material& material, float3 nO, floa
         float MdotO = dot(m, wO);
 
         float a = material.roughness * material.roughness;
-        float F = fresnelConductor(wI, m, material.extIOR, material.intIOR);
         float D = ggxNormalDistribution(a, nO, m);
         float G = ggxVisibilityTerm(a, wI, wO, nO, m);
         float J = 1.0f / (4.0 * MdotO);
-        result.bsdf = material.specular * (F * D * G / (4.0 * NdotI));
+
+        GPUSpectrum F = fresnelConductor(wI, m, material.extIOR, material.intIOR_eta, material.intIOR_k);
+        result.bsdf = material.specular * F * (D * G / (4.0 * NdotI));
         result.pdf = D * NdotM * J;
-        result.weight = material.specular * (F * G * MdotO / (NdotM * NdotI));
+        result.weight = material.specular * F * (G * MdotO / (NdotM * NdotI));
     }
     return result;
 }
