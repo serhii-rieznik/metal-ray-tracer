@@ -19,9 +19,10 @@
 
 enum : uint
 {
-    SpectrumWavelengthBegin = 360,
-    SpectrumWavelengthEnd = 830,
-    SpectrumSampleCount = (SpectrumWavelengthEnd - SpectrumWavelengthBegin) / 47
+    CIESpectrumWavelengthFirst = 360,
+    CIESpectrumWavelengthLast = 830,
+    CIESpectrumWavelengthSpan = CIESpectrumWavelengthLast - CIESpectrumWavelengthFirst,
+    SpectrumSampleCount = 32
 };
 
 struct GPUSpectrum
@@ -111,7 +112,7 @@ inline float4 GPUSpectrumToXYZ(device const GPUSpectrum& spectrum, device const 
         result.z += spectrum.samples[i] * xyz[i].z;
     }
 
-    float scale = (float(SpectrumWavelengthEnd - SpectrumWavelengthBegin)) / (float(SpectrumSampleCount) * SpectrumYIntegral);
+    float scale = float(CIESpectrumWavelengthSpan) / (float(SpectrumSampleCount) * SpectrumYIntegral);
     return { result.x * scale, result.y * scale, result.z * scale, 1.0f };
 }
 

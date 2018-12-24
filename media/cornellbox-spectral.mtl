@@ -1,0 +1,26 @@
+newmtl white
+    spectrum_Kd cornell-box-white
+
+newmtl leftWall
+    spectrum_Kd cornell-box-red
+
+newmtl rightWall
+    spectrum_Kd cornell-box-green
+
+newmtl floor
+    spectrum_Kd cornell-box-white
+
+newmtl ceiling
+    spectrum_Kd cornell-box-white
+
+newmtl frontWall
+    spectrum_Kd cornell-box-white
+
+newmtl shortBox
+    spectrum_Kd cornell-box-box
+
+newmtl tallBox
+    spectrum_Kd cornell-box-box
+
+newmtl light
+    spectrum_Ke cornell-box

@@ -28,7 +28,6 @@ public:
     {
         for (uint32_t i = 0; i < sampleCount; ++i)
             samples[i] += r.samples[i];
-
         return (*this);
     }
 
@@ -36,7 +35,6 @@ public:
     {
         for (uint32_t i = 0; i < sampleCount; ++i)
             samples[i] *= t;
-
         return (*this);
     }
 
@@ -150,11 +148,11 @@ inline SampledSpectrum SampledSpectrum::fromSamples(const float wavelengths[], c
     SampledSpectrum result;
     for (uint32_t i = 0; i < SampleCount; ++i)
     {
-        float t0 = float(i) / float(SampleCount);
-        float l0 = float(SpectrumWavelengthBegin) * (1.0f - t0) + float(SpectrumWavelengthEnd) * t0;
+        float t0 = float(i) / float(SampleCount - 1);
+        float l0 = float(CIESpectrumWavelengthFirst) * (1.0f - t0) + float(CIESpectrumWavelengthLast) * t0;
 
-        float t1 = float(i + 1) / float(SampleCount);
-        float l1 = float(SpectrumWavelengthBegin) * (1.0f - t1) + float(SpectrumWavelengthEnd) * t1;
+        float t1 = float(i + 1) / float(SampleCount - 1);
+        float l1 = float(CIESpectrumWavelengthFirst) * (1.0f - t1) + float(CIESpectrumWavelengthLast) * t1;
         
         result[i] = averageSamples(wavelengths, values, count, l0, l1);
     }
@@ -229,7 +227,7 @@ inline SampledSpectrum SampledSpectrum::fromBlackbodyWithTemperature(float tempe
     for (uint32_t i = 0; i < SampleCount; ++i)
     {
         float t = float(i) / float(SampleCount - 1);
-        float w = (float(SpectrumWavelengthBegin) * (1.0f - t) + float(SpectrumWavelengthEnd) * t) / 100.0f;
+        float w = (float(CIESpectrumWavelengthFirst) * (1.0f - t) + float(CIESpectrumWavelengthLast) * t) / 100.0f;
         result.samples[i] = K1 / (std::pow(w, 5.0f) * (std::exp(K2 / (w * temperature)) - 1.0f) * 1.0e+9f);
         result.samples[i] /= leMax;
     }
@@ -358,7 +356,7 @@ inline Float3 SampledSpectrum::toXYZ() const
         y += sY.samples[i] * samples[i];
         z += sZ.samples[i] * samples[i];
     }
-    float scale = (float(SpectrumWavelengthEnd) - float(SpectrumWavelengthBegin)) / (float(SampleCount) * yIntegral());
+    float scale = float(CIESpectrumWavelengthSpan) / (float(SampleCount) * yIntegral());
     return { x * scale, y * scale, z * scale };
 }
 
@@ -370,7 +368,7 @@ inline float SampledSpectrum::toLuminance() const
     for (uint32_t i = 0; i < SampleCount; ++i)
         y += sY.samples[i] * samples[i];
 
-    float scale = (float(SpectrumWavelengthEnd) - float(SpectrumWavelengthBegin)) / (float(SampleCount) * yIntegral());
+    float scale = float(CIESpectrumWavelengthSpan) / (float(SampleCount) * yIntegral());
     return y * scale;
 }
 

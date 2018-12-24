@@ -1,0 +1,11 @@
+{
+    "geometry" : "cornellbox-spectral.obj",
+    "reference-image" : "cornellbox-spectral.mitsuba.exr",
+    "reference-mitsuba" : "cornellbox-spectral.xml",
+    "reference-pbrt" : "cornellbox-spectral.pbrt",
+    "camera" : {
+        "origin" : [0.0, 1.0, 2.35],
+        "target" : [0.0, 1.0, 0.0],
+        "fov" : 90
+    }
+}

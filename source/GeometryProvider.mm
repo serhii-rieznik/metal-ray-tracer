@@ -81,6 +81,24 @@ GeometryProvider::GeometryProvider(const char* fileName, id<MTLDevice> device)
         material.transmittance = SampledSpectrum::fromRGB(RGBToSpectrumClass::Reflectance, mtl.transmittance).toGPUSpectrum();
         material.emissive = SampledSpectrum::fromRGB(RGBToSpectrumClass::Illuminant, mtl.emission).toGPUSpectrum();
 
+        if (mtl.unknown_parameter.count("spectrum_Kd") > 0.0f)
+        {
+            std::string spd = mtl.unknown_parameter.at("spectrum_Kd");
+            material.diffuse = loadSampledSpectrum(spd, "spd").toGPUSpectrum();
+        }
+
+        if (mtl.unknown_parameter.count("spectrum_Ks") > 0.0f)
+        {
+            std::string spd = mtl.unknown_parameter.at("spectrum_Ks");
+            material.specular = loadSampledSpectrum(spd, "spd").toGPUSpectrum();
+        }
+
+        if (mtl.unknown_parameter.count("spectrum_Kt") > 0.0f)
+        {
+            std::string spd = mtl.unknown_parameter.at("spectrum_Kt");
+            material.transmittance = loadSampledSpectrum(spd, "spd").toGPUSpectrum();
+        }
+
         if (mtl.unknown_parameter.count("blackbody_t") > 0.0f)
         {
             double temperature = std::atof(mtl.unknown_parameter.at("blackbody_t").c_str());
@@ -98,18 +116,6 @@ GeometryProvider::GeometryProvider(const char* fileName, id<MTLDevice> device)
             double scale = std::atof(mtl.unknown_parameter.at("scale_Ke").c_str());
             material.emissive = material.emissive * float(scale);
         }
-
-        /*
-        if (GPUSpectrumMax(material.emissive) > 0.0f)
-        {
-            mId = 2;
-            float temp[] = { 2700.0f, 4000.0f, 6500.0f, 12000.0f };
-            float scl[] = { 5.0e-2f, 1.0e-2f, 1.0e-3f, 1.0e-2f };
-            material.emissive = SampledSpectrum::fromBlackbodyWithTemperature(temp[mId], false).toGPUSpectrum();
-            material.emissive = material.emissive * scl[mId];
-            mId = (mId + 1) % 4;
-        }
-        */
         
         material.type = mtl.illum;
         material.intIOR_eta = GPUSpectrumConst(mtl.ior);
@@ -339,8 +345,17 @@ GeometryProvider::GeometryProvider(const char* fileName, id<MTLDevice> device)
 
 SampledSpectrum GeometryProvider::loadSampledSpectrum(const std::string& material, const std::string& ext)
 {
-    NSURL* url = [[NSBundle mainBundle] URLForResource:[NSString stringWithFormat:@"media/spectrum/%s", material.c_str()]
-        withExtension:[NSString stringWithUTF8String:ext.c_str()]];
+    NSString* nameString = [NSString stringWithFormat:@"media/spectrum/%s", material.c_str()];
+    NSURL* url = [[NSBundle mainBundle] URLForResource:nameString withExtension:[NSString stringWithUTF8String:ext.c_str()]];
+    if (url == nil)
+    {
+        NSLog(@"Failed to load %@ spectrum", nameString);
+        const float wl[] = {
+            CIESpectrumWavelengthFirst,
+            CIESpectrumWavelengthLast };
+        const float val[] = { 1.0f, 1.0f };
+        return SampledSpectrum::fromSamples(wl, val, 2);
+    }
 
     std::vector<float> wavelengths;
     std::vector<float> values;
