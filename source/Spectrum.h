@@ -207,7 +207,7 @@ inline SampledSpectrum SampledSpectrum::fromRGB(RGBToSpectrumClass cls, const fl
         }
     }
 
-    // result *= (cls == RGBToSpectrumClass::Reflectance) ? (0.94f) : (0.86445f);
+    result *= (cls == RGBToSpectrumClass::Reflectance) ? (0.94f) : (0.86445f);
 
     result.saturate(0.0f, std::numeric_limits<float>::max());
     return result;

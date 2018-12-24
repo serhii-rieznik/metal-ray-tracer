@@ -19,9 +19,9 @@
 
 enum : uint
 {
-    SpectrumWavelengthBegin = 400,
-    SpectrumWavelengthEnd = 700,
-    SpectrumSampleCount = (SpectrumWavelengthEnd - SpectrumWavelengthBegin) / 10
+    SpectrumWavelengthBegin = 360,
+    SpectrumWavelengthEnd = 830,
+    SpectrumSampleCount = (SpectrumWavelengthEnd - SpectrumWavelengthBegin) / 47
 };
 
 struct GPUSpectrum
