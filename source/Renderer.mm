@@ -82,7 +82,7 @@ static std::uniform_real_distribution<float> uniformFloatDistribution(0.0f, 1.0f
 
 -(nonnull instancetype)initWithMetalKitView:(nonnull MTKView*)view
 {
-    SampledSpectrum::initialize();
+    CIESpectrum::initialize();
     randomGenerator.seed(std::random_device()());
 
     self = [super init];
@@ -120,12 +120,12 @@ static std::uniform_real_distribution<float> uniformFloatDistribution(0.0f, 1.0f
             _appData[i] = [_device newBufferWithLength:sizeof(ApplicationData) options:MTLResourceStorageModeShared];
         }
 
-        std::vector<packed_float3> xyzData(SpectrumSampleCount);
-        for (uint32_t i = 0; i < SpectrumSampleCount; ++i)
+        std::vector<packed_float3> xyzData(CIESpectrumSampleCount);
+        for (uint32_t i = 0; i < CIESpectrumSampleCount; ++i)
         {
-            xyzData[i].x = SampledSpectrum::X()[i];
-            xyzData[i].y = SampledSpectrum::Y()[i];
-            xyzData[i].z = SampledSpectrum::Z()[i];
+            xyzData[i].x = CIE::x[i];
+            xyzData[i].y = CIE::y[i];
+            xyzData[i].z = CIE::z[i];
         }
         BufferConstructor makeBuffer(_device);
         _xyzBuffer = makeBuffer(xyzData, @"XYZ");
@@ -473,6 +473,7 @@ static std::uniform_real_distribution<float> uniformFloatDistribution(0.0f, 1.0f
         ptr->emitterBsdfSample.y = uniformFloatDistribution(randomGenerator);
         ptr->bsdfSample.x = uniformFloatDistribution(randomGenerator);
         ptr->bsdfSample.y = uniformFloatDistribution(randomGenerator);
+        ptr->wavelengthSample = uniformFloatDistribution(randomGenerator);
         ptr->componentSample = uniformFloatDistribution(randomGenerator);
         ptr->emitterSample = uniformFloatDistribution(randomGenerator);
         ptr->rrSample = uniformFloatDistribution(randomGenerator);

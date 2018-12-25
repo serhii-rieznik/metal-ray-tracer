@@ -54,8 +54,9 @@ struct EmitterTriangle
 struct Ray
 {
     MPSRayOriginMinDistanceDirectionMaxDistance base = {};
-    GPUSpectrum radiance = {};
-    GPUSpectrum throughput = {};
+    float wavelength = 0.0f;
+    float radiance = 0.0f;
+    float throughput = 0.0f;
     float misPdf = 0.0f;
     uint bounces = 0;
     uint completed = 0;
@@ -65,7 +66,7 @@ struct Ray
 struct LightSamplingRay
 {
     MPSRayOriginMinDistanceDirectionMaxDistance base = {};
-    GPUSpectrum throughput = {};
+    float throughput = {};
     packed_float3 n = {};
     uint targetPrimitiveIndex = 0;
 };
@@ -90,11 +91,11 @@ struct ApplicationData
 
 struct SampledMaterial
 {
-    GPUSpectrum bsdf;
-    GPUSpectrum weight;
     packed_float3 direction = {};
-    float pdf = 0.0f;
     uint valid = 0;
+    float bsdf;
+    float weight;
+    float pdf = 0.0f;
 };
 
 struct RandomSample
@@ -103,6 +104,7 @@ struct RandomSample
     packed_float2 barycentricSample = { };
     packed_float2 bsdfSample = { };
     packed_float2 emitterBsdfSample = { };
+    float wavelengthSample = 0.0f;
     float componentSample = 0.0f;
     float emitterSample = 0.0f;
     float rrSample = 0.0f;
@@ -110,12 +112,12 @@ struct RandomSample
 
 struct LightSample
 {
-    GPUSpectrum value = { };
-    float samplePdf = 0.0f;
     packed_float3 direction = { };
+    uint valid = 0;
+    float value = 0.0f;
+    float samplePdf = 0.0f;
     float emitterPdf = 0.0f;
     uint primitiveIndex = 0;
-    uint valid = 0;
 };
 
 using Intersection = MPSIntersectionDistancePrimitiveIndexCoordinates;

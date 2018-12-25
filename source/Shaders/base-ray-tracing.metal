@@ -45,9 +45,10 @@ kernel void generateRays(device Ray* rays [[buffer(0)]],
         r.base.direction = normalize(ax * side + ay * up + az * direction);
         r.base.minDistance = DISTANCE_EPSILON;
         r.base.maxDistance = INFINITY;
-        r.radiance = GPUSpectrumConst(0.0f);
+        r.radiance = 0.0f;
         r.bounces = 0;
-        r.throughput = GPUSpectrumConst(1.0f);
+        r.throughput = 471.0f;
+        r.wavelength = mix(float(CIESpectrumWavelengthFirst), float(CIESpectrumWavelengthLast), randomSample.wavelengthSample);
         r.misPdf = 1.0f;
         r.generation = (appData.frameIndex == 0) ? 0 : (r.generation + 1);
         r.completed = 0;
@@ -77,11 +78,10 @@ kernel void handleIntersections(texture2d<float> environment [[texture(0)]],
 
     if (i.distance < 0.0f)
     {
-        GPUSpectrum envColor = appData.environmentColor;
-        currentRay.radiance = currentRay.radiance +
-            currentRay.throughput * (envColor + sampleEnvironment(environment, currentRay.base.direction));
+        currentRay.radiance = currentRay.radiance + currentRay.throughput *
+            GPUSpectrumSample(appData.environmentColor, currentRay.wavelength);
         currentRay.base.maxDistance = -1.0;
-        currentRay.throughput = GPUSpectrumConst(0.0);
+        currentRay.throughput = 0.0;
         currentRay.completed = 1;
         return;
     }
@@ -111,12 +111,14 @@ kernel void handleIntersections(texture2d<float> environment [[texture(0)]],
 
         float weight = float(currentRay.bounces == 0) ? 1.0f : weights[IS_MODE];
         weight *= float(dot(currentRay.base.direction, currentVertex.n) < 0.0f);
-        currentRay.radiance = currentRay.radiance + material.emissive * currentRay.throughput * weight;
+        currentRay.radiance = currentRay.radiance +
+            weight * GPUSpectrumSample(material.emissive, currentRay.wavelength) * currentRay.throughput;
     }
 
     // generate next bounce
     {
-        SampledMaterial materialSample = sampleMaterial(material, currentVertex.n, currentRay.base.direction, randomSample);
+        SampledMaterial materialSample = sampleMaterial(material, currentVertex.n, currentRay.base.direction,
+            randomSample, currentRay.wavelength);
 
         if (materialSample.valid)
         {
@@ -129,7 +131,7 @@ kernel void handleIntersections(texture2d<float> environment [[texture(0)]],
         else
         {
             currentRay.base.maxDistance = -1.0f;
-            currentRay.throughput = GPUSpectrumConst(0.0f);
+            currentRay.throughput = 0.0f;
             currentRay.misPdf = 0.0f;
         }
         currentRay.completed = uint(materialSample.valid == 0) + uint(currentRay.bounces >= MAX_PATH_LENGTH);
@@ -138,7 +140,7 @@ kernel void handleIntersections(texture2d<float> environment [[texture(0)]],
 #if (ENABLE_RUSSIAN_ROULETTE)
     if (currentRay.bounces >= 5)
     {
-        float q = min(0.95f, GPUSpectrumMax(currentRay.throughput));
+        float q = min(0.95f, currentRay.throughput);
         if (randomSample.rrSample < q)
         {
             currentRay.throughput = currentRay.throughput * (1.0f / q);

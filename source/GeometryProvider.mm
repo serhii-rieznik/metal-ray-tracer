@@ -76,10 +76,10 @@ GeometryProvider::GeometryProvider(const char* fileName, id<MTLDevice> device)
     {
         materialBuffer.emplace_back();
         Material& material = materialBuffer.back();
-        material.diffuse = SampledSpectrum::fromRGB(RGBToSpectrumClass::Reflectance, mtl.diffuse).toGPUSpectrum();
-        material.specular = SampledSpectrum::fromRGB(RGBToSpectrumClass::Reflectance, mtl.specular).toGPUSpectrum();
-        material.transmittance = SampledSpectrum::fromRGB(RGBToSpectrumClass::Reflectance, mtl.transmittance).toGPUSpectrum();
-        material.emissive = SampledSpectrum::fromRGB(RGBToSpectrumClass::Illuminant, mtl.emission).toGPUSpectrum();
+        material.diffuse = CIESpectrum::fromRGB(RGBToSpectrumClass::Reflectance, mtl.diffuse).toGPUSpectrum();
+        material.specular = CIESpectrum::fromRGB(RGBToSpectrumClass::Reflectance, mtl.specular).toGPUSpectrum();
+        material.transmittance = CIESpectrum::fromRGB(RGBToSpectrumClass::Reflectance, mtl.transmittance).toGPUSpectrum();
+        material.emissive = CIESpectrum::fromRGB(RGBToSpectrumClass::Illuminant, mtl.emission).toGPUSpectrum();
 
         if (mtl.unknown_parameter.count("spectrum_Kd") > 0.0f)
         {
@@ -102,7 +102,7 @@ GeometryProvider::GeometryProvider(const char* fileName, id<MTLDevice> device)
         if (mtl.unknown_parameter.count("blackbody_t") > 0.0f)
         {
             double temperature = std::atof(mtl.unknown_parameter.at("blackbody_t").c_str());
-            material.emissive = SampledSpectrum::fromBlackbodyWithTemperature(temperature, false).toGPUSpectrum();
+            material.emissive = CIESpectrum::fromBlackbodyWithTemperature(temperature, false).toGPUSpectrum();
         }
 
         if (mtl.unknown_parameter.count("spectrum_Ke") > 0.0f)
@@ -218,7 +218,7 @@ GeometryProvider::GeometryProvider(const char* fileName, id<MTLDevice> device)
             const Vertex& v2 = vertexBuffer[vertexBuffer.size() - 1];
 
             const Material& material = useDefaultMaterial ? materialBuffer.front() : materialBuffer[shape.mesh.material_ids[f]];
-            float emissiveScale = SampledSpectrum::fromGPUSpectrum(material.emissive).toLuminance();
+            float emissiveScale = CIESpectrum::fromGPUSpectrum(material.emissive).toLuminance();
 
             float area = 0.5f * simd_length(simd_cross(v2.v - v0.v, v1.v - v0.v));
             float scaledArea = area * emissiveScale;
@@ -343,7 +343,7 @@ GeometryProvider::GeometryProvider(const char* fileName, id<MTLDevice> device)
           attrib.normals.size(), attrib.texcoords.size(), _triangleCount, materials.size());
 }
 
-SampledSpectrum GeometryProvider::loadSampledSpectrum(const std::string& material, const std::string& ext)
+CIESpectrum GeometryProvider::loadSampledSpectrum(const std::string& material, const std::string& ext)
 {
     NSString* nameString = [NSString stringWithFormat:@"media/spectrum/%s", material.c_str()];
     NSURL* url = [[NSBundle mainBundle] URLForResource:nameString withExtension:[NSString stringWithUTF8String:ext.c_str()]];
@@ -353,8 +353,8 @@ SampledSpectrum GeometryProvider::loadSampledSpectrum(const std::string& materia
         const float wl[] = {
             CIESpectrumWavelengthFirst,
             CIESpectrumWavelengthLast };
-        const float val[] = { 1.0f, 1.0f };
-        return SampledSpectrum::fromSamples(wl, val, 2);
+        const float val[] = { 0.0f, 0.0f };
+        return CIESpectrum::fromSamples(wl, val, 2);
     }
 
     std::vector<float> wavelengths;
@@ -372,12 +372,16 @@ SampledSpectrum GeometryProvider::loadSampledSpectrum(const std::string& materia
         float wavelength = 0.0f;
         float value = 0.0f;
         sscanf(line.c_str(), "%f %f", &wavelength, &value);
-        NSLog(@"%f %f", wavelength, value);
+
+        if (wavelength < 100.0f)
+        {
+            wavelength *= 1000.0f;
+        }
+
         wavelengths.emplace_back(wavelength);
         values.emplace_back(value);
     }
-
-    return SampledSpectrum::fromSamples(wavelengths.data(), values.data(), uint32_t(wavelengths.size()));
+    return CIESpectrum::fromSamples(wavelengths.data(), values.data(), uint32_t(wavelengths.size()));
 }
 
 const char* GeometryProvider::materialTypeToString(uint32_t t)

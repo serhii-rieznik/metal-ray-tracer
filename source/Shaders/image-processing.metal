@@ -25,7 +25,7 @@ kernel void accumulateImage(texture2d<float, access::read_write> image [[texture
     device const Ray& currentRay = rays[rayIndex];
     if (currentRay.completed && (currentRay.generation < MAX_SAMPLES))
     {
-        float4 outputColorXYZ = GPUSpectrumToXYZ(currentRay.radiance, xyz);
+        float4 outputColorXYZ = GPUSpectrumToXYZ(currentRay.wavelength, currentRay.radiance, xyz);
         float4 outputColor = XYZtoRGB(outputColorXYZ);
 
         if (any(isnan(outputColor)))

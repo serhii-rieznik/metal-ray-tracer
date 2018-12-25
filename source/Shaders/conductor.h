@@ -13,7 +13,7 @@
 namespace conductor
 {
 
-inline SampledMaterial evaluate(device const Material& material, float3 nO, float3 wI, float3 wO)
+inline SampledMaterial evaluate(device const Material& material, float3 nO, float3 wI, float3 wO, float wavelength)
 {
     float NdotO = dot(nO, wO);
     float NdotI = -dot(nO, wI);
@@ -32,20 +32,26 @@ inline SampledMaterial evaluate(device const Material& material, float3 nO, floa
         float G = ggxVisibilityTerm(a, wI, wO, nO, m);
         float J = 1.0f / (4.0 * MdotO);
 
-        GPUSpectrum F = fresnelConductor(wI, m, material.extIOR, material.intIOR_eta, material.intIOR_k);
-        result.bsdf = material.specular * F * (D * G / (4.0 * NdotI));
+        float specularSample = GPUSpectrumSample(material.specular, wavelength);
+        float extIORSample = GPUSpectrumSample(material.extIOR, wavelength);
+        float intIOREtaSample = GPUSpectrumSample(material.intIOR_eta, wavelength);
+        float intIORKSample = GPUSpectrumSample(material.intIOR_k, wavelength);
+        float F = fresnelConductor(wI, m, extIORSample, intIOREtaSample, intIORKSample);
+        
+        result.bsdf = specularSample * F * (D * G / (4.0 * NdotI));
         result.pdf = D * NdotM * J;
-        result.weight = material.specular * F * (G * MdotO / (NdotM * NdotI));
+        result.weight = specularSample * F * (G * MdotO / (NdotM * NdotI));
     }
     return result;
 }
 
-inline SampledMaterial sample(device const Material& material, float3 nO, float3 wI, device const RandomSample& randomSample)
+inline SampledMaterial sample(device const Material& material, float3 nO, float3 wI,
+    device const RandomSample& randomSample, float wavelength)
 {
     float alphaSquared = material.roughness * material.roughness;
     float3 m = sampleGGXDistribution(nO, randomSample.bsdfSample, alphaSquared);
     float3 wO = reflect(wI, m);
-    return evaluate(material, nO, wI, wO);
+    return evaluate(material, nO, wI, wO, wavelength);
 }
 
 }

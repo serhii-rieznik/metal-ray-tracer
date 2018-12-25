@@ -58,7 +58,7 @@ public:
 
 private:
     const char* materialTypeToString(uint32_t);
-    SampledSpectrum loadSampledSpectrum(const std::string& material, const std::string& ext);
+    CIESpectrum loadSampledSpectrum(const std::string& material, const std::string& ext);
 
 private:
     id<MTLBuffer> _indexBuffer = nil;

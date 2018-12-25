@@ -50,7 +50,7 @@ kernel void generateLightSamplingRays(device const Intersection* intersections [
     device const RandomSample& randomSample = noise[randomSampleIndex];
 
     LightSample lightSample = sampleLight(currentVertex.v, currentVertex.n, emitterTriangles,
-        appData.emitterTrianglesCount, randomSample);
+        appData.emitterTrianglesCount, randomSample, rays[rayIndex].wavelength);
 
     //*
     if (lightSample.valid == 0)
@@ -62,7 +62,7 @@ kernel void generateLightSamplingRays(device const Intersection* intersections [
     // */
 
     SampledMaterial materialSample = evaluateMaterial(material, currentVertex.n,
-        rays[rayIndex].base.direction, lightSample.direction);
+        rays[rayIndex].base.direction, lightSample.direction, rays[rayIndex].wavelength);
 
     //*
     if ((materialSample.valid == 0) || (dot(currentVertex.n, lightSample.direction) <= 0.0f))

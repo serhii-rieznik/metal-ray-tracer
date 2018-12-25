@@ -1,7 +1,7 @@
 #include "Spectrum.h"
 
 namespace CIE {
-const float wavelengths[sampleCount] = {
+const float wavelengths[CIESpectrumSampleCount] = {
     360, 361, 362, 363, 364, 365, 366, 367, 368, 369, 370, 371, 372, 373, 374,
     375, 376, 377, 378, 379, 380, 381, 382, 383, 384, 385, 386, 387, 388, 389,
     390, 391, 392, 393, 394, 395, 396, 397, 398, 399, 400, 401, 402, 403, 404,
@@ -35,7 +35,7 @@ const float wavelengths[sampleCount] = {
     810, 811, 812, 813, 814, 815, 816, 817, 818, 819, 820, 821, 822, 823, 824,
     825, 826, 827, 828, 829, 830 };
 
-const float x[sampleCount] = {
+const float x[CIESpectrumSampleCount] = {
     // CIE X function values
     0.0001299000f, 0.0001458470f, 0.0001638021f, 0.0001840037f,
     0.0002066902f, 0.0002321000f, 0.0002607280f, 0.0002930750f,
@@ -156,7 +156,7 @@ const float x[sampleCount] = {
     0.000001905497f, 0.000001776509f, 0.000001656215f, 0.000001544022f,
     0.000001439440f, 0.000001341977f, 0.000001251141f };
 
-const float y[sampleCount] = {
+const float y[CIESpectrumSampleCount] = {
     // CIE Y function values
     0.000003917000f, 0.000004393581f, 0.000004929604f, 0.000005532136f,
     0.000006208245f, 0.000006965000f, 0.000007813219f, 0.000008767336f,
@@ -277,7 +277,7 @@ const float y[sampleCount] = {
     0.0000006881098f, 0.0000006415300f, 0.0000005980895f, 0.0000005575746f,
     0.0000005198080f, 0.0000004846123f, 0.0000004518100f };
 
-const float z[sampleCount] = {
+const float z[CIESpectrumSampleCount] = {
     // CIE Z function values
     0.0006061000f,
     0.0006808792f,

@@ -13,36 +13,37 @@
 #include "plastic.h"
 #include "dielectric.h"
 
-inline SampledMaterial evaluateMaterial(device const Material& material, float3 nO, float3 wI, float3 wO)
+inline SampledMaterial evaluateMaterial(device const Material& material, float3 nO, float3 wI, float3 wO, float wavelength)
 {
     switch (material.type)
     {
         case MATERIAL_DIFFUSE:
-            return diffuse::evaluate(material, nO, wI, wO);
+            return diffuse::evaluate(material, nO, wI, wO, wavelength);
         case MATERIAL_CONDUCTOR:
-            return conductor::evaluate(material, nO, wI, wO);
+            return conductor::evaluate(material, nO, wI, wO, wavelength);
         case MATERIAL_PLASTIC:
-            return plastic::evaluate(material, nO, wI, wO);
+            return plastic::evaluate(material, nO, wI, wO, wavelength);
         case MATERIAL_DIELECTRIC:
-            return dielectric::evaluate(material, nO, wI, wO);
+            return dielectric::evaluate(material, nO, wI, wO, wavelength);
 
         default:
             return {};
     }
 }
 
-inline SampledMaterial sampleMaterial(device const Material& material, float3 nO, float3 wI, device const RandomSample& randomSample)
+inline SampledMaterial sampleMaterial(device const Material& material, float3 nO, float3 wI,
+    device const RandomSample& randomSample, float wavelength)
 {
     switch (material.type)
     {
         case MATERIAL_DIFFUSE:
-            return diffuse::sample(material, nO, wI, randomSample);
+            return diffuse::sample(material, nO, wI, randomSample, wavelength);
         case MATERIAL_CONDUCTOR:
-            return conductor::sample(material, nO, wI, randomSample);
+            return conductor::sample(material, nO, wI, randomSample, wavelength);
         case MATERIAL_PLASTIC:
-            return plastic::sample(material, nO, wI, randomSample);
+            return plastic::sample(material, nO, wI, randomSample, wavelength);
         case MATERIAL_DIELECTRIC:
-            return dielectric::sample(material, nO, wI, randomSample);
+            return dielectric::sample(material, nO, wI, randomSample, wavelength);
 
         default:
             return {};

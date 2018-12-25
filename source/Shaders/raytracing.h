@@ -71,7 +71,7 @@ inline float directSamplingPdf(float3 n, float3 l, float area)
 }
 
 inline LightSample sampleLight(float3 origin, float3 normal, device const EmitterTriangle* emitterTriangles,
-    uint emitterTrianglesCount, device const RandomSample& randomSample)
+    uint emitterTrianglesCount, device const RandomSample& randomSample, float wavelength)
 {
     LightSample lightSample = {};
     
@@ -82,11 +82,13 @@ inline LightSample sampleLight(float3 origin, float3 normal, device const Emitte
     Vertex lightVertex = interpolate(emitter.v0, emitter.v1, emitter.v2, lightTriangleBarycentric);
     float3 wO = lightVertex.v - origin;
 
+    float power = GPUSpectrumSample(emitter.emissive, wavelength);
+
     lightSample.direction = normalize(wO);
     lightSample.samplePdf = emitter.discretePdf * directSamplingPdf(lightVertex.n, wO, emitter.area);
     lightSample.primitiveIndex = emitter.globalIndex;
     lightSample.valid = (dot(normal, wO) > 0.0f) && (dot(float3(lightVertex.n), wO) < 0.0f) && (lightSample.samplePdf > 0.0f);
-    lightSample.value = lightSample.valid ? (emitter.emissive * (1.0f / lightSample.samplePdf)) : GPUSpectrumConst(0.0f);
+    lightSample.value = lightSample.valid ? (power / lightSample.samplePdf) : 0.0f;
 
     return lightSample;
 }
@@ -163,28 +165,27 @@ inline float ggxVisibilityTerm(float alphaSquared, float3 wI, float3 wO, float3 
     return ggxVisibility(alphaSquared, wI, n, m) * ggxVisibility(alphaSquared, wO, n, m);
 }
 
-inline GPUSpectrum fresnelConductor(float3 i, float3 m, device const GPUSpectrum& etaI,
-    device const GPUSpectrum& etaO, device const GPUSpectrum& k)
+inline float fresnelConductor(float3 i, float3 m, float etaI, float etaO, float k)
 {
     float cosThetaI = -dot(i, m);
-    GPUSpectrum eta = etaO / etaI;
-    GPUSpectrum etak = k / etaI;
+    float eta = etaO / etaI;
+    float etak = k / etaI;
 
     float cosThetaI2 = cosThetaI * cosThetaI;
     float sinThetaI2 = 1.0f - cosThetaI2;
-    GPUSpectrum eta2 = eta * eta;
-    GPUSpectrum etak2 = etak * etak;
+    float eta2 = eta * eta;
+    float etak2 = etak * etak;
 
-    GPUSpectrum t0 = eta2 - etak2 - sinThetaI2;
-    GPUSpectrum a2plusb2 = GPUSpectrumSqrt(t0 * t0 + eta2 * etak2 * 4.0f);
-    GPUSpectrum t1 = a2plusb2 + cosThetaI2;
-    GPUSpectrum a = GPUSpectrumSqrt((a2plusb2 + t0) * 0.5f);
-    GPUSpectrum t2 = a * cosThetaI * 2.0f;
-    GPUSpectrum Rs = (t1 - t2) / (t1 + t2);
+    float t0 = eta2 - etak2 - sinThetaI2;
+    float a2plusb2 = sqrt(t0 * t0 + eta2 * etak2 * 4.0f);
+    float t1 = a2plusb2 + cosThetaI2;
+    float a = sqrt((a2plusb2 + t0) * 0.5f);
+    float t2 = a * cosThetaI * 2.0f;
+    float Rs = (t1 - t2) / (t1 + t2);
 
-    GPUSpectrum t3 = a2plusb2 * cosThetaI2 + sinThetaI2 * sinThetaI2;
-    GPUSpectrum t4 = t2 * sinThetaI2;
-    GPUSpectrum Rp = Rs * (t3 - t4) / (t3 + t4);
+    float t3 = a2plusb2 * cosThetaI2 + sinThetaI2 * sinThetaI2;
+    float t4 = t2 * sinThetaI2;
+    float Rp = Rs * (t3 - t4) / (t3 + t4);
 
     return (Rp + Rs) * 0.5f;
 }

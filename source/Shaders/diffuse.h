@@ -13,7 +13,7 @@
 namespace diffuse
 {
 
-inline SampledMaterial evaluate(device const Material& material, float3 nO, float3 wI, float3 wO)
+inline SampledMaterial evaluate(device const Material& material, float3 nO, float3 wI, float3 wO, float wavelength)
 {
     SampledMaterial result = { };
     result.direction = wO;
@@ -22,17 +22,19 @@ inline SampledMaterial evaluate(device const Material& material, float3 nO, floa
     result.valid = uint(NdotO * NdotI > 0.0f) * (NdotO > 0.0f) * (NdotI > 0.0f);
     if (result.valid)
     {
-        result.bsdf = material.diffuse * (INVERSE_PI * NdotO);
+        float spectrumSample = GPUSpectrumSample(material.diffuse, wavelength);
+        result.bsdf = spectrumSample * (INVERSE_PI * NdotO);
         result.pdf = INVERSE_PI * NdotO;
-        result.weight = material.diffuse;
+        result.weight = spectrumSample;
     }
     return result;
 }
 
-inline SampledMaterial sample(device const Material& material, float3 nO, float3 wI, device const RandomSample& randomSample)
+inline SampledMaterial sample(device const Material& material, float3 nO, float3 wI,
+    device const RandomSample& randomSample, float wavelength)
 {
     float3 wO = sampleCosineWeightedHemisphere(nO, randomSample.bsdfSample);
-    return evaluate(material, nO, wI, wO);
+    return evaluate(material, nO, wI, wO, wavelength);
 }
 
 }
