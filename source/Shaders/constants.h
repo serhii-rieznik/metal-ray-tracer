@@ -15,6 +15,7 @@ using float3 = MPSPackedFloat3;
 using float4 = simd_float4;
 using packed_float3 = MPSPackedFloat3;
 using uint = uint32_t;
+using uint2 = simd_uint2;
 #endif
 
 #define PI                              3.1415926536
