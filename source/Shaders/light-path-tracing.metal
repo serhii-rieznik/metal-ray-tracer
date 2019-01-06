@@ -13,6 +13,13 @@
 
 using namespace metal;
 
+#define CASE_UNIFORM_DISTRIBUTION   0
+#define CASE_ALMOST_ALIGNED         1
+#define CASE_FULLY_ALIGNED          2
+#define CASE_HARDCODED              3
+
+#define TEST_CASE                   CASE_ALMOST_ALIGNED
+
 kernel void lptGenerateRays(constant ApplicationData& appData [[buffer(0)]],
                             device const RandomSample* noise [[buffer(1)]],
                             device Ray* rays [[buffer(2)]],
@@ -29,7 +36,42 @@ kernel void lptGenerateRays(constant ApplicationData& appData [[buffer(0)]],
     float wavelength = mix(float(CIESpectrumWavelengthFirst), float(CIESpectrumWavelengthLast), randomSample.wavelengthSample);
     LightPositionSample lightSample = samplePositionOnLight(emitterTriangles, appData.emitterTrianglesCount, randomSample, wavelength);
     r.base.origin = lightSample.origin + lightSample.direction * DISTANCE_EPSILON;
-    r.base.direction = lightSample.direction;
+
+    float3 n = float3(0.0, -1.0f, 0.0f);
+    float3 direction = {};
+    // sampleCosineWeightedHemisphere(n, randomSample.pixelSample);
+    // expanded below
+    {
+        // direction = alignToDirection(n, cosTheta, randomSample.pixelSample.y * DOUBLE_PI);
+        // expanded below:
+
+        // buildOrthonormalBasis(n, u, v);
+        // hard-coded for this case
+        float3 u = float3(1.0f, 0.0f, 0.0f);
+        float3 v = float3(0.0f, 0.0f, 1.0f);
+        float phi = randomSample.pixelSample.y * DOUBLE_PI;
+
+#if (TEST_CASE == CASE_HARDCODED)
+
+        direction = n;
+        
+#else
+
+#   if (TEST_CASE == CASE_UNIFORM_DISTRIBUTION)
+        float cosTheta = randomSample.pixelSample.x;
+#   elif (TEST_CASE == CASE_ALMOST_ALIGNED)
+        float cosTheta = pow(randomSample.pixelSample.x, 1.0e-7f);
+#   elif (TEST_CASE == CASE_FULLY_ALIGNED)
+        float cosTheta = 1.0f;
+#   endif
+
+        float sinTheta = sqrt(saturate(1.0f - cosTheta * cosTheta));
+        direction = (u * cos(phi) + v * sin(phi)) * sinTheta + n * cosTheta;
+
+#endif
+    }
+
+    r.base.direction = direction;
     r.base.minDistance = DISTANCE_EPSILON;
     r.base.maxDistance = INFINITY;
     r.radiance = 100.0f; // lightSample.value;
