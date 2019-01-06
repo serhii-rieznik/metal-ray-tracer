@@ -70,29 +70,6 @@ inline float directSamplingPdf(float3 n, float3 l, float area)
     return (cosTheta > 0.0f) ? (distanceSquared / (cosTheta * area)) : 0.0f;
 }
 
-inline LightSample sampleLight(float3 origin, float3 normal, device const EmitterTriangle* emitterTriangles,
-    uint emitterTrianglesCount, device const RandomSample& randomSample, float wavelength)
-{
-    LightSample lightSample = {};
-    
-    device const EmitterTriangle& emitter  =
-        sampleEmitterTriangle(emitterTriangles, emitterTrianglesCount, randomSample.emitterSample);
-
-    float3 lightTriangleBarycentric = barycentric(randomSample.barycentricSample);
-    Vertex lightVertex = interpolate(emitter.v0, emitter.v1, emitter.v2, lightTriangleBarycentric);
-    float3 wO = lightVertex.v - origin;
-
-    float power = GPUSpectrumSample(emitter.emissive, wavelength);
-
-    lightSample.direction = normalize(wO);
-    lightSample.samplePdf = emitter.discretePdf * directSamplingPdf(lightVertex.n, wO, emitter.area);
-    lightSample.primitiveIndex = emitter.globalIndex;
-    lightSample.valid = (dot(normal, wO) > 0.0f) && (dot(float3(lightVertex.n), wO) < 0.0f) && (lightSample.samplePdf > 0.0f);
-    lightSample.value = lightSample.valid ? (power / lightSample.samplePdf) : 0.0f;
-
-    return lightSample;
-}
-
 inline void buildOrthonormalBasis(float3 n, thread float3& u, thread float3& v)
 {
     float s = (n.z < 0.0 ? -1.0f : 1.0f);
@@ -233,3 +210,53 @@ inline float remapRoughness(float r, float NdotI)
     float alpha = (1.2f - 0.2f * sqrt(abs(NdotI))) * r;
     return alpha * alpha;
 }
+
+/*
+ * Light sampling
+ */
+
+inline LightPositionSample samplePositionOnLight(device const EmitterTriangle* emitterTriangles,
+    uint emitterTrianglesCount, device const RandomSample& randomSample, float wavelength)
+{
+    LightPositionSample lightSample = {};
+
+    device const EmitterTriangle& emitter  =
+        sampleEmitterTriangle(emitterTriangles, emitterTrianglesCount, randomSample.emitterSample);
+
+    float3 lightTriangleBarycentric = barycentric(randomSample.barycentricSample);
+    Vertex lightVertex = interpolate(emitter.v0, emitter.v1, emitter.v2, lightTriangleBarycentric);
+
+    lightSample.origin = lightVertex.v;
+    float positionSamplePdf = 1.0f / emitter.area;
+
+    lightSample.direction = sampleCosineWeightedHemisphere(lightVertex.n, randomSample.pixelSample);
+    float directionSamplePdf = dot(lightSample.direction, lightVertex.n) / PI;
+
+    lightSample.value = GPUSpectrumSample(emitter.emissive, wavelength) / (directionSamplePdf * positionSamplePdf);
+
+    return lightSample;
+}
+
+inline LightSample sampleLight(float3 origin, float3 normal, device const EmitterTriangle* emitterTriangles,
+    uint emitterTrianglesCount, device const RandomSample& randomSample, float wavelength)
+{
+    LightSample lightSample = {};
+
+    device const EmitterTriangle& emitter  =
+    sampleEmitterTriangle(emitterTriangles, emitterTrianglesCount, randomSample.emitterSample);
+
+    float3 lightTriangleBarycentric = barycentric(randomSample.barycentricSample);
+    Vertex lightVertex = interpolate(emitter.v0, emitter.v1, emitter.v2, lightTriangleBarycentric);
+    float3 wO = lightVertex.v - origin;
+
+    float power = GPUSpectrumSample(emitter.emissive, wavelength);
+
+    lightSample.direction = normalize(wO);
+    lightSample.samplePdf = emitter.discretePdf * directSamplingPdf(lightVertex.n, wO, emitter.area);
+    lightSample.primitiveIndex = emitter.globalIndex;
+    lightSample.valid = (dot(normal, wO) > 0.0f) && (dot(float3(lightVertex.n), wO) < 0.0f) && (lightSample.samplePdf > 0.0f);
+    lightSample.value = lightSample.valid ? (power / lightSample.samplePdf) : 0.0f;
+
+    return lightSample;
+}
+

@@ -39,6 +39,7 @@ using uint2 = simd_uint2;
 #define MAX_RUN_TIME_IN_SECONDS         (60 * 60 * 24) // one day
 #define MAX_SAMPLES                     (0x7fffffff)
 #define MAX_PATH_LENGTH                 (0x7fffffff)
+#define MAX_BUFFERED_FRAMES             3
 
 #define CONTENT_SCALE                   2
 

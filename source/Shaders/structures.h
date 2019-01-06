@@ -120,5 +120,12 @@ struct LightSample
     uint primitiveIndex = 0;
 };
 
+struct LightPositionSample
+{
+    packed_float3 origin = { };
+    packed_float3 direction = { };
+    float value = 0.0f;
+};
+
 using Intersection = MPSIntersectionDistancePrimitiveIndexCoordinates;
 using LightSamplingIntersection = MPSIntersectionDistancePrimitiveIndex;
