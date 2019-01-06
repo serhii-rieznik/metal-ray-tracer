@@ -18,7 +18,7 @@ using namespace metal;
 #define CASE_FULLY_ALIGNED          2
 #define CASE_HARDCODED              3
 
-#define TEST_CASE                   CASE_ALMOST_ALIGNED
+#define TEST_CASE                   CASE_UNIFORM_DISTRIBUTION
 
 kernel void lptGenerateRays(constant ApplicationData& appData [[buffer(0)]],
                             device const RandomSample* noise [[buffer(1)]],
