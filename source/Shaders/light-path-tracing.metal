@@ -13,10 +13,11 @@
 
 using namespace metal;
 
-#define CASE_UNIFORM_DISTRIBUTION   0
-#define CASE_ALMOST_ALIGNED         1
-#define CASE_FULLY_ALIGNED          2
-#define CASE_HARDCODED              3
+#define CASE_UNIFORM_DISTRIBUTION   0 // works fine
+#define CASE_ALMOST_ALIGNED         1 // works fine
+#define CASE_FULLY_ALIGNED          2 // does not work
+#define CASE_HARDCODED              3 // does not work
+#define CASE_HARDCODED_WITH_OFFSET  4 // seems to be working
 
 #define TEST_CASE                   CASE_UNIFORM_DISTRIBUTION
 
@@ -37,7 +38,6 @@ kernel void lptGenerateRays(constant ApplicationData& appData [[buffer(0)]],
     LightPositionSample lightSample = samplePositionOnLight(emitterTriangles, appData.emitterTrianglesCount, randomSample, wavelength);
     r.base.origin = lightSample.origin + lightSample.direction * DISTANCE_EPSILON;
 
-    float3 n = float3(0.0, -1.0f, 0.0f);
     float3 direction = {};
     // sampleCosineWeightedHemisphere(n, randomSample.pixelSample);
     // expanded below
@@ -47,15 +47,21 @@ kernel void lptGenerateRays(constant ApplicationData& appData [[buffer(0)]],
 
         // buildOrthonormalBasis(n, u, v);
         // hard-coded for this case
-        float3 u = float3(1.0f, 0.0f, 0.0f);
-        float3 v = float3(0.0f, 0.0f, 1.0f);
-        float phi = randomSample.pixelSample.y * DOUBLE_PI;
 
 #if (TEST_CASE == CASE_HARDCODED)
 
-        direction = n;
-        
+        direction = float3(0.0f, -1.0f, 0.0f);
+
+#elif (TEST_CASE == CASE_HARDCODED_WITH_OFFSET)
+
+        direction = normalize(float3(0.0001f, -1.0f, 0.0001f));
+
 #else
+
+        float3 n = float3(0.0, -1.0f, 0.0f);
+        float3 u = float3(1.0f, 0.0f, 0.0f);
+        float3 v = float3(0.0f, 0.0f, 1.0f);
+        float phi = randomSample.pixelSample.y * DOUBLE_PI;
 
 #   if (TEST_CASE == CASE_UNIFORM_DISTRIBUTION)
         float cosTheta = randomSample.pixelSample.x;
