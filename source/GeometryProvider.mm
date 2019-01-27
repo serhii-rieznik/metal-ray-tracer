@@ -84,19 +84,19 @@ GeometryProvider::GeometryProvider(const char* fileName, id<MTLDevice> device)
         if (mtl.unknown_parameter.count("spectrum_Kd") > 0.0f)
         {
             std::string spd = mtl.unknown_parameter.at("spectrum_Kd");
-            material.diffuse = loadSampledSpectrum(spd, "spd").toGPUSpectrum();
+            material.diffuse = loadSampledSpectrum(spd, "spd", baseDir).toGPUSpectrum();
         }
 
         if (mtl.unknown_parameter.count("spectrum_Ks") > 0.0f)
         {
             std::string spd = mtl.unknown_parameter.at("spectrum_Ks");
-            material.specular = loadSampledSpectrum(spd, "spd").toGPUSpectrum();
+            material.specular = loadSampledSpectrum(spd, "spd", baseDir).toGPUSpectrum();
         }
 
         if (mtl.unknown_parameter.count("spectrum_Kt") > 0.0f)
         {
             std::string spd = mtl.unknown_parameter.at("spectrum_Kt");
-            material.transmittance = loadSampledSpectrum(spd, "spd").toGPUSpectrum();
+            material.transmittance = loadSampledSpectrum(spd, "spd", baseDir).toGPUSpectrum();
         }
 
         if (mtl.unknown_parameter.count("blackbody_t") > 0.0f)
@@ -108,7 +108,7 @@ GeometryProvider::GeometryProvider(const char* fileName, id<MTLDevice> device)
         if (mtl.unknown_parameter.count("spectrum_Ke") > 0.0f)
         {
             std::string spd = mtl.unknown_parameter.at("spectrum_Ke");
-            material.emissive = loadSampledSpectrum("lights/" + spd, "spd").toGPUSpectrum();
+            material.emissive = loadSampledSpectrum("lights/" + spd, "spd", baseDir).toGPUSpectrum();
         }
 
         if (mtl.unknown_parameter.count("scale_Ke") > 0.0f)
@@ -138,8 +138,8 @@ GeometryProvider::GeometryProvider(const char* fileName, id<MTLDevice> device)
         if (mtl.unknown_parameter.count("spectrum_Ni") > 0)
         {
             std::string spd = mtl.unknown_parameter.at("spectrum_Ni");
-            material.intIOR_eta = loadSampledSpectrum(spd + ".eta", "spd").toGPUSpectrum();
-            material.intIOR_k = loadSampledSpectrum(spd + ".k", "spd").toGPUSpectrum();
+            material.intIOR_eta = loadSampledSpectrum(spd + ".eta", "spd", baseDir).toGPUSpectrum();
+            material.intIOR_k = loadSampledSpectrum(spd + ".k", "spd", baseDir).toGPUSpectrum();
         }
 
         if (mtl.name == "environment")
@@ -343,11 +343,21 @@ GeometryProvider::GeometryProvider(const char* fileName, id<MTLDevice> device)
           attrib.normals.size(), attrib.texcoords.size(), _triangleCount, materials.size());
 }
 
-SampledSpectrum GeometryProvider::loadSampledSpectrum(const std::string& material, const std::string& ext)
+SampledSpectrum GeometryProvider::loadSampledSpectrum(const std::string& material, const std::string& ext, const std::string& base)
 {
-    NSString* nameString = [NSString stringWithFormat:@"media/spectrum/%s", material.c_str()];
-    NSURL* url = [[NSBundle mainBundle] URLForResource:nameString withExtension:[NSString stringWithUTF8String:ext.c_str()]];
-    if (url == nil)
+    NSURL* url = nil;
+    NSString* nameString = [NSString stringWithFormat:@"%s/%s.%s", base.c_str(), material.c_str(), ext.c_str()];
+    if ([[NSFileManager defaultManager] fileExistsAtPath:nameString])
+    {
+        url = [NSURL fileURLWithPath:nameString];
+    }
+    else
+    {
+        nameString = [NSString stringWithFormat:@"media/spectrum/%s", material.c_str()];
+        url = [[NSBundle mainBundle] URLForResource:nameString withExtension:[NSString stringWithUTF8String:ext.c_str()]];
+    }
+
+    if ((url == nil) || ![[NSFileManager defaultManager] fileExistsAtPath:[url path]])
     {
         NSLog(@"Failed to load %@ spectrum", nameString);
         const float wl[] = {
@@ -372,7 +382,6 @@ SampledSpectrum GeometryProvider::loadSampledSpectrum(const std::string& materia
         float wavelength = 0.0f;
         float value = 0.0f;
         sscanf(line.c_str(), "%f %f", &wavelength, &value);
-        NSLog(@"%f %f", wavelength, value);
         wavelengths.emplace_back(wavelength);
         values.emplace_back(value);
     }
