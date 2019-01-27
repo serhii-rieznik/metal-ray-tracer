@@ -117,8 +117,8 @@ kernel void vptHandleIntersections(texture2d<float> environment [[texture(0)]],
     
     // generate next bounce
     {
-        SampledMaterial materialSample = sampleMaterial(material, currentVertex.n, currentRay.base.direction,
-                                                        randomSample, currentRay.wavelength);
+        SampledMaterial materialSample = sampleMaterial(material, currentVertex.v, currentVertex.n,
+            currentRay.base.direction, randomSample, currentRay.wavelength);
         
         if (materialSample.valid)
         {

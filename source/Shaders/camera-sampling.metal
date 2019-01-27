@@ -61,8 +61,8 @@ kernel void generateCameraSamplingRays(device const Intersection* intersections 
     }
     // */
     
-    SampledMaterial materialSample = evaluateMaterial(material, currentVertex.n,
-                                                      rays[rayIndex].base.direction, lightSample.direction, rays[rayIndex].wavelength);
+    SampledMaterial materialSample = evaluateMaterial(material, currentVertex.v, currentVertex.n,
+        rays[rayIndex].base.direction, lightSample.direction, rays[rayIndex].wavelength);
     
     //*
     if ((materialSample.valid == 0) || (dot(currentVertex.n, lightSample.direction) <= 0.0f))

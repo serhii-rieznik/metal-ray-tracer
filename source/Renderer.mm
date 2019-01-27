@@ -54,7 +54,7 @@ static NSString* kCameraFOV = @"fov";
         _commandQueue = [_device newCommandQueue];
         _defaultLibrary = [_device newDefaultLibrary];
 
-        _pathTracer = [[LightPathTracer alloc] initWithGeometryProvider:&_geometryProvider camera:&_camera mtkView:view device:_device];
+        _pathTracer = [[ViewPathTracer alloc] initWithGeometryProvider:&_geometryProvider camera:&_camera mtkView:view device:_device];
 
         [self initializeRayTracingWithRecent];
     }

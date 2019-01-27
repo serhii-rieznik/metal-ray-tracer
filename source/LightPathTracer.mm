@@ -28,6 +28,7 @@
     if (self = [super initWithGeometryProvider:geometryProvider camera:camera mtkView:mtkView device:device])
     {
         _rayIntersector = [[MPSRayIntersector alloc] initWithDevice:device];
+        [_rayIntersector setBoundingBoxIntersectionTestType:MPSBoundingBoxIntersectionTestTypeAxisAligned];
         [_rayIntersector setRayDataType:MPSRayDataTypeOriginMinDistanceDirectionMaxDistance];
         [_rayIntersector setRayStride:sizeof(Ray)];
         [_rayIntersector setIntersectionDataType:MPSIntersectionDataTypeDistancePrimitiveIndexCoordinates];

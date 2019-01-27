@@ -117,7 +117,7 @@ static std::uniform_real_distribution<float> uniformFloatDistribution(0.0f, 1.0f
 
 - (void)blitOutputImageWithCommandBuffer:(id<MTLCommandBuffer>)commandBuffer
 {
-    if (_frameContinuousIndex % MAX_BUFFERED_FRAMES == 0)
+    // if (_frameContinuousIndex % MAX_BUFFERED_FRAMES == 0)
     {
         id<MTLRenderCommandEncoder> blitEncoder = [commandBuffer renderCommandEncoderWithDescriptor:_mtkView.currentRenderPassDescriptor];
         [blitEncoder setFragmentBuffer:[self applicationDataForCurrentFrame] offset:0 atIndex:0];
@@ -129,8 +129,9 @@ static std::uniform_real_distribution<float> uniformFloatDistribution(0.0f, 1.0f
 
         [commandBuffer presentDrawable:_mtkView.currentDrawable];
 
-        [[NSApp mainWindow] setTitle:[NSString stringWithFormat:@"Frame: %u (%.2fms. last frame, %.2fs. elapsed)",
-                                      _frameContinuousIndex, _lastFrameDuration * 1000.0f, _lastFrameTime]];
+        [[NSApp mainWindow] setTitle:[NSString stringWithFormat:@"Frame: %u (%.2fms. last frame, %.2fs. total, %u x %u)",
+                                      _frameContinuousIndex, _lastFrameDuration * 1000.0f, _lastFrameTime,
+                                      uint32_t(_outputImageSize.width), uint32_t(_outputImageSize.height)]];
     }}
 
 - (void)initResourcesForSize:(CGSize)inSize

@@ -61,7 +61,7 @@ kernel void generateLightSamplingRays(device const Intersection* intersections [
     }
     // */
 
-    SampledMaterial materialSample = evaluateMaterial(material, currentVertex.n,
+    SampledMaterial materialSample = evaluateMaterial(material, currentVertex.v, currentVertex.n,
         rays[rayIndex].base.direction, lightSample.direction, rays[rayIndex].wavelength);
 
     //*

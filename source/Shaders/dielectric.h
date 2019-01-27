@@ -13,7 +13,8 @@
 namespace dielectric
 {
 
-inline SampledMaterial evaluate(device const Material& material, float3 nO, float3 wI, float3 wO, float wavelength)
+inline SampledMaterial evaluateWithIOR(device const Material& material, float3 nO, float3 wI, float3 wO,
+    float wavelength, float extIOR, float intIOR)
 {
     SampledMaterial result = { };
     result.direction = wO;
@@ -25,8 +26,6 @@ inline SampledMaterial evaluate(device const Material& material, float3 nO, floa
     float NdotO = dot(n, wO);
     bool reflection = NdotO * NdotI > 0.0f;
 
-    float extIOR = GPUSpectrumSample(material.extIOR, wavelength);
-    float intIOR = GPUSpectrumSample(material.intIOR_eta, wavelength);
     float eta = enteringMaterial ? (extIOR / intIOR) : (intIOR / extIOR);
 
     float3 m = normalize(reflection ? (wO - wI) : (wI * eta - wO));
@@ -63,22 +62,27 @@ inline SampledMaterial evaluate(device const Material& material, float3 nO, floa
     result.pdf *= D * NdotM;
     result.weight = result.weight * abs(G * MdotI / (NdotI * NdotM));
     result.valid = uint(result.bsdf > 0.0f) * uint(result.pdf > 0.0f);
+    result.normal = m;
 
     return result;
 }
 
-inline SampledMaterial sample(device const Material& material, float3 nO, float3 wI,
-    device const RandomSample& randomSample, float wavelength)
+inline SampledMaterial evaluate(device const Material& material, float3 nO, float3 wI, float3 wO, float wavelength)
+{
+    float extIOR = GPUSpectrumSample(material.extIOR, wavelength);
+    float intIOR = GPUSpectrumSample(material.intIOR_eta, wavelength);
+    return evaluateWithIOR(material, nO, wI, wO, wavelength, extIOR, intIOR);
+}
+
+inline float3 sampleWithIOR(device const Material& material, float3 nO, float3 wI,
+    device const RandomSample& randomSample, float wavelength, float extIOR, float intIOR)
 {
     bool enteringMaterial = dot(nO, wI) < 0.0f;
     float3 n = enteringMaterial ? nO : -nO;
     float a = remapRoughness(material.roughness, dot(n, wI));
     float3 m = sampleGGXDistribution(n, randomSample.bsdfSample, a);
 
-    float extIOR = GPUSpectrumSample(material.extIOR, wavelength);
-    float intIOR = GPUSpectrumSample(material.intIOR_eta, wavelength);
     float eta = enteringMaterial ? (extIOR / intIOR) : (intIOR / extIOR);
-
     float F = fresnelDielectric(wI, m, eta);
 
     float3 wO = { };
@@ -124,7 +128,15 @@ inline SampledMaterial sample(device const Material& material, float3 nO, float3
         if (dot(n, wO) * dot(n, wI) >= 0.0f) return {};
     }
 
-    return evaluate(material, nO, wI, wO, wavelength);
+    return wO;
+}
+
+inline float3 sample(device const Material& material, float3 nO, float3 wI,
+    device const RandomSample& randomSample, float wavelength)
+{
+    float extIOR = GPUSpectrumSample(material.extIOR, wavelength);
+    float intIOR = GPUSpectrumSample(material.intIOR_eta, wavelength);
+    return sampleWithIOR(material, nO, wI, randomSample, wavelength, extIOR, intIOR);
 }
 
 }

@@ -1,5 +1,6 @@
 newmtl white
     spectrum_Kd cornell-box-white
+    coating_d 1500
 
 newmtl leftWall
     spectrum_Kd cornell-box-red
@@ -8,19 +9,29 @@ newmtl rightWall
     spectrum_Kd cornell-box-green
 
 newmtl floor
+    illum 0
+    Pr 0.5
+    spectrum_Ni nas-21
     spectrum_Kd cornell-box-white
+    spectrum_Ks cornell-box-white
+    coating_d 200
 
 newmtl ceiling
     spectrum_Kd cornell-box-white
+    coating_d 300
 
 newmtl frontWall
     spectrum_Kd cornell-box-white
+    coating_d 500
 
 newmtl shortBox
     spectrum_Kd cornell-box-box
+    coating_d 120
 
 newmtl tallBox
     spectrum_Kd cornell-box-box
+    coating_d 90
 
 newmtl light
-    spectrum_Ke cornell-box
+    spectrum_Ke daylight
+    scale_Ke 50.0

@@ -43,11 +43,13 @@ inline SampledMaterial evaluate(device const Material& material, float3 nO, floa
             D * NdotM * J * F;
 
         result.weight = result.bsdf * (1.0f / result.pdf);
+        
+        result.normal = m;
     }
     return result;
 }
 
-inline SampledMaterial sample(device const Material& material, float3 nO, float3 wI,
+inline float3 sample(device const Material& material, float3 nO, float3 wI,
     device const RandomSample& randomSample, float wavelength)
 {
     float alphaSquared = material.roughness * material.roughness;
@@ -65,8 +67,7 @@ inline SampledMaterial sample(device const Material& material, float3 nO, float3
     {
         wO = reflect(wI, m);
     }
-
-    return evaluate(material, nO, wI, wO, wavelength);
+    return wO;
 }
 
 }

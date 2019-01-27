@@ -152,6 +152,18 @@ GeometryProvider::GeometryProvider(const char* fileName, id<MTLDevice> device)
             NSLog(@" + material: %s, r: %.3f - %s (%.3f, %.3f, %.3f)", materialTypeToString(material.type), mtl.roughness, mtl.name.c_str(),
                   mtl.diffuse[0], mtl.diffuse[1], mtl.diffuse[2]);
         }
+
+        if (mtl.unknown_parameter.count("coating_d") > 0)
+        {
+            double coatingThickness = std::atof(mtl.unknown_parameter.at("coating_d").c_str());
+            material.coatingThickness = static_cast<float>(coatingThickness);
+        }
+
+        if (mtl.unknown_parameter.count("coating_Ni") > 0)
+        {
+            double coatingIOR = std::atof(mtl.unknown_parameter.at("coating_Ni").c_str());
+            material.coatingIOR = static_cast<float>(coatingIOR);
+        }
     }
 
     bool useDefaultMaterial = materialBuffer.empty();

@@ -136,6 +136,14 @@ inline float GPUSpectrumSample(device const GPUSpectrum& spectrum, float wl)
     return mix(spectrum.samples[w], spectrum.samples[w + 1], dwl);
 }
 
+inline float GPUSpectrumSample(thread const GPUSpectrum& spectrum, float wl)
+{
+    float wlFloor = floor(wl);
+    float dwl = wl - wlFloor;
+    uint w = uint(wlFloor) - CIESpectrumWavelengthFirst;
+    return mix(spectrum.samples[w], spectrum.samples[w + 1], dwl);
+}
+
 #if defined(__METAL_VERSION__)
 inline float4 GPUSpectrumToXYZ(float wavelength, float power, device const packed_float3* xyz)
 {

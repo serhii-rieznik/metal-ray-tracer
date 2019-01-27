@@ -23,6 +23,7 @@ inline SampledMaterial evaluate(device const Material& material, float3 nO, floa
     if (result.valid)
     {
         float spectrumSample = GPUSpectrumSample(material.diffuse, wavelength);
+        result.normal = nO;
         result.bsdf = spectrumSample * (INVERSE_PI * NdotO);
         result.pdf = INVERSE_PI * NdotO;
         result.weight = spectrumSample;
@@ -30,11 +31,10 @@ inline SampledMaterial evaluate(device const Material& material, float3 nO, floa
     return result;
 }
 
-inline SampledMaterial sample(device const Material& material, float3 nO, float3 wI,
+inline float3 sample(device const Material& material, float3 nO, float3 wI,
     device const RandomSample& randomSample, float wavelength)
 {
-    float3 wO = sampleCosineWeightedHemisphere(nO, randomSample.bsdfSample);
-    return evaluate(material, nO, wI, wO, wavelength);
+    return sampleCosineWeightedHemisphere(nO, randomSample.bsdfSample);
 }
 
 }

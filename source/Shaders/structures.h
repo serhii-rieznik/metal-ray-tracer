@@ -29,6 +29,8 @@ struct Material
     GPUSpectrum intIOR_k;
     uint type = MATERIAL_DIFFUSE;
     float roughness = 1.0f;
+    float coatingThickness = 0.0f;
+    float coatingIOR = 1.5f;
 };
 
 struct Triangle
@@ -91,6 +93,7 @@ struct ApplicationData
 
 struct SampledMaterial
 {
+    packed_float3 normal = {};
     packed_float3 direction = {};
     uint valid = 0;
     float bsdf;
