@@ -11,7 +11,7 @@
 #include <MetalPerformanceShaders/MetalPerformanceShaders.h>
 
 #if !defined(__METAL_VERSION__)
-using float3 = MPSPackedFloat3;
+using float3 = simd_float3;
 using float4 = simd_float4;
 using packed_float3 = MPSPackedFloat3;
 using uint = uint32_t;
@@ -41,7 +41,7 @@ using uint2 = simd_uint2;
 #define MAX_PATH_LENGTH                 (0x7fffffff)
 #define MAX_BUFFERED_FRAMES             3
 
-#define CONTENT_SCALE                   2
+#define CONTENT_SCALE                   1
 
 #define IS_MODE_MIS                     0
 #define IS_MODE_LIGHT                   1

@@ -1,11 +1,3 @@
-//
-//  Renderer.m
-//  Metal ray-tracer
-//
-//  Created by Sergey Reznik on 9/15/18.
-//  Copyright © 2018 Serhii Rieznik. All rights reserved.
-//
-
 #import "PathTracer.h"
 #import <random>
 
@@ -25,7 +17,6 @@
     MTLSize _outputImageSize;
     uint32_t _frameContinuousIndex;
     uint32_t _rayCount;
-    uint32_t _comparisonMode;
     CFTimeInterval _startupTime;
     CFTimeInterval _lastFrameTime;
     CFTimeInterval _lastFrameDuration;
@@ -253,7 +244,7 @@ static std::uniform_real_distribution<float> uniformFloatDistribution(0.0f, 1.0f
     appData->emitterTrianglesCount = _geometryProvider->emitterTriangleCount();
     appData->frameIndex = _frameContinuousIndex;
     appData->time = frameTime;
-    appData->comparisonMode = _comparisonMode;
+    appData->comparisonMode = [self comparisonMode];
     appData->camera = *_camera;
 }
 

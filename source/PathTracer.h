@@ -1,11 +1,3 @@
-//
-//  Renderer.h
-//  Metal ray-tracer
-//
-//  Created by Sergey Reznik on 9/15/18.
-//  Copyright © 2018 Serhii Rieznik. All rights reserved.
-//
-
 #import <MetalKit/MetalKit.h>
 #import "Shaders/constants.h"
 #import "GeometryProvider.h"

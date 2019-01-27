@@ -1,11 +1,3 @@
-//
-//  GeometryProvider.h
-//  Metal ray-tracer
-//
-//  Created by Sergey Reznik on 9/17/18.
-//  Copyright © 2018 Serhii Rieznik. All rights reserved.
-//
-
 #pragma once
 
 #include "Shaders/structures.h"
@@ -58,7 +50,7 @@ public:
 
 private:
     const char* materialTypeToString(uint32_t);
-    CIESpectrum loadSampledSpectrum(const std::string& material, const std::string& ext);
+    CIESpectrum loadSampledSpectrum(const std::string& material, const std::string& ext, const std::string& base);
 
 private:
     id<MTLBuffer> _indexBuffer = nil;

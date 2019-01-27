@@ -8,21 +8,51 @@
 
 #import "RenderView.h"
 
+@interface RenderView()
+{
+    CameraController* _cameraController;
+    BOOL _freeCameraMode;
+}
+@end
+
 @implementation RenderView
+
+@synthesize camera;
 
 - (BOOL)acceptsFirstResponder
 {
-    return NO;
+    return _freeCameraMode ? YES : NO;
 }
 
 - (void)keyDown:(NSEvent *)event
 {
-    // TODO : camera control
+    if (_freeCameraMode)
+    {
+        [[self cameraController] handleKeyDown:[event keyCode]];
+    }
 }
 
 - (void)keyUp:(NSEvent *)event
 {
-    // TODO : camera control
+    if (_freeCameraMode)
+    {
+        [[self cameraController] handleKeyUp:[event keyCode]];
+    }
+}
+
+- (void)setFreeCameraMode:(BOOL)enabled
+{
+    _freeCameraMode = enabled;
+}
+
+- (CameraController*)cameraController
+{
+    if (_cameraController == nil)
+    {
+        _cameraController = [[CameraController alloc] init];
+    }
+
+    return _cameraController;
 }
 
 @end

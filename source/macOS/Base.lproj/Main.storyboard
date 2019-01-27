@@ -57,6 +57,11 @@
                                                 <action selector="restartRaytracing:" target="Ady-hI-5gd" id="ILj-Rg-KqM"/>
                                             </connections>
                                         </menuItem>
+                                        <menuItem title="Free camera mode" keyEquivalent="f" id="Evp-eR-qKP">
+                                            <connections>
+                                                <action selector="freeCameraMode:" target="Ady-hI-5gd" id="s5D-J3-erB"/>
+                                            </connections>
+                                        </menuItem>
                                     </items>
                                 </menu>
                             </menuItem>

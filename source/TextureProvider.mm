@@ -1,11 +1,3 @@
-//
-//  GeometryProvider.mm
-//  Metal ray-tracer
-//
-//  Created by Sergey Reznik on 9/17/18.
-//  Copyright © 2018 Serhii Rieznik. All rights reserved.
-//
-
 #include "GeometryProvider.h"
 #include "../external/tinyexr/tinyexr.h"
 

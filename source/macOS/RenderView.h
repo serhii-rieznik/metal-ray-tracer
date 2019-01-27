@@ -7,10 +7,18 @@
 //
 
 #import <MetalKit/MetalKit.h>
+#import "../CameraController.h"
+
+struct Camera;
 
 NS_ASSUME_NONNULL_BEGIN
 
 @interface RenderView : MTKView
+
+@property (nonatomic, assign) struct Camera* camera;
+
+- (CameraController*)cameraController;
+- (void)setFreeCameraMode:(BOOL)enabled;
 
 @end
 

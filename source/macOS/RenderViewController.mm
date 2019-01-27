@@ -88,4 +88,9 @@
     [_renderer initializeRayTracingWithRecent];
 }
 
+- (IBAction)freeCameraMode:(id)sender
+{
+    [_view setFreeCameraMode:YES];
+}
+
 @end

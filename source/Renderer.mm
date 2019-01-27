@@ -1,12 +1,5 @@
-//
-//  Renderer.m
-//  Metal ray-tracer
-//
-//  Created by Sergey Reznik on 9/15/18.
-//  Copyright © 2018 Serhii Rieznik. All rights reserved.
-//
-
 #import <MetalPerformanceShaders/MetalPerformanceShaders.h>
+#import "macOS/RenderView.h"
 #import "Renderer.h"
 #import "Spectrum.h"
 #import "GeometryProvider.h"
@@ -38,24 +31,26 @@ static NSString* kCameraFOV = @"fov";
     PathTracer* _pathTracer;
     GeometryProvider _geometryProvider;
     Camera _camera;
+    RenderView* _view;
 
     bool _raytracingPaused;
 }
 
--(nonnull instancetype)initWithMetalKitView:(nonnull MTKView*)view
+-(nonnull instancetype)initWithMetalKitView:(nonnull RenderView*)view
 {
     CIESpectrum::initialize();
 
     self = [super init];
     if (self)
     {
+        _view = view;
         _device = view.device;
         _frameSemaphore = dispatch_semaphore_create(MAX_BUFFERED_FRAMES);
         _commandQueue = [_device newCommandQueue];
         _defaultLibrary = [_device newDefaultLibrary];
-
         _pathTracer = [[ViewPathTracer alloc] initWithGeometryProvider:&_geometryProvider camera:&_camera mtkView:view device:_device];
 
+        [_view setCamera:&_camera];
         [self initializeRayTracingWithRecent];
     }
 
@@ -67,6 +62,11 @@ static NSString* kCameraFOV = @"fov";
     dispatch_time_t timeout = dispatch_time(DISPATCH_TIME_NOW, 1e+9);
     if (_raytracingPaused || (dispatch_semaphore_wait(_frameSemaphore, timeout) != 0))
         return;
+
+    if ([[_view cameraController] process:&_camera])
+    {
+        [_pathTracer restart];
+    }
 
     id<MTLCommandBuffer> commandBuffer = [_commandQueue commandBuffer];
     [commandBuffer addCompletedHandler:^(id<MTLCommandBuffer> buffer) {

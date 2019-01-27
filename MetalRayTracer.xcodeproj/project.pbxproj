@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		6E1AF3D021FE5A400000B044 /* CameraController.mm in Sources */ = {isa = PBXBuildFile; fileRef = 6E1AF3CF21FE5A400000B044 /* CameraController.mm */; };
 		6E27FBDA21A9F0FB005108B3 /* RenderView.m in Sources */ = {isa = PBXBuildFile; fileRef = 6E27FBD921A9F0FB005108B3 /* RenderView.m */; };
 		6E42272021C9920F00AD0771 /* Spectrum.mm in Sources */ = {isa = PBXBuildFile; fileRef = 6E42271E21C9920F00AD0771 /* Spectrum.mm */; };
 		6E6DF16E21503D6700089863 /* GeometryProvider.mm in Sources */ = {isa = PBXBuildFile; fileRef = 6E6DF16C21503D6700089863 /* GeometryProvider.mm */; };
@@ -36,6 +37,8 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		6E1AF3CE21FE5A400000B044 /* CameraController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CameraController.h; sourceTree = "<group>"; };
+		6E1AF3CF21FE5A400000B044 /* CameraController.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = CameraController.mm; sourceTree = "<group>"; };
 		6E27FBD821A9F0FB005108B3 /* RenderView.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = RenderView.h; sourceTree = "<group>"; };
 		6E27FBD921A9F0FB005108B3 /* RenderView.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = RenderView.m; sourceTree = "<group>"; };
 		6E42271D21C9917000AD0771 /* gpu-spectrum.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "gpu-spectrum.h"; sourceTree = "<group>"; };
@@ -173,8 +176,10 @@
 		6EC4F6C2214D90C5003A48EA /* source */ = {
 			isa = PBXGroup;
 			children = (
-				6EC853E2214DA5A3005418DF /* macOS */,
 				6EC853DD214DA332005418DF /* Shaders */,
+				6EC853E2214DA5A3005418DF /* macOS */,
+				6E1AF3CE21FE5A400000B044 /* CameraController.h */,
+				6E1AF3CF21FE5A400000B044 /* CameraController.mm */,
 				6EC2907521DD699A0018ED66 /* PathTracer.h */,
 				6EC2907321DD69990018ED66 /* PathTracer.mm */,
 				6EC2907221DD69990018ED66 /* ViewPathTracer.h */,
@@ -323,6 +328,7 @@
 				6EC4F6CB214D90C5003A48EA /* RenderViewController.mm in Sources */,
 				6E6DF16E21503D6700089863 /* GeometryProvider.mm in Sources */,
 				6E6DF3B521503E3700089863 /* imgui_draw.cpp in Sources */,
+				6E1AF3D021FE5A400000B044 /* CameraController.mm in Sources */,
 				6EC2907621DD699A0018ED66 /* PathTracer.mm in Sources */,
 				6EC4F6C5214D90C5003A48EA /* AppDelegate.mm in Sources */,
 				6EC2907721DD699A0018ED66 /* ViewPathTracer.mm in Sources */,
