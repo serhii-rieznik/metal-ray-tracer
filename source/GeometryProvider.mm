@@ -108,7 +108,7 @@ GeometryProvider::GeometryProvider(const char* fileName, id<MTLDevice> device)
         if (mtl.unknown_parameter.count("spectrum_Ke") > 0.0f)
         {
             std::string spd = mtl.unknown_parameter.at("spectrum_Ke");
-            material.emissive = loadSampledSpectrum("lights/" + spd, "spd", baseDir).toGPUSpectrum();
+            material.emissive = loadSampledSpectrum(spd, "spd", baseDir).toGPUSpectrum();
         }
 
         if (mtl.unknown_parameter.count("scale_Ke") > 0.0f)
@@ -125,7 +125,7 @@ GeometryProvider::GeometryProvider(const char* fileName, id<MTLDevice> device)
         if ((mtl.roughness == 0.0f) && (mtl.shininess > 0.0f))
         {
             material.roughness = (2.0f / (2.0f + mtl.shininess));
-            NSLog(@"Shininess remapped to roughness: %.3f -> %.3f", mtl.shininess, material.roughness);
+            NSLog(@" ++ shininess remapped to roughness: %.3f -> %.3f", mtl.shininess, material.roughness);
         }
         material.roughness = std::max(mtl.roughness, 0.005f);
 
@@ -385,6 +385,8 @@ SampledSpectrum GeometryProvider::loadSampledSpectrum(const std::string& materia
         wavelengths.emplace_back(wavelength);
         values.emplace_back(value);
     }
+
+    NSLog(@" ++ loaded spectrum from %s with %u samples", material.c_str(), uint32_t(values.size()));
 
     return SampledSpectrum::fromSamples(wavelengths.data(), values.data(), uint32_t(wavelengths.size()));
 }
